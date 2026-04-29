@@ -18,7 +18,7 @@ class Seller extends User {
         return rating;
     }
 
-    // 🔥 tạo sản phẩm
+    // tạo sản phẩm
      public Item createItem(ItemFactory factory, ItemData data) {
 
         // tạo item từ factory + dữ liệu
