@@ -1,6 +1,9 @@
 package com.auction.model;
 
-public abstract class Item extends Entity {
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public abstract class Item extends UserRole {
 
     protected String name;
     protected String description;//Mô tả
