@@ -1,29 +1,65 @@
 package com.auction.model;
 
 import com.auction.service.Observer;
+import com.auction.strategy.BiddingStrategy;
+import java.time.LocalDateTime;
 
-// Bidder kế thừa User VÀ triển khai interface Observer để nhận thông báo
+/**
+ * Bidder: Người tham gia đấu giá.
+ * Kế thừa User và triển khai Observer để nhận thông báo thời gian thực.
+ */
 public class Bidder extends User implements Observer {
-    private double balance; // Số dư tiền trong tài khoản (Thuộc tính riêng của người mua)
+    private double balance; // Số dư tài khoản
+    private BiddingStrategy strategy; // Chiến lược đặt giá
 
-    public Bidder(String id, String username, String email, double balance) {
-        super(id, username, email); // Gọi hàm khởi tạo của lớp cha (User)
+    public Bidder(String id, String fullName, String username, String email, String password, String phoneNumber, String gender, String dateOfBirth, LocalDateTime createdAt, boolean active, double balance) {
+        super(id, fullName, username, email, password, phoneNumber, gender, dateOfBirth, createdAt, active);
         this.balance = balance;
     }
 
-    // Hành động đặt giá
-    public void placeBid(double amount) {
-        System.out.println(">>> " + username + " quyết định đặt giá: " + amount + " VNĐ");
+    // Constructor rút gọn cho tạo mới
+    public Bidder(String fullName, String username, String email, String password, String gender, String dateOfBirth, double balance) {
+        super(fullName, username, email, password, gender, dateOfBirth);
+        this.balance = balance;
     }
 
-    // Phương thức bắt buộc phải có khi implement Observer
-    // Sẽ được gọi tự động khi phiên đấu giá có giá mới
     @Override
-    public void update(String message) {
-        System.out.println("[THÔNG BÁO tới " + username + "]: " + message);
+    public UserRole getRole() {
+        return UserRole.BIDDER;
+    }
+
+    @Override
+    public String getDashboardView() {
+        return "--- GIAO DIỆN NGƯỜI ĐẶT GIÁ ---";
+    }
+
+    public void placeBid(double amount) {
+        System.out.println(">>> " + getUsername() + " quyết định đặt giá: " + amount + " VNĐ");
+    }
+
+    @Override
+    public void update(String message, com.auction.service.Auction auction) {
+        System.out.println("[THÔNG BÁO tới " + getUsername() + "]: " + message);
+        
+        // Nếu có strategy và mình không phải là người đang giữ giá cao nhất
+        if (strategy != null && auction.isOngoing() && (auction.getWinner() == null || !auction.getWinner().equals(this))) {
+            strategy.placeBid(this, auction, 0);
+        }
+    }
+
+    public BiddingStrategy getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(BiddingStrategy strategy) {
+        this.strategy = strategy;
     }
 
     public double getBalance() {
         return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 }

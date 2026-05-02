@@ -1,33 +1,52 @@
 package com.auction.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-class Seller extends User {
+/**
+ * Seller: Người bán hàng.
+ */
+public class Seller extends User {
 
-    private double rating; // điểm uy tín
-    private List<Item> items; // danh sách sản phẩm đã tạo
+    private double rating; // Điểm uy tín
+    private List<Item> items; // Danh sách sản phẩm đã tạo
 
-    public Seller(String id, String username, String password, String email, double rating) {
-        super(id, username, password, email);
+    public Seller(String id, String fullName, String username, String email, String password, String phoneNumber, String gender, String dateOfBirth, LocalDateTime createdAt, boolean active, double rating) {
+        super(id, fullName, username, email, password, phoneNumber, gender, dateOfBirth, createdAt, active);
         this.rating = rating;
         this.items = new ArrayList<>();
+    }
+
+    public Seller(String fullName, String username, String email, String password, String gender, String dateOfBirth, double rating) {
+        super(fullName, username, email, password, gender, dateOfBirth);
+        this.rating = rating;
+        this.items = new ArrayList<>();
+    }
+
+    @Override
+    public UserRole getRole() {
+        return UserRole.SELLER;
+    }
+
+    @Override
+    public String getDashboardView() {
+        return "--- GIAO DIỆN NGƯỜI BÁN ---";
     }
 
     public double getRating() {
         return rating;
     }
 
-    // tạo sản phẩm
-     public Item createItem(ItemFactory factory, ItemData data) {
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
 
-        // tạo item từ factory + dữ liệu
+    // Tạo sản phẩm bằng Factory Pattern
+    public Item createItem(ItemFactory factory, ItemData data) {
         Item item = factory.createItem(data);
-
         items.add(item);
-
-        System.out.println(username + " đã tạo sản phẩm: " + item.getName());
-
+        System.out.println(getUsername() + " đã tạo sản phẩm: " + item.getName());
         return item;
     }
 
