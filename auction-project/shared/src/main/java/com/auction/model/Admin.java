@@ -1,5 +1,7 @@
 package com.auction.model;
 
+import com.auction.service.Auction;
+
 class Admin extends User {
 
     public Admin(String id, String username, String password, String email) {
