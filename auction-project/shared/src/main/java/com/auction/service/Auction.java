@@ -45,6 +45,10 @@ public class Auction implements Subject {
         }
     }
 
+    public Item getItem() {
+        return item;
+    }
+
     // --- LOGIC ĐẤU GIÁ ---
     public void placeNewBid(Bidder bidder, double amount) {
         if (!isOngoing) {
