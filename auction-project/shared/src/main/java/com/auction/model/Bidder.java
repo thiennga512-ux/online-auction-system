@@ -6,8 +6,8 @@ import com.auction.service.Observer;
 public class Bidder extends User implements Observer {
     private double balance; // Số dư tiền trong tài khoản (Thuộc tính riêng của người mua)
 
-    public Bidder(String id, String username, String email, double balance) {
-        super(id, username, email); // Gọi hàm khởi tạo của lớp cha (User)
+    public Bidder(String id, String username, String email, String password,double balance) {
+        super(id, username, email,password); // Gọi hàm khởi tạo của lớp cha (User)
         this.balance = balance;
     }
 
