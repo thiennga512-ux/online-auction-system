@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RegisterController">
+   <children>
+      <ImageView fitHeight="1000.0" fitWidth="1600.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <image>
+            <Image url="@../images/anhnenhethongdaugia.png" />
+         </image>
+      </ImageView>
+      <StackPane layoutX="209.0" layoutY="7.0" />
+      <VBox alignment="TOP_CENTER" layoutX="600.0" layoutY="164.0" prefHeight="500.0" prefWidth="400.0" spacing="30.0" style="-fx-background-color: rgba(255,255,255,0.8); -fx-padding: 30; -fx-background-radius: 10;">
+         <children>
+            <Label alignment="TOP_RIGHT" text="ĐĂNG KÝ TÀI KHOẢN">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtRegUsername" promptText="Tên đăng nhập:" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: 5; -fx-padding: 8; -fx-font-size: 14px;" />
+            <TextField fx:id="txtRegEmail" promptText="Email:" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: 5; -fx-padding: 8; -fx-font-size: 14px;" />
+            <PasswordField fx:id="txtRegPassword" promptText="Mật khẩu:" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: 5; -fx-padding: 8; -fx-font-size: 14px;" />
+            <PasswordField fx:id="txtRegConfirmPassword" promptText="Nhập lại mật khẩu:" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-border-color: 5; -fx-padding: 8; -fx-font-size: 14px;" />
+            <Button fx:id="btnRegister" mnemonicParsing="false" onAction="#handleRegisterAction" prefHeight="42.0" prefWidth="108.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20; -fx-font-size: 14px; -fx-cursor: hand;" text="ĐĂNG KÝ">
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </Button>
+            <Hyperlink fx:id="linkToLogin" onAction="#switchToLogin" prefHeight="24.0" prefWidth="209.0" style="-fx-text-fill: #2c3e50; -fx-font-size: 12px;" text="Đã có tài khoản?Quay lại đăng nhập." />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

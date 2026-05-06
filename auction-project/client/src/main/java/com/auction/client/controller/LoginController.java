@@ -29,8 +29,9 @@ public class LoginController {
     // Xử lý chuyển sang màn hình Đăng ký
     @FXML
     public void switchToRegister(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("Register.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/register.fxml"));
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Hệ Thống Đấu Giá - Đăng Ký");
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
