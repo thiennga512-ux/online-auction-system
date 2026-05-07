@@ -1,6 +1,5 @@
 package com.auction.server;
 
-import com.auction.server.db.DatabaseManager;
 import com.auction.model.*;
 import com.auction.service.Auction;
 import com.auction.strategy.*;

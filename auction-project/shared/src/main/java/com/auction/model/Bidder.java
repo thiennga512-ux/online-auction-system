@@ -1,5 +1,6 @@
 package com.auction.model;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,22 @@ public class Bidder extends User {
                   String passwordHash, String email, String fullName, boolean active, 
                   double balance, double frozenBalance, String shippingAddress) {
         super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
+=======
+import com.auction.service.Observer;
+import com.auction.strategy.BiddingStrategy;
+import java.time.LocalDateTime;
+
+/**
+ * Bidder: Người tham gia đấu giá.
+ * Kế thừa User và triển khai Observer để nhận thông báo thời gian thực.
+ */
+public class Bidder extends User implements Observer {
+    private double balance; // Số dư tài khoản
+    private BiddingStrategy strategy; // Chiến lược đặt giá
+
+    public Bidder(String id, String fullName, String username, String email, String password, String phoneNumber, String gender, String dateOfBirth, LocalDateTime createdAt, boolean active, double balance) {
+        super(id, fullName, username, email, password, phoneNumber, gender, dateOfBirth, createdAt, active);
+>>>>>>> e819ca10d6124354447960e56f54514b86f497ff
         this.balance = balance;
         this.frozenBalance = frozenBalance;
         this.shippingAddress = shippingAddress;
@@ -42,6 +59,18 @@ public class Bidder extends User {
         this.watchlist = new ArrayList<>();
         this.bidHistory = new ArrayList<>();
     }
+<<<<<<< HEAD
+    @Override
+    public UserRole getRole() {
+        return UserRole.BIDDER;
+=======
+
+    // Constructor rút gọn cho tạo mới
+    public Bidder(String fullName, String username, String email, String password, String gender, String dateOfBirth, double balance) {
+        super(fullName, username, email, password, gender, dateOfBirth);
+        this.balance = balance;
+    }
+
     @Override
     public UserRole getRole() {
         return UserRole.BIDDER;
@@ -49,8 +78,37 @@ public class Bidder extends User {
 
     @Override
     public String getDashboardView() {
+        return "--- GIAO DIỆN NGƯỜI ĐẶT GIÁ ---";
+    }
+
+    public void placeBid(double amount) {
+        System.out.println(">>> " + getUsername() + " quyết định đặt giá: " + amount + " VNĐ");
+    }
+
+    @Override
+    public void update(String message, com.auction.service.Auction auction) {
+        System.out.println("[THÔNG BÁO tới " + getUsername() + "]: " + message);
+        
+        // Nếu có strategy và mình không phải là người đang giữ giá cao nhất
+        if (strategy != null && auction.isOngoing() && (auction.getWinner() == null || !auction.getWinner().equals(this))) {
+            strategy.placeBid(this, auction, 0);
+        }
+    }
+
+    public BiddingStrategy getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(BiddingStrategy strategy) {
+        this.strategy = strategy;
+>>>>>>> e819ca10d6124354447960e56f54514b86f497ff
+    }
+
+    @Override
+    public String getDashboardView() {
         return "/views/bidder_dashboard.fxml";
     }
+<<<<<<< HEAD
     public void addBalance(double amount) {
         if (amount > 0) this.balance += amount;
     }
@@ -71,4 +129,10 @@ public class Bidder extends User {
     public List<AuctionSession> getOngoingAuctions() { return ongoingAuctions; }
     public List<AuctionSession> getWatchlist() { return watchlist; }
     public List<BidHistory> getBidHistory() { return bidHistory; }
+=======
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+>>>>>>> e819ca10d6124354447960e56f54514b86f497ff
 }
