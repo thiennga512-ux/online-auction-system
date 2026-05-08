@@ -1,7 +1,7 @@
-package com.auction.strategy;
+package com.auction.service.strategy;
 
 import com.auction.model.Bidder;
-import com.auction.service.Auction;
+import com.auction.service.auction.Auction;
 
 /**
  * AutoBiddingStrategy: Chiến lược đặt giá tự động.

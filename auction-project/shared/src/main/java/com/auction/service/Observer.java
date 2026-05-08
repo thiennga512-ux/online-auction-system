@@ -1,5 +1,7 @@
 package com.auction.service;
 
+import com.auction.service.auction.Auction;
+
 // ----------------------------------------
 
 // Design Pattern: OBSERVER (Người quan sát)

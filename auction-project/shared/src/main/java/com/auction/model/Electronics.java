@@ -1,7 +1,7 @@
 package com.auction.model;
 
 import java.time.LocalDateTime;
-import model.enums.ItemCategory;
+import com.auction.enums.ItemCategory;
 
 public class Electronics extends Item {
     

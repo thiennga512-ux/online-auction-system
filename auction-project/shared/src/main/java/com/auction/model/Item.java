@@ -1,9 +1,7 @@
 package com.auction.model;
 
-<<<<<<< HEAD
 import java.time.LocalDateTime;
-import com.auction.model.user.BaseEntity;
-import main.java.com.auction.model.enums.ItemCategory; 
+import com.auction.enums.ItemCategory; 
 
 public class Item extends BaseEntity {
     private String name;
@@ -18,19 +16,6 @@ public class Item extends BaseEntity {
     public Item(String name, String description, double startingPrice, 
                 double bidIncrement, String imageUrl, String sellerId, ItemCategory category) {
         super();
-=======
-/**
- * Lớp trừu tượng Item: Đại diện cho một vật phẩm được đem ra đấu giá.
- */
-public abstract class Item extends Entity {
-
-    protected String name;
-    protected String description; // Mô tả
-    protected double startingPrice; // Giá khởi điểm
-
-    public Item(String id, String name, String description, double startingPrice) {
-        super(id);
->>>>>>> e819ca10d6124354447960e56f54514b86f497ff
         this.name = name;
         this.description = description;
         this.startingPrice = startingPrice;
@@ -54,7 +39,6 @@ public abstract class Item extends Entity {
         this.category = category;
     }
 
-<<<<<<< HEAD
     @Override
     public void printInfo() {
         System.out.printf("[Sản phẩm] ID=%s | Tên: %s | Danh mục: %s | Giá khởi điểm: %.2f | Người bán ID: %s%n",
@@ -82,29 +66,4 @@ public abstract class Item extends Entity {
 
     public ItemCategory getCategory() { return category; }
     public void setCategory(ItemCategory category) { this.category = category; }
-=======
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getStartingPrice() {
-        return startingPrice;
-    }
-
-    public void setStartingPrice(double startingPrice) {
-        this.startingPrice = startingPrice;
-    }
-
-    // 🔥 POLYMORPHISM
-    // mỗi loại item tự định nghĩa cách in riêng
-    public abstract void printInfo();
->>>>>>> e819ca10d6124354447960e56f54514b86f497ff
 }
