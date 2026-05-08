@@ -1,4 +1,4 @@
-package main.java.com.auction.enums;
+package com.auction.enums;
 
 public enum ItemCategory {
     ART,

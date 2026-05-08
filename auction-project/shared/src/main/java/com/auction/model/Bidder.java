@@ -1,138 +1,126 @@
 package com.auction.model;
 
-<<<<<<< HEAD
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import model.enums.UserRole;
-import model.auction.AuctionSession; // Giả sử bạn đã có class này
-import model.auction.BidHistory;    // Giả sử bạn đã có class này
+import com.auction.enums.*;
+import com.auction.service.auction.*;
+
 
 public class Bidder extends User {
-    // 1. Thuộc tính tài chính
-    private double balance;         // Số dư khả dụng
-    private double frozenBalance;   // Số dư bị tạm khóa khi đang dẫn đầu đấu giá
+    private double balance;
+    private double frozenBalance;
     private String shippingAddress;
 
-    // 2. Thuộc tính danh sách (Chỉ chứa dữ liệu trên RAM)
-    private List<AuctionSession> ongoingAuctions; // Các phiên đang tham gia
-    private List<AuctionSession> watchlist;       // Danh sách quan tâm
-    private List<BidHistory> bidHistory;          // Lịch sử thắng/thua
+    // Lưu danh sách các phiên để truy xuất trạng thái thắng/thua
+    private List<AuctionSession> participatedAuctions; 
+    private List<String> watchlist;
 
-    // Constructor dùng cho Đăng ký mới (BaseEntity sẽ tự tạo UUID)
     public Bidder(String username, String passwordHash, String email, String fullName) {
         super(username, passwordHash, email, fullName, UserRole.BIDDER);
         this.balance = 0.0;
         this.frozenBalance = 0.0;
-        this.ongoingAuctions = new ArrayList<>();
+        this.participatedAuctions = new ArrayList<>();
         this.watchlist = new ArrayList<>();
-        this.bidHistory = new ArrayList<>();
     }
 
-    // Constructor dùng để nạp dữ liệu từ MySQL (Cần đầy đủ thông tin từ DB)
-    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updateAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, 
-                  double balance, double frozenBalance, String shippingAddress) {
-        super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
-=======
-import com.auction.service.Observer;
-import com.auction.strategy.BiddingStrategy;
-import java.time.LocalDateTime;
+    /**
+     * Phương thức để lấy ra các phiên đã kết thúc (Lịch sử)
+     */
+    public List<AuctionSession> getAuctionHistory() {
+        List<AuctionSession> history = new ArrayList<>();
+        for (AuctionSession session : participatedAuctions) {
+            // Nếu trạng thái không phải là OPEN hoặc RUNNING thì coi là lịch sử
+            if (session.getStatus() != AuctionStatus.OPEN && session.getStatus() != AuctionStatus.RUNNING) {
+                history.add(session);
+            }
+        }
+        return history;
+    }
 
-/**
- * Bidder: Người tham gia đấu giá.
- * Kế thừa User và triển khai Observer để nhận thông báo thời gian thực.
- */
-public class Bidder extends User implements Observer {
-    private double balance; // Số dư tài khoản
-    private BiddingStrategy strategy; // Chiến lược đặt giá
+    // ============================================================
+    // GETTERS & SETTERS
+    // ============================================================
 
-    public Bidder(String id, String fullName, String username, String email, String password, String phoneNumber, String gender, String dateOfBirth, LocalDateTime createdAt, boolean active, double balance) {
-        super(id, fullName, username, email, password, phoneNumber, gender, dateOfBirth, createdAt, active);
->>>>>>> e819ca10d6124354447960e56f54514b86f497ff
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public double getFrozenBalance() {
+        return frozenBalance;
+    }
+
+    public void setFrozenBalance(double frozenBalance) {
         this.frozenBalance = frozenBalance;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
         this.shippingAddress = shippingAddress;
-        
-        // Các danh sách này thường sẽ được nạp riêng thông qua Service/Repository
-        this.ongoingAuctions = new ArrayList<>();
-        this.watchlist = new ArrayList<>();
-        this.bidHistory = new ArrayList<>();
-    }
-<<<<<<< HEAD
-    @Override
-    public UserRole getRole() {
-        return UserRole.BIDDER;
-=======
-
-    // Constructor rút gọn cho tạo mới
-    public Bidder(String fullName, String username, String email, String password, String gender, String dateOfBirth, double balance) {
-        super(fullName, username, email, password, gender, dateOfBirth);
-        this.balance = balance;
     }
 
-    @Override
-    public UserRole getRole() {
-        return UserRole.BIDDER;
+    public List<AuctionSession> getParticipatedAuctions() {
+        return participatedAuctions;
     }
 
-    @Override
-    public String getDashboardView() {
-        return "--- GIAO DIỆN NGƯỜI ĐẶT GIÁ ---";
+    public void setParticipatedAuctions(List<AuctionSession> participatedAuctions) {
+        this.participatedAuctions = participatedAuctions;
     }
 
-    public void placeBid(double amount) {
-        System.out.println(">>> " + getUsername() + " quyết định đặt giá: " + amount + " VNĐ");
+    public List<String> getWatchlist() {
+        return watchlist;
     }
 
-    @Override
-    public void update(String message, com.auction.service.Auction auction) {
-        System.out.println("[THÔNG BÁO tới " + getUsername() + "]: " + message);
-        
-        // Nếu có strategy và mình không phải là người đang giữ giá cao nhất
-        if (strategy != null && auction.isOngoing() && (auction.getWinner() == null || !auction.getWinner().equals(this))) {
-            strategy.placeBid(this, auction, 0);
+    public void setWatchlist(List<String> watchlist) {
+        this.watchlist = watchlist;
+    }
+
+    // ============================================================
+    // CONVENIENCE METHODS (Các phương thức tiện ích)
+    // ============================================================
+
+    /**
+     * Thêm một phiên vào danh sách đã tham gia (nếu chưa có)
+     */
+    public void addParticipatedAuction(AuctionSession session) {
+        if (!participatedAuctions.contains(session)) {
+            participatedAuctions.add(session);
         }
     }
 
-    public BiddingStrategy getStrategy() {
-        return strategy;
+    /**
+     * Thêm mã sản phẩm vào danh sách quan tâm
+     */
+    public void addToWatchlist(String itemId) {
+        if (!watchlist.contains(itemId)) {
+            watchlist.add(itemId);
+        }
     }
 
-    public void setStrategy(BiddingStrategy strategy) {
-        this.strategy = strategy;
->>>>>>> e819ca10d6124354447960e56f54514b86f497ff
-    }
-
-    @Override
-    public String getDashboardView() {
-        return "/views/bidder_dashboard.fxml";
-    }
-<<<<<<< HEAD
     public void addBalance(double amount) {
-        if (amount > 0) this.balance += amount;
+        if (amount > 0) {
+            this.balance += amount;
+        }
     }
 
     public boolean canAfford(double amount) {
         return this.balance >= amount;
     }
 
-    public double getBalance() { return balance; }
-    public void setBalance(double balance) { this.balance = balance; }
-
-    public double getFrozenBalance() { return frozenBalance; }
-    public void setFrozenBalance(double frozenBalance) { this.frozenBalance = frozenBalance; }
-
-    public String getShippingAddress() { return shippingAddress; }
-    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
-
-    public List<AuctionSession> getOngoingAuctions() { return ongoingAuctions; }
-    public List<AuctionSession> getWatchlist() { return watchlist; }
-    public List<BidHistory> getBidHistory() { return bidHistory; }
-=======
-
-    public void setBalance(double balance) {
-        this.balance = balance;
+    @Override
+    public UserRole getRole() {
+        
+        return UserRole.BIDDER;
     }
->>>>>>> e819ca10d6124354447960e56f54514b86f497ff
+
+    @Override
+    public String getDashboardView() {
+        return "/views/bidder_dashboard.fxml";
+    }
 }
