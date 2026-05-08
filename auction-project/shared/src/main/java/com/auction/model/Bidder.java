@@ -2,9 +2,9 @@ package com.auction.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 import com.auction.enums.*;
 import com.auction.service.auction.*;
-
 
 public class Bidder extends User {
     private double balance;
@@ -15,6 +15,7 @@ public class Bidder extends User {
     private List<AuctionSession> participatedAuctions; 
     private List<String> watchlist;
 
+    // CONSTRUCTOR 1: Đăng ký mới
     public Bidder(String username, String passwordHash, String email, String fullName) {
         super(username, passwordHash, email, fullName, UserRole.BIDDER);
         this.balance = 0.0;
@@ -23,22 +24,20 @@ public class Bidder extends User {
         this.watchlist = new ArrayList<>();
     }
 
-    /**
-     * Phương thức để lấy ra các phiên đã kết thúc (Lịch sử)
-     */
-    public List<AuctionSession> getAuctionHistory() {
-        List<AuctionSession> history = new ArrayList<>();
-        for (AuctionSession session : participatedAuctions) {
-            // Nếu trạng thái không phải là OPEN hoặc RUNNING thì coi là lịch sử
-            if (session.getStatus() != AuctionStatus.OPEN && session.getStatus() != AuctionStatus.RUNNING) {
-                history.add(session);
-            }
-        }
-        return history;
+    // CONSTRUCTOR 2: Load từ Database 
+    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username, 
+                  String passwordHash, String email, String fullName, boolean active, 
+                  double balance, double frozenBalance, String shippingAddress) {
+        super(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
+        this.balance = balance;
+        this.frozenBalance = frozenBalance;
+        this.shippingAddress = shippingAddress;
+        this.participatedAuctions = new ArrayList<>();
+        this.watchlist = new ArrayList<>();
     }
 
     // ============================================================
-    // GETTERS & SETTERS
+    // GETTERS & SETTERS (Đầy đủ cho các thuộc tính)
     // ============================================================
 
     public double getBalance() {
@@ -82,26 +81,8 @@ public class Bidder extends User {
     }
 
     // ============================================================
-    // CONVENIENCE METHODS (Các phương thức tiện ích)
+    // LOGIC NGHIỆP VỤ (Business Logic)
     // ============================================================
-
-    /**
-     * Thêm một phiên vào danh sách đã tham gia (nếu chưa có)
-     */
-    public void addParticipatedAuction(AuctionSession session) {
-        if (!participatedAuctions.contains(session)) {
-            participatedAuctions.add(session);
-        }
-    }
-
-    /**
-     * Thêm mã sản phẩm vào danh sách quan tâm
-     */
-    public void addToWatchlist(String itemId) {
-        if (!watchlist.contains(itemId)) {
-            watchlist.add(itemId);
-        }
-    }
 
     public void addBalance(double amount) {
         if (amount > 0) {
@@ -113,9 +94,30 @@ public class Bidder extends User {
         return this.balance >= amount;
     }
 
+    public List<AuctionSession> getAuctionHistory() {
+        List<AuctionSession> history = new ArrayList<>();
+        for (AuctionSession session : participatedAuctions) {
+            if (session.getStatus() != AuctionStatus.OPEN && session.getStatus() != AuctionStatus.RUNNING) {
+                history.add(session);
+            }
+        }
+        return history;
+    }
+
+    public void addParticipatedAuction(AuctionSession session) {
+        if (!participatedAuctions.contains(session)) {
+            participatedAuctions.add(session);
+        }
+    }
+
+    public void addToWatchlist(String itemId) {
+        if (!watchlist.contains(itemId)) {
+            watchlist.add(itemId);
+        }
+    }
+
     @Override
     public UserRole getRole() {
-        
         return UserRole.BIDDER;
     }
 

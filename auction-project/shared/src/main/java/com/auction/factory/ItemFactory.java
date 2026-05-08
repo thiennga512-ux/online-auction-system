@@ -1,4 +1,6 @@
-package com.auction.model;
+package com.auction.factory;
+
+import com.auction.model.Item;
 
 /**
  * Interface ItemFactory: Định nghĩa khuôn mẫu để tạo các loại Item khác nhau.
