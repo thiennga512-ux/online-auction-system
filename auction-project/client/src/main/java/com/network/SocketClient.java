@@ -6,6 +6,17 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import com.auction.network.Request;
 import com.auction.network.Response;
+/* class client - quan ly ket noi mang cho lcient
+nhiem vu : 
+ 1. Duy trì kết nối TCP Socket đến Server.
+ * 2. Lắng nghe Response từ Server liên tục trên một Background Thread
+ *    để không làm "đơ" giao diện (UI Thread).
+ * 3. Serialize/Deserialize gói tin JSON sử dụng Gson.
+ *
+ * Áp dụng Callback Pattern:
+ * Khi nhận được Response, nó sẽ gọi `onResponseReceived.accept(response)`
+ * và dùng `Platform.runLater()` để cập nhật lên UI một cách an toàn.
+ */
 public class SocketClient {
 
   private static final String HOST = "127.0.0.1";
@@ -126,7 +137,7 @@ public class SocketClient {
             Response response = Response.fromJson(line);
             
             // Chuyển việc cập nhật UI sang JavaFX Application Thread
-            Platform.runLater(() -> {
+            
               for (Consumer<Response> listener : listeners) {
                 try {
                   listener.accept(response);
@@ -134,7 +145,7 @@ public class SocketClient {
                   e.printStackTrace();
                 }
               }
-            });
+            ;
             
           } catch (Exception e) {
             System.err.println("[Client] Lỗi parse JSON từ Server: " + line + " | " + e.getMessage());

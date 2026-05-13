@@ -35,12 +35,15 @@ public class AuctionBroadcaster {
     public void broadcastToSession(String sessionId,Response eventResponse){
         List<ClientObserver> list = sessionSubscribers.get(sessionId);
         if(list != null && !list.isEmpty()){
-            for(ClientObserver oberser: list){
+            for(ClientObserver observer: list){
                 try{
                     observer.onUpdate(eventResponse);
 
+                }catch(Exception e){
+                    System.err.println("[Broadcaster] Lỗi khi gửi update đến user "+ observer.getUserId()+ ": " + e.getMessage());
                 }
             }
+            System.out.println("[Broadcaster] Đã broadcast tới " + list.size() + " client cho phiên " + sessionId.substring(0, 8));
         }
     }
 }
