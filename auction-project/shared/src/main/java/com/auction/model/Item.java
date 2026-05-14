@@ -66,4 +66,14 @@ public class Item extends BaseEntity {
 
     public ItemCategory getCategory() { return category; }
     public void setCategory(ItemCategory category) { this.category = category; }
+
+    public boolean isBidValid(double currentPrice, double proposedBid) {
+    return proposedBid >= currentPrice + bidIncrement;
+  }
+
+    public boolean isAvailable() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isAvailable'");
+    }
+
 }

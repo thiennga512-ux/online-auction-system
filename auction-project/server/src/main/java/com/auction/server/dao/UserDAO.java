@@ -1,11 +1,11 @@
 package com.auction.server.dao;
 
-import com.auction.common.factory.UserFactory;
-import com.auction.common.model.user.Admin;
-import com.auction.common.model.user.Bidder;
-import com.auction.common.model.user.Seller;
-import com.auction.common.model.user.User;
-import com.auction.common.model.user.UserRole;
+import com.auction.factory.UserFactory;
+import com.auction.model.Admin;
+import com.auction.model.Bidder;
+import com.auction.model.Seller;
+import com.auction.model.User;
+import com.auction.enums.UserRole;
 import com.auction.server.database.DatabaseManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,8 +42,9 @@ import java.util.Optional;
  */
 public class UserDAO {
 
-  /** Lấy connection qua Singleton DatabaseManager */
-  private Connection getConnection() {
+  /** Lấy connection qua Singleton DatabaseManager 
+   * @throws SQLException */
+  private Connection getConnection() throws SQLException {
     return DatabaseManager.getInstance().getConnection();
   }
 
@@ -59,7 +60,7 @@ public class UserDAO {
    *   Thay vì: "INSERT INTO users VALUES('" + id + "', ...)" — NGUY HIỂM!
    *   Dùng:    "INSERT INTO users VALUES(?, ?, ...)"
    *   → Dấu ? = placeholder, giá trị được truyền riêng biệt
-   *   → SQLite tự escape → không bị SQL Injection
+   *   → MySQL/JDBC tự escape → không bị SQL Injection
    *
    * @param user User cần lưu (Admin, Seller, hoặc Bidder)
    * @throws SQLException nếu lỗi database
@@ -68,7 +69,7 @@ public class UserDAO {
     // Bước 1: Insert vào bảng users (thông tin chung)
     String sql = """
         INSERT INTO users (id, full_name, username, email, password_hash,
-                           phone_number, gender, date_of_birth, created_at, active, role)
+                           phone_number, created_at, active, role)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
@@ -79,11 +80,9 @@ public class UserDAO {
       ps.setString(4, user.getEmail());
       ps.setString(5, user.getPasswordHash());
       ps.setString(6, user.getPhoneNumber());
-      ps.setString(7, user.getGender());
-      ps.setString(8, user.getDateOfBirth());
-      ps.setString(9, user.getCreatedAt().toString()); // LocalDateTime → String ISO
-      ps.setInt(10, user.isActive() ? 1 : 0);           // boolean → 1/0 (SQLite không có BOOLEAN)
-      ps.setString(11, user.getRole().name());
+      ps.setString(7, user.getCreatedAt().toString()); // LocalDateTime → String ISO
+      ps.setBoolean(8, user.isActive());               // boolean tự động map với TINYINT(1) trong MySQL
+      ps.setString(9, user.getRole().name());
       ps.executeUpdate();
     }
 
@@ -97,10 +96,9 @@ public class UserDAO {
 
   /** Lưu thông tin chi tiết của Admin */
   private void saveAdminDetails(Admin admin) throws SQLException {
-    String sql = "INSERT INTO admin_details (user_id, admin_notes) VALUES (?, ?)";
+    String sql = "INSERT INTO admin_details (user_id, admin_notes) VALUES (?)";
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, admin.getId());
-      ps.setString(2, admin.getAdminNotes() != null ? admin.getAdminNotes() : "");
       ps.executeUpdate();
     }
   }
@@ -113,8 +111,7 @@ public class UserDAO {
         """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, seller.getId());
-      ps.setString(2, seller.getShopName());
-      ps.setString(3, seller.getCitizenId());
+
       ps.setDouble(4, seller.getRating());
       ps.setInt(5, seller.getRatingCount());
       ps.setDouble(6, seller.getBalance());
@@ -288,7 +285,7 @@ public class UserDAO {
       ps.setString(4, user.getPhoneNumber());
       ps.setString(5, user.getGender());
       ps.setString(6, user.getDateOfBirth());
-      ps.setInt(7, user.isActive() ? 1 : 0);
+      ps.setBoolean(7, user.isActive());
       ps.setString(8, user.getId());
       ps.executeUpdate();
     }
@@ -345,7 +342,7 @@ public class UserDAO {
   public void setActive(String userId, boolean active) throws SQLException {
     String sql = "UPDATE users SET active = ? WHERE id = ?";
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-      ps.setInt(1, active ? 1 : 0);
+      ps.setBoolean(1, active);
       ps.setString(2, userId);
       ps.executeUpdate();
     }
@@ -400,7 +397,7 @@ public class UserDAO {
     String gender = rs.getString("gender");
     String dateOfBirth = rs.getString("date_of_birth");
     LocalDateTime createdAt = LocalDateTime.parse(rs.getString("created_at"));
-    boolean active = rs.getInt("active") == 1;
+    boolean active = rs.getBoolean("active");
     String role = rs.getString("role");
 
     // Dùng UserFactory để tạo đúng subclass dựa trên role

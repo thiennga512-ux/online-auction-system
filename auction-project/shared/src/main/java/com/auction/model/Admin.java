@@ -42,4 +42,9 @@ public class Admin extends User {
         System.out.printf("[QUẢN TRỊ VIÊN] ID=%s | Tên: %s | Email: %s%n", 
                           getId(), getFullName(), getEmail());
     }
+
+    @Override
+    public String getUsername() {
+        throw new UnsupportedOperationException("Unimplemented method 'getUsername'");
+    }
 }

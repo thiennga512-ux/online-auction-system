@@ -125,4 +125,9 @@ public class Bidder extends User {
     public String getDashboardView() {
         return "/views/bidder_dashboard.fxml";
     }
+
+    public int getTotalBidsPlaced() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getTotalBidsPlaced'");
+    }
 }
