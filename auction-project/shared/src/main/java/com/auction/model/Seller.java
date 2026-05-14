@@ -53,4 +53,9 @@ public class Seller extends User {
     }
     public List<AuctionSession> getRegistrationHistory() { return registrationHistory; }
     public List<AuctionSession> getSoldHistory() { return soldHistory; }
+
+    public int getRatingCount() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getRatingCount'");
+    }
 }

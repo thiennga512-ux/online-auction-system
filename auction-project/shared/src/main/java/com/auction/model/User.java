@@ -45,4 +45,5 @@ public abstract class User extends BaseEntity {
   public boolean isActive() { return active; }
   public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
   public void setActive(boolean active) { this.active = active; }
+  public abstract String getUsername();
 }

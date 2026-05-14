@@ -162,4 +162,8 @@ public class AuctionSession {
     public void setApprovedByAdminId(String approvedByAdminId) {
         this.approvedByAdminId = approvedByAdminId;
     }
+
+     public void loadBids(List<Bid> bidsFromDb) {
+    this.bids.addAll(bidsFromDb);
+  }
 }

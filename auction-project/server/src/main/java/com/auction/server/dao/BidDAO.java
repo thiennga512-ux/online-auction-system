@@ -1,6 +1,6 @@
 package com.auction.server.dao;
 
-import com.auction.common.model.auction.Bid;
+import com.auction.service.auction.Bid;
 import com.auction.server.database.DatabaseManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class BidDAO {
 
-  private Connection getConnection() {
+  private Connection getConnection() throws SQLException {
     return DatabaseManager.getInstance().getConnection();
   }
 
