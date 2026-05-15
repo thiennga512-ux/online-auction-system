@@ -154,4 +154,18 @@ public class ItemDAO {
             ps.executeUpdate();
         }
     }
+
+    public List<Item> getItemsBySeller(String sellerId) throws SQLException {
+        List<Item> items = new ArrayList<>();
+        String sql = "SELECT * FROM items WHERE seller_id = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, sellerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    items.add(mapRowToItem(rs));
+                }
+            }
+        }
+        return items;
+    }
 }
