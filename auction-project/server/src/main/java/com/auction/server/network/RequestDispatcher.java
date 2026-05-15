@@ -4,5 +4,5 @@ package com.auction.server.network;
 nhan request -> phan tich actionType -> goi dung service -> tra ve response
 logic nghiep vu o service , dispatcher lam nhiem vu trung chuyen du lieu */
 public class RequestDispatcher {
-    private final UserSer
+    // private final UserSer
 }

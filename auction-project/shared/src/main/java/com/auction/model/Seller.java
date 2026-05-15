@@ -8,12 +8,15 @@ import com.auction.service.auction.AuctionSession;
 
 public class Seller extends User {
     // 1. Thuộc tính tài chính
-    private double balance; // Doanh thu thực nhận sau khi trừ hoa hồng
+    private double balance; 
 
     // 2. Thuộc tính danh sách quản lý bán hàng
     private List<AuctionSession> registrationHistory; 
     private List<AuctionSession> soldHistory;         
     private double rating;
+    private int ratingCount;
+    private String shopName;
+    private String citizenId;
     
     // Constructor cho đăng ký mới
     public Seller(String username, String passwordHash, String email, String fullName,double rating) {
@@ -22,16 +25,18 @@ public class Seller extends User {
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
         this.rating=0.0;
+        this.ratingCount=0;
     }
 
     // Constructor nạp dữ liệu từ MySQL
     public Seller(String id, LocalDateTime createdAt, LocalDateTime updateAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, double balance,double rating) {
+                  String passwordHash, String email, String fullName, boolean active, double balance,double rating, int ratingCount) {
         super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.SELLER, active);
         this.balance = balance;
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
         this.rating=rating;
+        this.ratingCount=ratingCount;
     }
 
     @Override
@@ -51,11 +56,18 @@ public class Seller extends User {
     public void setRating(double rating){
         this.rating=rating;
     }
+    public int getRatingCount(){
+        return ratingCount;
+    }
+    public void setRatingCount(int ratingCount){
+        this.ratingCount=ratingCount;
+    }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
+    public String getCitizenId() { return citizenId; }
+    public void setCitizenId(String citizenId) { this.citizenId = citizenId; }
+
     public List<AuctionSession> getRegistrationHistory() { return registrationHistory; }
     public List<AuctionSession> getSoldHistory() { return soldHistory; }
 
-    public int getRatingCount() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRatingCount'");
-    }
 }

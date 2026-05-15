@@ -84,6 +84,11 @@ public class Dto {
       double balance // Dùng chung cho deposit (Bidder) hoặc balance (Seller)
   ) {}
 
+  /** Trả về số dư mới sau khi nạp tiền hoặc đồng bộ */
+  public record DepositResultResponse(
+      double newBalance
+  ) {}
+
   public record ItemResponse(
       String id,
       String name,

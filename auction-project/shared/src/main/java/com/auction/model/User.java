@@ -31,12 +31,14 @@ public abstract class User extends BaseEntity {
   }
   public abstract UserRole getRole();
   public abstract String getDashboardView();
+
   @Override
-   public void printInfo() {
-        System.out.printf("[%s] ID=%d | %s (%s) | Email: %s | Trạng thái: %s%n",
-                role, getId(), fullName, username, email,
-                active ? "Hoạt động" : "Bị khóa");
-    }
+  public void printInfo() {
+      System.out.printf("[%s] ID=%s | %s (%s) | Email: %s | Trạng thái: %s%n",
+              role, getId(), fullName, username, email,
+              active ? "Hoạt động" : "Bị khóa");
+  }
+  
   public String getFullName() { return fullName; }
   public String getEmail() { return email; }
   public String getPasswordHash() { return passwordHash; }
@@ -45,5 +47,5 @@ public abstract class User extends BaseEntity {
   public boolean isActive() { return active; }
   public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
   public void setActive(boolean active) { this.active = active; }
-  public abstract String getUsername();
+  public String getUsername() { return username; }
 }

@@ -27,9 +27,6 @@ public abstract class BaseEntity {
     public LocalDateTime getupdateAt(){
         return updateAt;
     }
-    public void touch(){
-        this.updateAt=LocalDateTime.now();
-    }
     public boolean equals(Object obj){
         if(this==obj) return true;
         if(obj==null|| getClass()!=obj.getClass()) return false;
