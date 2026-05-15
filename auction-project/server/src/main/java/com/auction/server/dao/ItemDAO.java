@@ -17,10 +17,10 @@ public class ItemDAO {
     // --- CREATE ---
     public void save(Item item) throws SQLException {
         String sql = """
-            INSERT INTO items 
-            (id, name, description, base_price, min_increment, seller_id, category, image_url, available, listed_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO items
+                (id, name, description, base_price, min_increment, seller_id, category, image_url, available, listed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, item.getId());
             ps.setString(2, item.getName());
@@ -30,7 +30,7 @@ public class ItemDAO {
             ps.setString(6, item.getSellerId());
             ps.setString(7, item.getCategory().name());
             ps.setString(8, item.getImageUrl());
-            ps.setInt(9, item.isAvailable() ? 1 : 0);
+            ps.setInt(9, item.isvailable() ? 1 : 0);
             ps.setString(10, item.getcreatedAt().toString());
             ps.executeUpdate();
         }
@@ -39,7 +39,7 @@ public class ItemDAO {
             case ELECTRONICS -> saveElectronicsDetails((Electronics) item);
             case ART -> saveArtDetails((Art) item);
             case VEHICLE -> saveVehicleDetails((Vehicle) item);
-          default -> throw new IllegalArgumentException("Unexpected value: " + item.getCategory());
+            default -> throw new IllegalArgumentException("Unexpected value: " + item.getCategory());
         }
     }
 
@@ -85,7 +85,8 @@ public class ItemDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return Optional.of(mapRowToItem(rs));
+                if (rs.next())
+                    return Optional.of(mapRowToItem(rs));
             }
         }
         return Optional.empty();
@@ -101,9 +102,9 @@ public class ItemDAO {
         ItemCategory category = ItemCategory.valueOf(rs.getString("category"));
         String imgUrl = rs.getString("image_url");
         LocalDateTime createdAt = LocalDateTime.parse(rs.getString("listed_at"));
-        
+
         // Giả sử updatedAt lấy từ DB hoặc dùng tạm createdAt nếu chưa có cột riêng
-        LocalDateTime updatedAt = createdAt; 
+        LocalDateTime updatedAt = createdAt;
 
         Map<String, Object> extraData = new HashMap<>();
 
@@ -112,7 +113,7 @@ public class ItemDAO {
             case ELECTRONICS -> "SELECT * FROM electronics_details WHERE item_id = ?";
             case ART -> "SELECT * FROM art_details WHERE item_id = ?";
             case VEHICLE -> "SELECT * FROM vehicle_details WHERE item_id = ?";
-          default -> throw new IllegalArgumentException("Unexpected value: " + category);
+            default -> throw new IllegalArgumentException("Unexpected value: " + category);
         };
 
         try (PreparedStatement ps = getConnection().prepareStatement(detailSql)) {
@@ -140,6 +141,17 @@ public class ItemDAO {
         }
 
         // GỌI FACTORY ĐỂ TẠO OBJECT
-        return ItemFactory.reconstructFromDb(category, id, createdAt, updatedAt, name, description, basePrice, minInc, imgUrl, sellerId, extraData);
+        return ItemFactory.reconstructFromDb(category, id, createdAt, updatedAt, name, description, basePrice, minInc,
+                imgUrl, sellerId, extraData);
+    }
+
+    // --- UPDATE ---
+    public void updateStatus(String itemId, boolean available) throws SQLException {
+        String sql = "UPDATE items SET available = ? WHERE id = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, available ? 1 : 0);
+            ps.setString(2, itemId);
+            ps.executeUpdate();
+        }
     }
 }

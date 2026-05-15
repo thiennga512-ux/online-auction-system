@@ -56,10 +56,10 @@ public class UserFactory {
      */
     public static Seller rebuildSeller(String id, LocalDateTime createdAt, LocalDateTime updatedAt, 
                                        String username, String passwordHash, String email, String fullName, 
-                                       boolean active, double balance, double rating) {
-        return new Seller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, rating);
+                                       boolean active, double balance, double rating, int ratingCount) {
+        return new Seller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, rating,ratingCount);
     }
-
+    
     /**
      * Tái tạo đối tượng Admin từ DB.
      */
@@ -74,13 +74,13 @@ public class UserFactory {
      */
     public static User reconstruct(String roleStr, String id, LocalDateTime createdAt, LocalDateTime updatedAt, 
                                    String username, String passwordHash, String email, String fullName, 
-                                   boolean active, double balance, double frozenBalance, String address, double rating) {
+                                   boolean active, double balance, double frozenBalance, String address, double rating, int ratingCount) {
         
         UserRole role = UserRole.fromString(roleStr);
         
         return switch (role) {
             case ADMIN -> rebuildAdmin(id, createdAt, updatedAt, username, passwordHash, email, fullName, active);
-            case SELLER -> rebuildSeller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, rating);
+            case SELLER -> rebuildSeller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, rating, ratingCount);
             case BIDDER -> rebuildBidder(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, frozenBalance, address);
         };
     }

@@ -26,25 +26,10 @@ public class Admin extends User {
         return "/views/admin_dashboard.fxml";
     }
 
-    /**
-     * Lưu ý: Các phương thức dưới đây nên được triển khai logic thực tế trong AdminService.
-     * Ở đây chúng ta định nghĩa các quyền hạn đặc trưng của Admin.
-     */
-
-    // 1. Quyền khóa/mở tài khoản người dùng
-    // Admin sẽ thay đổi trạng thái 'active' của bất kỳ User nào
-    public void toggleUserStatus(User targetUser) {
-        targetUser.setActive(!targetUser.isActive());
-    }
-
     @Override
     public void printInfo() {
         System.out.printf("[QUẢN TRỊ VIÊN] ID=%s | Tên: %s | Email: %s%n", 
                           getId(), getFullName(), getEmail());
     }
 
-    @Override
-    public String getUsername() {
-        throw new UnsupportedOperationException("Unimplemented method 'getUsername'");
-    }
 }

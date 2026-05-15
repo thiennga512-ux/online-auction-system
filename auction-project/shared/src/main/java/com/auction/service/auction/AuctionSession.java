@@ -5,7 +5,6 @@ package com.auction.service.auction;
 import com.auction.model.*;
 import com.auction.enums.AuctionStatus;
 import java.time.LocalDateTime;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -75,37 +74,6 @@ public class AuctionSession {
         this.bids = new ArrayList<>();
     }
 
-    public synchronized void placeBid(Bid bid) {
-        if (status != AuctionStatus.OPEN && status != AuctionStatus.RUNNING) {
-            throw new IllegalStateException("Phiên đấu giá đã dừng hoặc kết thúc: " + status.getDisplayName());
-        }
-
-        double minRequired = currentPrice + item.getBidIncrement();
-        if (bid.getAmount() < minRequired) {
-            throw new IllegalArgumentException(
-                String.format("Giá %.0f quá thấp. Tối thiểu: %.0f VND", bid.getAmount(), minRequired));
-        }
-
-        applyAntiSniping(bid.getTimestamp());
-
-        this.currentPrice = bid.getAmount();
-        this.currentWinnerId = bid.getBidderId();
-        this.currentWinnerName = bid.getBidderName();
-        this.bids.add(bid);
-        
-        if (this.status == AuctionStatus.OPEN) {
-            this.status = AuctionStatus.RUNNING;
-        }
-    }
-
-    private void applyAntiSniping(LocalDateTime bidTime) {
-        if (antiSnipingSeconds <= 0) return;
-        long secondsUntilEnd = Duration.between(bidTime, actualEndTime).getSeconds();
-        if (secondsUntilEnd >= 0 && secondsUntilEnd <= antiSnipingSeconds) {
-            this.actualEndTime = bidTime.plusSeconds(antiSnipingSeconds);
-        }
-    }
-
     // ============================================================
     // FULL GETTERS 
     // ============================================================
@@ -153,6 +121,22 @@ public class AuctionSession {
 
     public void setStatus(AuctionStatus status) { 
         this.status = status; 
+    }
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public void setCurrentWinnerId(String currentWinnerId) {
+        this.currentWinnerId = currentWinnerId;
+    }
+
+    public void setCurrentWinnerName(String currentWinnerName) {
+        this.currentWinnerName = currentWinnerName;
+    }
+
+    public void setActualEndTime(LocalDateTime actualEndTime) {
+        this.actualEndTime = actualEndTime;
     }
 
     public void setAdminNote(String adminNote) {

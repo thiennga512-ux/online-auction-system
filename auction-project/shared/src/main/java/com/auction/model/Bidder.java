@@ -12,7 +12,7 @@ public class Bidder extends User {
     private String shippingAddress;
 
     // Lưu danh sách các phiên để truy xuất trạng thái thắng/thua
-    private List<AuctionSession> participatedAuctions; 
+    private List<AuctionSession> participatedAuctions;
     private List<String> watchlist;
 
     // CONSTRUCTOR 1: Đăng ký mới
@@ -24,10 +24,10 @@ public class Bidder extends User {
         this.watchlist = new ArrayList<>();
     }
 
-    // CONSTRUCTOR 2: Load từ Database 
-    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, 
-                  double balance, double frozenBalance, String shippingAddress) {
+    // CONSTRUCTOR 2: Load từ Database
+    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username,
+            String passwordHash, String email, String fullName, boolean active,
+            double balance, double frozenBalance, String shippingAddress) {
         super(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
         this.balance = balance;
         this.frozenBalance = frozenBalance;
@@ -76,44 +76,12 @@ public class Bidder extends User {
         return watchlist;
     }
 
-    public void setWatchlist(List<String> watchlist) {
+    public void setWatchlist1(List<String> watchlist) {
         this.watchlist = watchlist;
     }
 
-    // ============================================================
-    // LOGIC NGHIỆP VỤ (Business Logic)
-    // ============================================================
-
-    public void addBalance(double amount) {
-        if (amount > 0) {
-            this.balance += amount;
-        }
-    }
-
-    public boolean canAfford(double amount) {
-        return this.balance >= amount;
-    }
-
-    public List<AuctionSession> getAuctionHistory() {
-        List<AuctionSession> history = new ArrayList<>();
-        for (AuctionSession session : participatedAuctions) {
-            if (session.getStatus() != AuctionStatus.OPEN && session.getStatus() != AuctionStatus.RUNNING) {
-                history.add(session);
-            }
-        }
-        return history;
-    }
-
-    public void addParticipatedAuction(AuctionSession session) {
-        if (!participatedAuctions.contains(session)) {
-            participatedAuctions.add(session);
-        }
-    }
-
-    public void addToWatchlist(String itemId) {
-        if (!watchlist.contains(itemId)) {
-            watchlist.add(itemId);
-        }
+    public void setWatchlist(List<String> watchlist) {
+        this.watchlist = watchlist;
     }
 
     @Override
@@ -126,8 +94,4 @@ public class Bidder extends User {
         return "/views/bidder_dashboard.fxml";
     }
 
-    public int getTotalBidsPlaced() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTotalBidsPlaced'");
-    }
 }
