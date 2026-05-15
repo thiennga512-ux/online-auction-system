@@ -19,7 +19,9 @@ public class Dto {
 
   public record ListItemRequest(
       String name, String description, double basePrice, double minIncrement,
-      String category, String brand, String model, int warrantyMonths, String conditionStr, String imageUrl
+      String category, String brand, String model, int warrantyMonths, String conditionStr, String imageUrl,
+      String artistName, Integer creationYear, String medium, Boolean authenticated, String certificateId, String dimensions,
+      String vehicleType, String make, Integer year, Integer mileage, String fuelType, String transmission, String color, String licensePlate, Boolean hasValidRegistry
   ) {}
 
   public record CreateAuctionRequest(

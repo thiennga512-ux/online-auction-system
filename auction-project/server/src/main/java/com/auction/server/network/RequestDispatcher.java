@@ -21,6 +21,7 @@ import com.auction.server.service.RegistrationService;
 import com.auction.server.service.UserService;
 import com.auction.service.auction.AuctionSession;
 import com.auction.service.auction.Bid;
+import com.auction.enums.AuctionStatus;
 
 /* class RequestDispatcher lam dieu huong request tu client 
 nhan request -> phan tich actionType -> goi dung service -> tra ve response
@@ -32,7 +33,6 @@ public class RequestDispatcher {
   private final RegistrationService registrationService;
   private final AuctionService auctionService;
   private final ItemService itemService;
-
 
   public RequestDispatcher(UserService userService, AuthService authService,
       RegistrationService registrationService,
@@ -70,7 +70,7 @@ public class RequestDispatcher {
         case SET_USER_ACTIVE -> handleSetUserActive(request, client);
         case DEPOSIT_BALANCE -> handleDepositBalance(request, client);
         case SELF_DEPOSIT -> handleSelfDeposit(request, client);
-        case REGISTER_AUTO_BID -> handleRegisterNotification(request, client);
+        case REGISTER_AUTO_BID -> handleRegisterAutoBid(request, client);
         case REGISTER_NOTIFICATION -> handleRegisterNotification(request, client);
         case PING -> Response.success(ActionType.PING, "PONG");
         default -> Response.error(request.getAction(), "Hành động chưa được hỗ trợ: " + request.getAction());
@@ -99,8 +99,8 @@ public class RequestDispatcher {
     com.auction.server.network.UserConnectionManager.getInstance().registerHandler(user.getId(), client);
 
     double balance = (user instanceof Seller s) ? s.getBalance()
-                   : (user instanceof Bidder b) ? b.getBalance()
-                   : 0.0;
+        : (user instanceof Bidder b) ? b.getBalance()
+            : 0.0;
 
     Dto.UserProfileResponse profile = new Dto.UserProfileResponse(
         user.getId(), user.getFullName(), user.getRole().name(), balance);
@@ -164,8 +164,7 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
-            s.getItem().getImageUrl()
-        ))
+            s.getItem().getImageUrl()))
         .toList();
     return Response.success(ActionType.GET_ACTIVE_AUCTIONS, dtos);
   }
@@ -198,8 +197,7 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
-            s.getItem().getImageUrl()
-        ))
+            s.getItem().getImageUrl()))
         .toList();
     return Response.success(ActionType.GET_PENDING_AUCTIONS,
         "Lấy danh sách phiên chờ duyệt thành công cho " + admin.getFullName(), dtos);
@@ -259,7 +257,7 @@ public class RequestDispatcher {
     }
 
     List<Item> items = itemService.getItemsBySeller(user.getId());
-    
+
     // Map to DTO
     List<Dto.ItemResponse> itemResponses = items.stream()
         .map(item -> new Dto.ItemResponse(
@@ -268,8 +266,7 @@ public class RequestDispatcher {
             item.getDescription(),
             item.getStartingPrice(),
             item.isAvailable() ? "AVAILABLE" : "SOLD",
-            item.getImageUrl()
-        ))
+            item.getImageUrl()))
         .toList();
 
     return Response.success(ActionType.GET_MY_ITEMS, itemResponses);
@@ -315,21 +312,33 @@ public class RequestDispatcher {
       throw new IllegalStateException("Chỉ Seller mới có thể đăng sản phẩm");
     }
 
-    Item item = switch (payload.category()) {
-      case "ELECTRONICS" -> ItemFactory.createElectronics(
-          payload.name(), payload.description(), payload.basePrice(), payload.minIncrement(),
-          seller.getId(), payload.imageUrl(), payload.brand(), payload.model(), payload.warrantyMonths(), payload.conditionStr()
-      );
-      case "ART" -> ItemFactory.createArt(
-          payload.name(), payload.description(), payload.basePrice(), payload.minIncrement(),
-          seller.getId(), payload.imageUrl(), payload.artistName(), payload.creationYear(), payload.medium(), payload.authenticated(), payload.certificateId(), payload.dimensions()
-      );
-      case "VEHICLE" -> ItemFactory.createVehicle(
-          payload.name(), payload.description(), payload.basePrice(), payload.minIncrement(),
-          seller.getId(), payload.imageUrl(), payload.vehicleType(), payload.make(), payload.model(), payload.year(), payload.mileage(), payload.fuelType(), payload.transmission(), payload.color(), payload.licensePlate(), payload.hasValidRegistry()
-      );
+    java.util.Map<String, Object> extraData = new java.util.HashMap<>();
+    switch (payload.category()) {
+      case "ELECTRONICS" -> {
+        extraData.put("brand", payload.brand());
+        extraData.put("model", payload.model());
+        extraData.put("warrantyMonths", payload.warrantyMonths());
+        extraData.put("condition", payload.conditionStr());
+      }
+      case "ART" -> {
+        extraData.put("artistName", payload.artistName());
+        extraData.put("yearCreated", payload.creationYear());
+        extraData.put("medium", payload.medium());
+      }
+      case "VEHICLE" -> {
+        extraData.put("make", payload.make());
+        extraData.put("model", payload.model());
+        extraData.put("year", payload.year());
+        extraData.put("mileage", payload.mileage());
+        extraData.put("fuelType", payload.fuelType());
+      }
       default -> throw new IllegalArgumentException("Danh mục không hợp lệ: " + payload.category());
-    };
+    }
+
+    Item item = ItemFactory.createNewItem(
+        com.auction.enums.ItemCategory.valueOf(payload.category()),
+        payload.name(), payload.description(), payload.basePrice(), payload.minIncrement(),
+        payload.imageUrl(), seller.getId(), extraData);
 
     itemService.listItem(item);
 
@@ -356,7 +365,8 @@ public class RequestDispatcher {
     LocalDateTime startTime = LocalDateTime.parse(payload.startTime());
     LocalDateTime endTime = LocalDateTime.parse(payload.endTime());
 
-    AuctionSession session = auctionService.createAuction(seller, payload.itemId(), startTime, endTime, payload.antiSnipingSeconds());
+    AuctionSession session = auctionService.createAuction(seller, payload.itemId(), startTime, endTime,
+        payload.antiSnipingSeconds());
 
     return Response.success(ActionType.CREATE_AUCTION, "Tạo phiên đấu giá thành công (chờ duyệt)!", session);
   }
@@ -378,8 +388,7 @@ public class RequestDispatcher {
             s.getCurrentPrice(),
             s.getStatus().name(),
             s.getStartTime().toString(),
-            s.getActualEndTime().toString()
-        ))
+            s.getActualEndTime().toString()))
         .toList();
     return Response.success(ActionType.GET_MY_AUCTIONS, dtos);
   }
@@ -389,8 +398,7 @@ public class RequestDispatcher {
     List<com.auction.model.User> users = userService.getAllUsers();
     List<Dto.UserSummaryResponse> dtos = users.stream()
         .map(u -> new Dto.UserSummaryResponse(
-            u.getId(), u.getFullName(), u.getEmail(), u.getRole().name(), u.isActive()
-        ))
+            u.getId(), u.getFullName(), u.getEmail(), u.getRole().name(), u.isActive()))
         .toList();
     return Response.success(ActionType.GET_ALL_USERS, dtos);
   }
@@ -435,7 +443,7 @@ public class RequestDispatcher {
 
     // Kiểm tra user là Bidder
     User user = userService.findById(client.getLoggedInUserId())
-        .orElseThrow(() -> new IllegalStateException("Бài khoản không tồn tại"));
+        .orElseThrow(() -> new IllegalStateException("Tài khoản không tồn tại"));
     if (!(user instanceof Bidder bidder)) {
       throw new IllegalStateException("Chỉ Bidder mới có thể nạp tiền");
     }
@@ -448,8 +456,10 @@ public class RequestDispatcher {
 
     return Response.success(ActionType.SELF_DEPOSIT,
         String.format("Đã nạp %.0f VND thành công! Số dư hiện tại: %.0f VND",
-            payload.amount(), updated.getBalance()), result);
+            payload.amount(), updated.getBalance()),
+        result);
   }
+
   private Response handleRegisterNotification(Request request, ClientHandler client) {
     if (client.getLoggedInUserId() == null) {
       throw new IllegalStateException("Bạn cần đăng nhập để đăng ký nhận thông báo");
@@ -460,8 +470,26 @@ public class RequestDispatcher {
       throw new IllegalArgumentException("Thiếu sessionId để đăng ký nhận thông báo");
     }
 
-    com.auction.server.service.NotificationService.getInstance().registerNotification(payload.sessionId(), client.getLoggedInUserId());
+    com.auction.server.service.NotificationService.getInstance().registerNotification(payload.sessionId(),
+        client.getLoggedInUserId());
     return Response.success(ActionType.REGISTER_NOTIFICATION, "Đã đăng ký nhận thông báo thành công!", null);
+  }
+
+  private Response handleRegisterAutoBid(Request request, ClientHandler client) {
+    if (client.getLoggedInUserId() == null) {
+      throw new IllegalStateException("Bạn cần đăng nhập để đăng ký đấu giá tự động");
+    }
+
+    Dto.AutoBidConfigRequest payload = request.getPayloadAs(Dto.AutoBidConfigRequest.class);
+    if (payload == null || payload.sessionId() == null || payload.sessionId().isBlank()) {
+      throw new IllegalArgumentException("Dữ liệu cấu hình đấu giá tự động bị thiếu");
+    }
+
+    System.out.println("[RequestDispatcher] User " + client.getLoggedInUserId() + " registered auto bid for session "
+        + payload.sessionId() + " with max budget " + payload.maxBudget());
+
+    return Response.success(ActionType.REGISTER_AUTO_BID,
+        "Đăng ký đấu giá tự động thành công (tính năng đang phát triển)!", null);
   }
 
   private User getAdminUserOrThrow(ClientHandler client) {

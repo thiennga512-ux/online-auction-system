@@ -337,9 +337,7 @@ public class UserDAO {
       }
       case SELLER -> {
         SellerExtra extra = findSellerExtra(id);
-        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.balance, extra.rating, extra.ratingCount, role, role);
-        seller.setShopName(extra.shopName);
-        seller.setCitizenId(extra.citizenId);
+        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.balance, extra.rating, extra.ratingCount, extra.shopName, extra.citizenId);
         seller.setPhoneNumber(phoneNumber);
         yield seller;
       }
@@ -393,8 +391,15 @@ public class UserDAO {
     return new BidderExtra(0.0, 0.0, null, 0);
   }
 
-  public boolean usernameExists(String trim) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'usernameExists'");
+  public boolean usernameExists(String username) {
+    String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      ps.setString(1, username);
+      try (ResultSet rs = ps.executeQuery()) {
+        return rs.next() && rs.getInt(1) > 0;
+      }
+    } catch (SQLException e) {
+      throw DatabaseException.queryFailed("kiểm tra username", e);
+    }
   }
 }

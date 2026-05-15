@@ -24,4 +24,9 @@ public class NotificationService {
     public void notifyNewBidPlaced(AuctionSession session, Bid bid) {
         System.out.println("[NotificationService] Thông báo có bid mới: " + bid.getAmount());
     }
+
+    public void registerNotification(String sessionId, String userId) {
+        System.out.println("[NotificationService] User " + userId + " đăng ký nhận thông báo cho phiên: " + sessionId);
+        // Note: Real implementation would save this to DB or a list if needed.
+    }
 }
