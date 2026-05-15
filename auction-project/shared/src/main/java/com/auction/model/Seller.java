@@ -19,24 +19,29 @@ public class Seller extends User {
     private String citizenId;
     
     // Constructor cho đăng ký mới
-    public Seller(String username, String passwordHash, String email, String fullName,double rating) {
+    public Seller(String username, String passwordHash, String email, String fullName, double rating, String shopName, String citizenId) {
         super(username, passwordHash, email, fullName, UserRole.SELLER);
         this.balance = 0.0;
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
-        this.rating=0.0;
-        this.ratingCount=0;
+        this.rating = rating;
+        this.ratingCount = 0;
+        this.shopName = shopName;
+        this.citizenId = citizenId;
     }
 
     // Constructor nạp dữ liệu từ MySQL
     public Seller(String id, LocalDateTime createdAt, LocalDateTime updateAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, double balance,double rating, int ratingCount) {
+                  String passwordHash, String email, String fullName, boolean active, double balance, 
+                  double rating, int ratingCount, String shopName, String citizenId) {
         super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.SELLER, active);
         this.balance = balance;
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
-        this.rating=rating;
-        this.ratingCount=ratingCount;
+        this.rating = rating;
+        this.ratingCount = ratingCount;
+        this.shopName = shopName;
+        this.citizenId = citizenId;
     }
 
     @Override

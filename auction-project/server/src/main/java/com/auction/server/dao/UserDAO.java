@@ -28,60 +28,11 @@ import java.util.Optional;
  */
 public class UserDAO {
 
-  // -------------------------------------------------------
-  // MISSING METHODS ADDED FOR REGISTRATION SERVICE
-  // -------------------------------------------------------
-  public boolean emailExists(String email) throws SQLException {
-      String sql = "SELECT 1 FROM users WHERE email = ?";
-      try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-          ps.setString(1, email);
-          try (ResultSet rs = ps.executeQuery()) {
-              return rs.next();
-          }
-      }
-  }
-
-  public boolean citizenIdExists(String citizenId) throws SQLException {
-      String sql = "SELECT 1 FROM seller_details WHERE citizen_id = ?";
-      try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-          ps.setString(1, citizenId);
-          try (ResultSet rs = ps.executeQuery()) {
-              return rs.next();
-          }
-      }
-  }
-
-  public void upgradeToSeller(String userId, String shopName, String citizenId) throws SQLException {
-      String sqlUpdateRole = "UPDATE users SET role = 'SELLER' WHERE id = ?";
-      String sqlInsertSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id) VALUES (?, ?, ?)";
-      Connection conn = getConnection();
-      try {
-          conn.setAutoCommit(false);
-          try (PreparedStatement ps1 = conn.prepareStatement(sqlUpdateRole);
-               PreparedStatement ps2 = conn.prepareStatement(sqlInsertSeller)) {
-              
-              ps1.setString(1, userId);
-              ps1.executeUpdate();
-
-              ps2.setString(1, userId);
-              ps2.setString(2, shopName);
-              ps2.setString(3, citizenId);
-              ps2.executeUpdate();
-          }
-          conn.commit();
-      } catch (SQLException e) {
-          conn.rollback();
-          throw e;
-      } finally {
-          conn.setAutoCommit(true);
-      }
-  }
-
   /** Lấy connection qua Singleton DatabaseManager */
   private Connection getConnection() {
     try {
       return DatabaseManager.getInstance().getConnection();
-    } catch (SQLException e) {
+    } catch (Exception e) {
       throw DatabaseException.connectionFailed(e);
     }
   }
@@ -137,10 +88,10 @@ public class UserDAO {
         """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, seller.getId());
-      ps.setString(2, seller.getShopName() != null ? seller.getShopName() : ""); 
-      ps.setString(3, seller.getCitizenId() != null ? seller.getCitizenId() : ""); 
+      ps.setString(2, ""); 
+      ps.setString(3, ""); 
       ps.setDouble(4, seller.getRating());
-      ps.setInt(5, seller.getRatingCount()); 
+      ps.setInt(5, 0); 
       ps.setDouble(6, seller.getBalance());
       ps.executeUpdate();
     } catch (SQLException e) {
@@ -386,7 +337,7 @@ public class UserDAO {
       }
       case SELLER -> {
         SellerExtra extra = findSellerExtra(id);
-        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.balance, extra.rating, extra.ratingCount);
+        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.balance, extra.rating, extra.ratingCount, role, role);
         seller.setShopName(extra.shopName);
         seller.setCitizenId(extra.citizenId);
         seller.setPhoneNumber(phoneNumber);
@@ -440,5 +391,10 @@ public class UserDAO {
       }
     }
     return new BidderExtra(0.0, 0.0, null, 0);
+  }
+
+  public boolean usernameExists(String trim) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'usernameExists'");
   }
 }

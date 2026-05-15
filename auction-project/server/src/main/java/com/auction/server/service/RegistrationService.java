@@ -10,7 +10,6 @@ import com.auction.model.User;
 import com.auction.enums.UserRole;
 import com.auction.factory.UserFactory;
 import com.auction.server.dao.UserDAO;
-import java.sql.SQLException;
 import java.util.Optional;
 
 /**
@@ -162,7 +161,7 @@ public class RegistrationService {
       // Load lại từ DB để có object Seller đầy đủ
       return (Seller) userDAO.findById(userId).orElseThrow();
 
-    } catch (SQLException e) {
+    } catch (Exception e) {
       throw DatabaseException.queryFailed("nâng cấp Seller", e);
     }
   }
@@ -240,7 +239,10 @@ public class RegistrationService {
       if (userDAO.emailExists(email.toLowerCase().trim())) {
         throw BusinessException.emailAlreadyRegistered(email);
       }
-    } catch (SQLException e) {
+      if(userDAO.usernameExists(username.toLowerCase().trim())){
+        throw BusinessException.usernameAlreadyTaken(username);
+      }
+    } catch (Exception e) {
       throw DatabaseException.queryFailed("kiểm tra email", e);
     }
   }

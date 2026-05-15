@@ -30,7 +30,7 @@ public class ItemDAO {
             ps.setString(6, item.getSellerId());
             ps.setString(7, item.getCategory().name());
             ps.setString(8, item.getImageUrl());
-            ps.setInt(9, item.isvailable() ? 1 : 0);
+            ps.setInt(9, item.isAvailable() ? 1 : 0);
             ps.setString(10, item.getcreatedAt().toString());
             ps.executeUpdate();
         }
