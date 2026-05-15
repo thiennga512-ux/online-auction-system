@@ -71,6 +71,10 @@ public class BusinessException extends AuctionException {
     return new BusinessException("EMAIL_TAKEN",
         "Email đã được đăng ký: " + email);
   }
+  public static BusinessException usernameAlreadyTaken(String username) {
+    return new BusinessException("USERNAME_TAKEN",
+        "Tên đăng nhập đã được sử dụng: " + username);
+  }
 
   public static BusinessException citizenIdAlreadyUsed() {
     return new BusinessException("CITIZEN_ID_TAKEN",
