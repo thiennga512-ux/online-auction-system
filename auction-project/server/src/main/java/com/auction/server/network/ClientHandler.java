@@ -1,3 +1,4 @@
+package com.auction.server.network;
 import java.io.*;
 import java.net.Socket;
 import com.auction.dto.Dto;
