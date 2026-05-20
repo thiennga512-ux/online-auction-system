@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    parent: kế thừa cấu hình từ project cha (root pom.xml).
+    Module con không cần lặp lại properties, pluginManagement...
+  -->
+  <parent>
+    <groupId>com.auction</groupId>
+    <artifactId>online-auction</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <!--
+    auction-common: chứa tất cả các class DÙNG CHUNG giữa Server và Client.
+    Ví dụ: User, Item, AuctionSession, Bid, Factory...
+    packaging "jar" = build ra file .jar để các module khác import.
+  -->
+  <artifactId>auction-common</artifactId>
+  <packaging>jar</packaging>
+  <name>Auction Common - Shared Models</name>
+
+  <dependencies>
+    <!-- Gson dùng để serialize/deserialize object thành JSON khi giao tiếp Socket -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+
+    <!-- JUnit 5 để viết Unit Test cho các class model -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

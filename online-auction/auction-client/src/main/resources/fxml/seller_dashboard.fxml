@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="com.auction.client.controller.SellerDashboardController">
+    <tabs>
+        <!-- ====== TAB 1: ĐĂNG SẢN PHẨM ====== -->
+        <Tab text="📦 Đăng Sản Phẩm">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox spacing="20" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="30" right="50" bottom="30" left="50" />
+                </padding>
+
+                <Label text="KÊNH NGƯỜI BÁN — ĐĂNG SẢN PHẨM" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+
+                <GridPane hgap="15" vgap="12" alignment="CENTER">
+                    <Label text="Danh mục:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <ComboBox fx:id="categoryComboBox" promptText="Chọn danh mục" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="320" />
+
+                    <Label text="Tên sản phẩm:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="nameField" promptText="Nhập tên sản phẩm" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="320" />
+
+                    <Label text="Mô tả chi tiết:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextArea fx:id="descriptionField" promptText="Nhập mô tả sản phẩm" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="320" prefHeight="80" wrapText="true" />
+
+                    <Label text="Giá khởi điểm (VND):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <TextField fx:id="basePriceField" promptText="VD: 1000000" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+
+                    <Label text="Bước giá tối thiểu (VND):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                    <TextField fx:id="minIncrementField" promptText="VD: 50000" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                    <Label text="Image URL:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                    <TextField fx:id="imageUrlField" promptText="VD: https://example.com/image.png" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="320" />
+                </GridPane>
+
+                <!-- Fields for Electronics -->
+                <GridPane fx:id="electronicsGrid" hgap="15" vgap="12" alignment="CENTER" managed="true" visible="true">
+                    <Label text="Thương hiệu:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="brandField" promptText="VD: Apple, Samsung..." GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="320" />
+
+                    <Label text="Model:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="modelField" promptText="VD: iPhone 14 Pro" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="320" />
+
+                    <Label text="Bảo hành (tháng):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextField fx:id="warrantyField" promptText="VD: 12" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="320" />
+
+                    <Label text="Tình trạng:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <ComboBox fx:id="conditionComboBox" promptText="Chọn tình trạng" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="320" />
+                </GridPane>
+
+                <!-- Fields for Art -->
+                <GridPane fx:id="artGrid" hgap="15" vgap="12" alignment="CENTER" managed="false" visible="false">
+                    <Label text="Nghệ sĩ:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="artistNameField" promptText="VD: Leonardo da Vinci" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="320" />
+
+                    <Label text="Năm sáng tác:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="creationYearField" promptText="VD: 1503" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="320" />
+
+                    <Label text="Chất liệu:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextField fx:id="mediumField" promptText="VD: Sơn dầu trên gỗ" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="320" />
+
+                    <Label text="Kích thước:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <TextField fx:id="dimensionsField" promptText="VD: 77 x 53 cm" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="320" />
+
+                    <Label text="Giấy chứng nhận (ID):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                    <TextField fx:id="certificateIdField" promptText="Mã chứng nhận (nếu có)" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="320" />
+
+                    <Label text="Đã xác thực?" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                    <ComboBox fx:id="authenticatedComboBox" promptText="Chọn trạng thái xác thực" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="320" />
+                </GridPane>
+
+                <!-- Fields for Vehicle -->
+                <GridPane fx:id="vehicleGrid" hgap="15" vgap="12" alignment="CENTER" managed="false" visible="false">
+                    <Label text="Loại xe:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <ComboBox fx:id="vehicleTypeComboBox" promptText="Chọn loại xe" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="320" />
+
+                    <Label text="Hãng xe (Make):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="makeField" promptText="VD: Toyota" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="320" />
+
+                    <Label text="Mẫu xe (Model):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextField fx:id="vehicleModelField" promptText="VD: Camry" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="320" />
+
+                    <Label text="Năm sản xuất:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <TextField fx:id="yearField" promptText="VD: 2020" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="320" />
+
+                    <Label text="Số km đã đi (Mileage):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                    <TextField fx:id="mileageField" promptText="VD: 15000" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="320" />
+
+                    <Label text="Loại nhiên liệu:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                    <ComboBox fx:id="fuelTypeComboBox" promptText="Chọn loại nhiên liệu" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="320" />
+
+                    <Label text="Hộp số:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                    <ComboBox fx:id="transmissionComboBox" promptText="Chọn hộp số" GridPane.columnIndex="1" GridPane.rowIndex="6" prefWidth="320" />
+
+                    <Label text="Màu sắc:" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                    <TextField fx:id="colorField" promptText="VD: Đen" GridPane.columnIndex="1" GridPane.rowIndex="7" prefWidth="320" />
+
+                    <Label text="Biển số:" GridPane.columnIndex="0" GridPane.rowIndex="8" />
+                    <TextField fx:id="licensePlateField" promptText="VD: 30A-123.45" GridPane.columnIndex="1" GridPane.rowIndex="8" prefWidth="320" />
+
+                    <Label text="Giấy tờ hợp lệ?" GridPane.columnIndex="0" GridPane.rowIndex="9" />
+                    <ComboBox fx:id="hasValidRegistryComboBox" promptText="Chọn tình trạng giấy tờ" GridPane.columnIndex="1" GridPane.rowIndex="9" prefWidth="320" />
+                </GridPane>
+
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🗑 Làm Mới Form" styleClass="secondary-button" onAction="#handleClearProductForm" />
+                    <Button text="📤 Đăng Sản Phẩm" styleClass="primary-button" onAction="#handlePostProduct" />
+                </HBox>
+            </VBox>
+            </ScrollPane>
+        </Tab>
+
+        <!-- ====== TAB 2: SẢN PHẨM CỦA TÔI ====== -->
+        <Tab text="📋 Sản Phẩm Của Tôi">
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20" />
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="DANH SÁCH SẢN PHẨM" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+                    <Button text="🔄 Làm mới" onAction="#handleRefreshMyProducts" />
+                </HBox>
+                <TableView fx:id="myProductsTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colId" text="Mã SP" prefWidth="200">
+                            <cellValueFactory><PropertyValueFactory property="id" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colName" text="Tên Sản Phẩm" prefWidth="300">
+                            <cellValueFactory><PropertyValueFactory property="name" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colBasePrice" text="Giá Khởi Điểm (VND)" prefWidth="180">
+                            <cellValueFactory><PropertyValueFactory property="basePrice" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colStatus" text="Trạng Thái" prefWidth="120">
+                            <cellValueFactory><PropertyValueFactory property="status" /></cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </VBox>
+        </Tab>
+
+        <!-- ====== TAB 3: TẠO PHIÊN ĐẤU GIÁ ====== -->
+        <Tab text="🔨 Tạo Phiên Đấu Giá">
+            <VBox spacing="20" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="30" right="50" bottom="30" left="50" />
+                </padding>
+
+                <Label text="TẠO PHIÊN ĐẤU GIÁ MỚI" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+                <Label text="Chọn sản phẩm AVAILABLE từ danh sách và đặt thời gian đấu giá" style="-fx-text-fill: #9ca3af;" />
+
+                <GridPane hgap="15" vgap="14" alignment="CENTER">
+                    <Label text="Chọn sản phẩm:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <ComboBox fx:id="itemComboBox" promptText="— Chọn sản phẩm AVAILABLE —"
+                              GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="400" />
+
+                    <Label text="Thời gian bắt đầu:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="startTimeField" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               promptText="yyyy-MM-ddTHH:mm:ss  (ít nhất 5 phút từ bây giờ)" prefWidth="400" />
+
+                    <Label text="Thời gian kết thúc:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextField fx:id="endTimeField" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               promptText="yyyy-MM-ddTHH:mm:ss  (ít nhất 1 tiếng sau startTime)" prefWidth="400" />
+
+                    <Label text="Anti-Sniping (giây):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <TextField fx:id="antiSnipingField" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                               promptText="30  (0 = tắt)" prefWidth="400" />
+                </GridPane>
+
+                <Label fx:id="auctionFormMessageLabel" text="" wrapText="true" style="-fx-font-size: 13px;" />
+
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="🔄 Tải lại danh sách SP" styleClass="secondary-button" onAction="#handleRefreshMyProducts" />
+                    <Button text="🚀 Tạo Phiên Đấu Giá" styleClass="primary-button" onAction="#handleCreateAuction" />
+                </HBox>
+
+                <Label text="⚠️  Lưu ý: Phiên sẽ ở trạng thái PENDING cho đến khi Admin duyệt."
+                       style="-fx-text-fill: #f59e0b; -fx-font-size: 12px;" wrapText="true" maxWidth="600" />
+            </VBox>
+        </Tab>
+
+        <!-- ====== TAB 4: PHIÊN ĐẤU GIÁ CỦA TÔI ====== -->
+        <Tab text="📊 Phiên Đấu Giá Của Tôi">
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20" />
+                </padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="DANH SÁCH PHIÊN ĐẤU GIÁ" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+                    <Button text="🔄 Làm mới" onAction="#handleRefreshMyAuctions" />
+                    <Button text="⛔ Huỷ Phiên" styleClass="secondary-button" onAction="#handleCancelAuction" />
+                </HBox>
+                <TableView fx:id="myAuctionsTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colAuctionId" text="Mã Phiên" prefWidth="100">
+                            <cellValueFactory><PropertyValueFactory property="id" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colAuctionItem" text="Sản Phẩm" prefWidth="250">
+                            <cellValueFactory><PropertyValueFactory property="itemName" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colAuctionPrice" text="Giá Hiện Tại (VND)" prefWidth="160">
+                            <cellValueFactory><PropertyValueFactory property="currentPrice" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colAuctionStatus" text="Trạng Thái" prefWidth="120">
+                            <cellValueFactory><PropertyValueFactory property="status" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="colAuctionEnd" text="Kết Thúc Lúc" prefWidth="200">
+                            <cellValueFactory><PropertyValueFactory property="endTime" /></cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </VBox>
+        </Tab>
+    </tabs>
+</TabPane>

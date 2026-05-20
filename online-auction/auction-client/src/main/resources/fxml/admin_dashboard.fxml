@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="com.auction.client.controller.AdminDashboardController">
+    <tabs>
+        <!-- ====== TAB 1: PHIÊN ĐẤU GIÁ ====== -->
+        <Tab text="🔨 Quản Lý Phiên Đấu Giá">
+            <VBox spacing="14">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+
+                <!-- Header thông tin -->
+                <Label text="BẢNG ĐIỀU KHIỂN QUẢN TRỊ" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+                <Label fx:id="adminNameLabel" style="-fx-text-fill: #9ca3af; -fx-font-size: 13px;" text="Quản trị viên: -" />
+
+                <HBox spacing="30">
+                    <Label fx:id="totalActiveAuctionsLabel" style="-fx-text-fill: #10b981; -fx-font-weight: bold;" text="Phiên đang hoạt động: -" />
+                    <Label fx:id="lastUpdatedLabel" style="-fx-text-fill: #6b7280; -fx-font-size: 12px;" text="Cập nhật lúc: -" />
+                    <Button text="🔄 Làm mới dữ liệu" styleClass="primary-button" onAction="#handleRefresh" />
+                </HBox>
+
+                <!-- Phiên OPEN/RUNNING -->
+                <Label text="Phiên đang hoạt động (OPEN / RUNNING)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
+                <ListView fx:id="activeAuctionsListView" prefHeight="200" />
+                <HBox spacing="10">
+                    <Button text="⛔ Huỷ phiên đang hoạt động đã chọn" styleClass="secondary-button" onAction="#handleCancelActiveAuction" />
+                </HBox>
+
+                <!-- Phiên PENDING -->
+                <Label text="Phiên chờ duyệt (PENDING)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
+                <ListView fx:id="pendingAuctionsListView" prefHeight="200" />
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="rejectReasonField" promptText="Lý do từ chối (bắt buộc khi bấm Từ chối)" prefWidth="400" />
+                </HBox>
+                <HBox spacing="10">
+                    <Button text="✅ Duyệt phiên đã chọn" styleClass="primary-button" onAction="#handleApproveSelected" />
+                    <Button text="❌ Từ chối phiên đã chọn" styleClass="secondary-button" onAction="#handleRejectSelected" />
+                </HBox>
+                <Label fx:id="adminActionMessageLabel" style="-fx-font-size: 13px;" text="" wrapText="true" />
+            </VBox>
+        </Tab>
+
+        <!-- ====== TAB 2: QUẢN LÝ USER ====== -->
+        <Tab text="👥 Quản Lý Người Dùng">
+            <VBox spacing="14">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+
+                <Label text="QUẢN LÝ NGƯỜI DÙNG" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
+                <Label text="Xem, khoá/mở khoá tài khoản và nạp tiền cho Bidder" style="-fx-text-fill: #9ca3af;" />
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Button text="🔄 Tải lại danh sách" styleClass="primary-button" onAction="#handleRefreshUsers" />
+                    <Button text="🔒 Khoá tài khoản" styleClass="secondary-button" onAction="#handleLockUser" />
+                    <Button text="🔓 Mở khoá tài khoản" styleClass="primary-button" onAction="#handleUnlockUser" />
+                </HBox>
+
+                <ListView fx:id="usersListView" prefHeight="360" />
+
+                <Label text="Nạp tiền cho Bidder đã chọn" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="depositAmountField" promptText="Số tiền VND (VD: 10000000)" prefWidth="280" />
+                    <Button text="💰 Nạp tiền" styleClass="primary-button" onAction="#handleDepositForUser" />
+                </HBox>
+
+                <Label fx:id="userActionMessageLabel" style="-fx-font-size: 13px;" text="" wrapText="true" />
+
+                <Label text="⚠️  Lưu ý: Chỉ tài khoản BIDDER mới có thể nạp tiền. Admin không thể tự khoá tài khoản mình."
+                       style="-fx-text-fill: #f59e0b; -fx-font-size: 12px;" wrapText="true" maxWidth="700" />
+            </VBox>
+        </Tab>
+    </tabs>
+</TabPane>

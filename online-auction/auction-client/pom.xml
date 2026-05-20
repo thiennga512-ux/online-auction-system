@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.auction</groupId>
+    <artifactId>online-auction</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <!--
+    auction-client: module Frontend.
+    Chứa: JavaFX UI, Controller (MVC), Socket connection đến Server.
+  -->
+  <artifactId>auction-client</artifactId>
+  <packaging>jar</packaging>
+  <name>Auction Client - JavaFX</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.auction</groupId>
+      <artifactId>auction-common</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+
+    <!-- JavaFX Controls và FXML (sẽ cấu hình đầy đủ ở Giai đoạn 4) -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>21.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>21.0.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

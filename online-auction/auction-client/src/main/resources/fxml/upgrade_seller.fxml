@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="14" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.controller.UpgradeSellerController">
+    <padding>
+        <Insets top="24" right="32" bottom="24" left="32"/>
+    </padding>
+
+    <Label text="Mở Kênh Người Bán" styleClass="title-text"/>
+    <Label text="Điền thông tin để nâng cấp tài khoản BIDDER thành SELLER" styleClass="subtitle-text"/>
+
+    <VBox spacing="8" styleClass="card-container">
+        <Label text="Tên cửa hàng"/>
+        <TextField fx:id="shopNameField" promptText="Ví dụ: Cửa hàng Điện tử Minh Phát"/>
+        <Label fx:id="shopNameErrorLabel" styleClass="error-text"/>
+
+        <Label text="Số CCCD/CMND"/>
+        <TextField fx:id="citizenIdField" promptText="Nhập 9-12 chữ số"/>
+        <Label fx:id="citizenIdErrorLabel" styleClass="error-text"/>
+
+        <Label fx:id="formErrorLabel" styleClass="error-text"/>
+
+        <HBox spacing="10">
+            <Button text="Quay lại" styleClass="secondary-button" onAction="#handleBack"/>
+            <Button fx:id="submitButton" text="Nâng cấp thành Seller" styleClass="primary-button" onAction="#handleSubmit"/>
+        </HBox>
+    </VBox>
+</VBox>

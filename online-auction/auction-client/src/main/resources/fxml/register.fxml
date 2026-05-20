@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="0" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RegisterController" prefWidth="800" prefHeight="700">
+    <VBox spacing="15" styleClass="card-container" maxWidth="450">
+        <padding>
+            <Insets bottom="30" left="40" right="40" top="30" />
+        </padding>
+
+        <VBox alignment="CENTER" spacing="5">
+            <Label styleClass="title-text" text="TẠO TÀI KHOẢN" />
+            <Label styleClass="subtitle-text" text="Tham gia mạng lưới đấu giá ngay hôm nay" />
+        </VBox>
+
+        <HBox spacing="15">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Họ và Tên *" />
+                <TextField fx:id="fullNameField" promptText="Nguyễn Văn A" />
+            </VBox>
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Tên hiển thị *" />
+                <TextField fx:id="usernameField" promptText="Nickname" />
+            </VBox>
+        </HBox>
+
+        <VBox spacing="5">
+            <Label text="Email *" />
+            <TextField fx:id="emailField" promptText="email@domain.com" />
+        </VBox>
+
+        <HBox spacing="15">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Mật khẩu *" />
+                <PasswordField fx:id="passwordField" promptText="Ít nhất 6 ký tự" />
+            </VBox>
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Nhập lại mật khẩu *" />
+                <PasswordField fx:id="confirmPasswordField" promptText="••••••••" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="15">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Giới tính *" />
+                <ComboBox fx:id="genderCombo" maxWidth="Infinity" styleClass="combo-box">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Nam" />
+                            <String fx:value="Nữ" />
+                            <String fx:value="Khác" />
+                        </FXCollections>
+                    </items>
+                    <value>
+                        <String fx:value="Nam" />
+                    </value>
+                </ComboBox>
+            </VBox>
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Ngày sinh *" />
+                <DatePicker fx:id="dobPicker" maxWidth="Infinity" />
+            </VBox>
+        </HBox>
+
+
+        <Label fx:id="errorLabel" styleClass="error-text" text="" wrapText="true" visible="false" />
+
+        <Button fx:id="registerButton" maxWidth="Infinity" styleClass="primary-button" text="ĐĂNG KÝ TÀI KHOẢN" onAction="#handleRegister" />
+
+        <VBox alignment="CENTER">
+            <Button styleClass="secondary-button" text="Đã có tài khoản? Quay lại Đăng nhập" onAction="#goToLogin" />
+        </VBox>
+    </VBox>
+</VBox>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="20" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.HomeController">
+    <padding>
+        <Insets bottom="20" left="40" right="40" top="20" />
+    </padding>
+
+    <!-- Banner nổi bật -->
+    <VBox alignment="CENTER" styleClass="card-container" style="-fx-padding: 40; -fx-background-color: linear-gradient(to right, #1e3a8a, #3b82f6);">
+        <Label text="KHÁM PHÁ CÁC SẢN PHẨM ĐẤU GIÁ HOT NHẤT" styleClass="title-text" style="-fx-font-size: 32px;" />
+        <Label text="Đăng nhập để tham gia đặt giá ngay hôm nay!" styleClass="subtitle-text" style="-fx-text-fill: #e5e7eb;" />
+    </VBox>
+
+    <Label text="Phiên đấu giá đang diễn ra" styleClass="title-text" style="-fx-font-size: 24px;" />
+
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" stylesheets="@../css/style.css">
+        <!-- Vùng chứa lưới sản phẩm -->
+        <FlowPane fx:id="productsGrid" hgap="20" vgap="20" alignment="TOP_LEFT" />
+    </ScrollPane>
+</VBox>

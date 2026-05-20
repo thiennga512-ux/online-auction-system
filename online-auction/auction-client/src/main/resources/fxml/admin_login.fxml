@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="0" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.controller.AdminLoginController" prefWidth="800" prefHeight="600">
+    <VBox alignment="CENTER" spacing="20" styleClass="card-container" maxWidth="420">
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40" />
+        </padding>
+
+        <VBox alignment="CENTER" spacing="5">
+            <Label styleClass="title-text" text="ADMIN LOGIN" />
+            <Label styleClass="subtitle-text" text="Đăng nhập tài khoản quản trị hệ thống" />
+        </VBox>
+
+        <VBox spacing="10">
+            <Label text="Email Admin" />
+            <TextField fx:id="emailField" promptText="admin@auction.vn" />
+
+            <Label text="Mật khẩu" />
+            <PasswordField fx:id="passwordField" promptText="••••••••" />
+        </VBox>
+
+        <Label fx:id="errorLabel" styleClass="error-text" text="" wrapText="true" visible="false" />
+
+        <Button fx:id="loginButton" maxWidth="Infinity" styleClass="primary-button" text="ĐĂNG NHẬP ADMIN" onAction="#handleLogin" />
+        <Button styleClass="secondary-button" text="Quay lại đăng nhập người dùng" onAction="#goToUserLogin" />
+    </VBox>
+</VBox>

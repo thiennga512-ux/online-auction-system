@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.auction</groupId>
+    <artifactId>online-auction</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <!--
+    auction-server: module Backend.
+    Chứa: Socket Server, Controller, Service, DAO (MySQL), Observer...
+  -->
+  <artifactId>auction-server</artifactId>
+  <packaging>jar</packaging>
+  <name>Auction Server</name>
+
+  <dependencies>
+    <!-- Phụ thuộc vào auction-common để dùng các class model chung -->
+    <dependency>
+      <groupId>com.auction</groupId>
+      <artifactId>auction-common</artifactId>
+    </dependency>
+
+    <!-- MySQL JDBC: kết nối và thao tác với MySQL database -->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+    </dependency>
+
+    <!-- Gson cho việc serialize/deserialize JSON qua Socket -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- JavaMail API -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Plugin để build thành file JAR có thể chạy độc lập (fat jar) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>shade</goal></goals>
+            <configuration>
+              <mainClass>com.auction.server.ServerMain</mainClass>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

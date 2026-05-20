@@ -1,0 +1,247 @@
+/* 
+ * ============================================================
+ * Modern Dark Theme cho Online Auction
+ * ============================================================
+ * Lấy cảm hứng từ các nền tảng web hiện đại.
+ * Nền: Xanh đen (#1a1f2b)
+ * Nhấn: Xanh lam neon (#3b82f6)
+ * Chữ: Trắng/Xám sáng
+ * ============================================================
+ */
+
+.root {
+    -fx-background-color: #111827;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* --- Vùng Container chính --- */
+.card-container {
+    -fx-background-color: #1f2937;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 15, 0, 0, 5);
+    -fx-padding: 30;
+}
+
+/* --- Tiêu đề --- */
+.title-text {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-fill: #ffffff;
+    -fx-text-fill: #ffffff;
+}
+
+.subtitle-text {
+    -fx-font-size: 14px;
+    -fx-fill: #9ca3af;
+    -fx-text-fill: #9ca3af;
+}
+
+/* --- Labels --- */
+.label {
+    -fx-text-fill: #d1d5db;
+    -fx-font-size: 13px;
+}
+
+/* --- Text Fields & Password Fields --- */
+.text-field, .password-field, .date-picker > .text-field {
+    -fx-background-color: #374151;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12;
+    -fx-font-size: 14px;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 8, 0, 0, 0);
+    -fx-background-color: #1f2937;
+}
+
+/* --- ComboBox --- */
+.combo-box {
+    -fx-background-color: #374151;
+    -fx-background-radius: 6;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 2;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #374151;
+    -fx-border-color: #4b5563;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+}
+
+/* --- DatePicker --- */
+.date-picker {
+    -fx-background-color: transparent;
+}
+
+/* --- Buttons --- */
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.6), 10, 0, 0, 0);
+}
+
+.primary-button:pressed {
+    -fx-background-color: #1d4ed8;
+}
+
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+}
+
+.secondary-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-underline: true;
+}
+
+/* --- Radio Buttons --- */
+.radio-button {
+    -fx-text-fill: #d1d5db;
+    -fx-font-size: 13px;
+}
+.radio-button .radio {
+    -fx-background-color: #374151;
+    -fx-border-color: #4b5563;
+}
+.radio-button:selected .radio .dot {
+    -fx-background-color: #3b82f6;
+}
+
+/* --- Thông báo lỗi (Error Text) --- */
+.error-text {
+    -fx-fill: #ef4444;
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 12px;
+}
+
+/* --- Header / Navigation Bar --- */
+.header-bar {
+    -fx-background-color: #1f2937;
+    -fx-border-color: transparent transparent #374151 transparent;
+    -fx-border-width: 1px;
+}
+
+.logo-text {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3b82f6;
+    -fx-cursor: hand;
+}
+
+.logo-text:hover {
+    -fx-text-fill: #60a5fa;
+}
+
+.header-text {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.header-text-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.header-text-button:hover {
+    -fx-text-fill: #3b82f6;
+}
+
+/* --- Header Balance Label (Bidder) --- */
+.balance-label {
+    -fx-text-fill: #34d399;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* --- Deposit Button (Header) --- */
+.deposit-button {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #059669, #047857);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 20;
+    -fx-padding: 7 16;
+    -fx-cursor: hand;
+}
+
+.deposit-button:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #10b981, #059669);
+    -fx-effect: dropshadow(three-pass-box, rgba(16, 185, 129, 0.5), 10, 0, 0, 0);
+}
+
+.deposit-button:pressed {
+    -fx-background-color: #047857;
+}
+
+/* --- Amount Chip (Quick-select preset buttons) --- */
+.amount-chip {
+    -fx-background-color: #374151;
+    -fx-text-fill: #d1d5db;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 10 8;
+    -fx-cursor: hand;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.amount-chip:hover {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: white;
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 8, 0, 0, 0);
+}
+
+.amount-chip:pressed {
+    -fx-background-color: #1e40af;
+}
+
+/* Amount chip highlight (50M - hút sự chú ý) */
+.amount-chip-highlight {
+    -fx-background-color: rgba(124, 58, 237, 0.2);
+    -fx-border-color: #7c3aed;
+    -fx-text-fill: #c4b5fd;
+}
+
+.amount-chip-highlight:hover {
+    -fx-background-color: #7c3aed;
+    -fx-text-fill: white;
+    -fx-border-color: #7c3aed;
+    -fx-effect: dropshadow(three-pass-box, rgba(124, 58, 237, 0.5), 10, 0, 0, 0);
+}

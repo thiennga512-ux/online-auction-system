@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.auction.client.controller.BidderDepositController"
+           style="-fx-background-color: #111827;">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <VBox alignment="CENTER" spacing="0" maxWidth="560"
+          style="-fx-background-color: #1f2937; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 20, 0, 0, 8);">
+
+        <!-- ===== HEADER ===== -->
+        <VBox alignment="CENTER" spacing="8"
+              style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #1d4ed8, #7c3aed); -fx-background-radius: 16 16 0 0; -fx-padding: 30 40;">
+            <Label text="💳 Nạp Tiền Vào Ví" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Label text="Nạp tiền để tham gia đấu giá ngay hôm nay" style="-fx-font-size: 13px; -fx-text-fill: rgba(255,255,255,0.75);"/>
+        </VBox>
+
+        <!-- ===== SỐ DƯ HIỆN TẠI ===== -->
+        <VBox alignment="CENTER" spacing="6"
+              style="-fx-padding: 28 40 20 40; -fx-border-color: transparent transparent #374151 transparent; -fx-border-width: 0 0 1 0;">
+            <Label text="SỐ DƯ HIỆN TẠI" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #6b7280; -fx-letter-spacing: 1.5px;"/>
+            <Label fx:id="currentBalanceLabel" text="0 VND"
+                   style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #34d399;"/>
+        </VBox>
+
+        <!-- ===== PHẦN NẠP ===== -->
+        <VBox spacing="16" style="-fx-padding: 24 40 32 40;">
+
+            <!-- Chọn nhanh -->
+            <Label text="Chọn nhanh số tiền" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #9ca3af;"/>
+            <GridPane hgap="10" vgap="10">
+                <Button text="100,000 VND" styleClass="amount-chip" onAction="#selectAmount100k" GridPane.columnIndex="0" GridPane.rowIndex="0" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="500,000 VND" styleClass="amount-chip" onAction="#selectAmount500k" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="1,000,000 VND" styleClass="amount-chip" onAction="#selectAmount1M" GridPane.columnIndex="0" GridPane.rowIndex="1" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="5,000,000 VND" styleClass="amount-chip" onAction="#selectAmount5M" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="10,000,000 VND" styleClass="amount-chip" onAction="#selectAmount10M" GridPane.columnIndex="0" GridPane.rowIndex="2" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="50,000,000 VND" styleClass="amount-chip amount-chip-highlight" onAction="#selectAmount50M" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <columnConstraints>
+                    <javafx.scene.layout.ColumnConstraints percentWidth="50"/>
+                    <javafx.scene.layout.ColumnConstraints percentWidth="50"/>
+                </columnConstraints>
+            </GridPane>
+
+            <!-- Hoặc nhập thủ công -->
+            <Label text="Hoặc nhập số tiền tùy chỉnh (VND)" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #9ca3af;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="amountField" promptText="Nhập số tiền..." HBox.hgrow="ALWAYS"
+                           style="-fx-font-size: 15px; -fx-padding: 12 14;"/>
+            </HBox>
+
+            <!-- Thông báo lỗi / thành công -->
+            <Label fx:id="messageLabel" text="" wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #ef4444;" visible="false" managed="false"/>
+
+            <!-- Nút xác nhận -->
+            <Button fx:id="confirmButton" text="✅  Xác nhận nạp tiền" styleClass="primary-button"
+                    maxWidth="Infinity" onAction="#handleDeposit"
+                    style="-fx-padding: 14 0; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+
+            <!-- Nút quay về -->
+            <Button text="← Quay lại trang chủ" styleClass="secondary-button"
+                    maxWidth="Infinity" onAction="#handleGoHome"
+                    style="-fx-padding: 8 0;"/>
+        </VBox>
+    </VBox>
+</StackPane>
