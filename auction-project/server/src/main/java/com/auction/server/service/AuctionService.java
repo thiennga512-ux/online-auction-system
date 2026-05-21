@@ -203,27 +203,56 @@ public class AuctionService {
       throw new IllegalStateException("Phiên đã kết thúc hoặc đã bị huỷ");
     }
 
-    // Chỉ Admin hoặc Seller của phiên mới được quyền huỷ
-    boolean isAdmin = requester instanceof Admin;
-    boolean isOwner = requester instanceof Seller && session.getSellerId().equals(requester.getId());
-
-    if (!isAdmin && !isOwner) {
+    // Chỉ Admin mới được quyền huỷ
+    if (!(requester instanceof Admin)) {
       throw new IllegalStateException("Bạn không có quyền huỷ phiên đấu giá này");
     }
 
     try {
+      // Hoàn tiền đóng băng cho người đang dẫn đầu (nếu có)
+      if (session.getCurrentWinnerId() != null) {
+        Optional<User> leaderOpt = userDAO.findById(session.getCurrentWinnerId());
+        if (leaderOpt.isPresent() && leaderOpt.get() instanceof Bidder leader) {
+          double refundAmount = session.getCurrentPrice();
+          leader.setFrozenBalance(leader.getFrozenBalance() - refundAmount);
+          leader.setBalance(leader.getBalance() + refundAmount);
+          userDAO.updateBidderDetails(leader);
+
+          System.out.printf("[AuctionService] 💸 Hoàn %.0f VND cho %s do phiên bị huỷ%n",
+              refundAmount, leader.getFullName());
+
+          // Thông báo realtime cho người được hoàn tiền
+          com.auction.server.network.ClientHandler leaderHandler =
+              com.auction.server.network.UserConnectionManager.getInstance().getHandler(leader.getId());
+          if (leaderHandler != null) {
+            Dto.DepositResultResponse result = new Dto.DepositResultResponse(leader.getBalance());
+            leaderHandler.sendResponse(Response.success(
+                ActionType.DEPOSIT_BALANCE,
+                String.format("Phiên đấu giá đã bị huỷ. Đã hoàn lại %,.0f VND vào số dư của bạn.", refundAmount),
+                result));
+          }
+        }
+      }
+
       auctionSessionDAO.updateStatus(sessionId, AuctionStatus.CANCELLED);
-      System.out.printf("[AuctionService] User %s đã huỷ phiên %s%n",
+      System.out.printf("[AuctionService] Admin %s đã huỷ phiên %s%n",
           requester.getFullName(), sessionId.substring(0, 8));
 
-      // Update item status back to available
-      // Not directly required but good practice if itemDAO has a way to mark
-      // available.
-      // Currently itemDAO only has markAsSold. It is available by default until sold.
+      // Broadcast thông báo hủy đến tất cả người xem phiên
+      Dto.AuctionEndedEvent cancelEvent = new Dto.AuctionEndedEvent(
+          sessionId, "Không có", 0);
+      Response cancelResponse = Response.success(
+          ActionType.AUCTION_ENDED_BROADCAST,
+          "Phiên đấu giá đã bị Admin huỷ.",
+          cancelEvent);
+      com.auction.server.observer.AuctionBroadcaster.getInstance()
+          .broadcastToSession(sessionId, cancelResponse);
+
     } catch (SQLException e) {
       throw new RuntimeException("Lỗi database: " + e.getMessage(), e);
     }
   }
+
 
   // -------------------------------------------------------
   // TIMER — Start / Finish tự động (sẽ nâng cấp Giai đoạn 3)
@@ -393,22 +422,6 @@ public class AuctionService {
 
   /**
    * Xử lý một lượt đặt giá thủ công từ Bidder.
-   *
-   * ⚠️ GIAI ĐOẠN 3: Method này sẽ thêm "synchronized" để tránh
-   * race condition (Lost Update Problem) khi nhiều Bidder đặt đồng thời.
-   *
-   * Flow:
-   * 1. Validate phiên đang RUNNING
-   * 2. Validate giá hợp lệ (> currentPrice + minIncrement)
-   * 3. Tạo Bid object
-   * 4. Cập nhật currentPrice, currentWinner trong DB
-   * 5. Lưu Bid vào DB
-   * 6. (Giai đoạn 3) Broadcast update đến tất cả Client
-   *
-   * @param bidder    người đặt giá
-   * @param sessionId ID phiên đấu giá
-   * @param amount    số tiền muốn đặt
-   * @return Bid vừa được tạo và lưu
    */
   public Bid placeBid(Bidder bidder, String sessionId, double amount) {
     // 🎓 SYNCHRONIZED — Thread-safety!
@@ -437,10 +450,19 @@ public class AuctionService {
                 amount, minRequired));
       }
 
-      if (bidder.getBalance() < amount) {
+      // Kiểm tra số dư khả dụng:
+      // - Nếu người đang dẫn đầu tự nâng giá → chỉ cần có đủ phần CHÊNH LỆCH
+      // - Nếu là người mới → cần có đủ TOÀN BỘ số tiền đặt giá
+      String currentWinnerId = session.getCurrentWinnerId();
+      double currentPrice = session.getCurrentPrice();
+      boolean isSelfOutbid = currentWinnerId != null && currentWinnerId.equals(bidder.getId());
+      double requiredBalance = isSelfOutbid ? (amount - currentPrice) : amount;
+
+      if (bidder.getBalance() < requiredBalance) {
         throw new IllegalArgumentException(
-            "Số dư ký quỹ không đủ để đặt giá (Cần: " + String.format("%,.0f", amount) + " VND)");
+            String.format("Số dư khả dụng không đủ để đặt giá (Cần thêm: %,.0f VND)", requiredBalance));
       }
+
 
       // Bước 4: Tạo Bid mới
       Bid bid = Bid.createManual(sessionId, bidder.getId(), bidder.getFullName(), amount);
@@ -449,37 +471,54 @@ public class AuctionService {
       try {
         // --- QUẢN LÝ DÒNG TIỀN (Observer & State Management) ---
 
-        // 1. Giải phóng tiền cho người bị vượt giá (nếu có)
-        String oldWinnerId = session.getCurrentWinnerId();
-        double oldPrice = session.getCurrentPrice();
+        if (isSelfOutbid) {
+          // --- TRƯỜNG HỢP: Người đang dẫn đầu tự nâng giá của mình ---
+          // Chỉ cần đóng băng thêm phần chênh lệch, KHÔNG hoàn rồi đóng lại toàn bộ
+          double extraAmount = amount - currentPrice;
+          bidder.setBalance(bidder.getBalance() - extraAmount);
+          bidder.setFrozenBalance(bidder.getFrozenBalance() + extraAmount);
+          userDAO.updateBidderDetails(bidder);
 
-        if (oldWinnerId != null) {
-          Optional<User> oldWinnerOpt = userDAO.findById(oldWinnerId);
-          if (oldWinnerOpt.isPresent() && oldWinnerOpt.get() instanceof Bidder oldWinner) {
-            // Chỉ giải phóng nếu người cũ khác người mới
-            oldWinner.setFrozenBalance(oldWinner.getFrozenBalance() - oldPrice);
-            oldWinner.setBalance(oldWinner.getBalance() + oldPrice);
-            userDAO.updateBidderDetails(oldWinner);
+          System.out.printf("[AuctionService] 🔄 %s (đang dẫn đầu) nâng giá: %.0f → %.0f VND (đóng băng thêm %.0f VND)%n",
+              bidder.getFullName(), currentPrice, amount, extraAmount);
 
-            // --- Cập nhật realtime cho người cũ (nếu là Bidder) ---
-            com.auction.server.network.ClientHandler oldWinnerHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(oldWinner.getId());
-            if (oldWinnerHandler != null) {
-                Dto.DepositResultResponse result = new Dto.DepositResultResponse(oldWinner.getBalance());
-                oldWinnerHandler.sendResponse(Response.success(ActionType.DEPOSIT_BALANCE, "Đã hoàn trả số dư đóng băng", result));
+          // Cập nhật realtime cho bidder
+          com.auction.server.network.ClientHandler bidderHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(bidder.getId());
+          if (bidderHandler != null) {
+              Dto.DepositResultResponse result = new Dto.DepositResultResponse(bidder.getBalance());
+              bidderHandler.sendResponse(Response.success(ActionType.DEPOSIT_BALANCE, "Đã nâng giá và đóng băng thêm số dư", result));
+          }
+        } else {
+          // --- TRƯỜNG HỢP: Người mới vượt giá người khác ---
+
+          // 1a. Giải phóng tiền cho người đang dẫn đầu bị vượt (nếu có)
+          if (currentWinnerId != null) {
+            Optional<User> oldWinnerOpt = userDAO.findById(currentWinnerId);
+            if (oldWinnerOpt.isPresent() && oldWinnerOpt.get() instanceof Bidder oldWinner) {
+              oldWinner.setFrozenBalance(oldWinner.getFrozenBalance() - currentPrice);
+              oldWinner.setBalance(oldWinner.getBalance() + currentPrice);
+              userDAO.updateBidderDetails(oldWinner);
+
+              // Cập nhật realtime cho người cũ bị vượt giá
+              com.auction.server.network.ClientHandler oldWinnerHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(oldWinner.getId());
+              if (oldWinnerHandler != null) {
+                  Dto.DepositResultResponse result = new Dto.DepositResultResponse(oldWinner.getBalance());
+                  oldWinnerHandler.sendResponse(Response.success(ActionType.DEPOSIT_BALANCE, "Đã hoàn trả số dư đóng băng", result));
+              }
             }
           }
-        }
 
-        // 2. Đóng băng tiền của người vừa đặt giá mới
-        bidder.setBalance(bidder.getBalance() - amount);
-        bidder.setFrozenBalance(bidder.getFrozenBalance() + amount);
-        userDAO.updateBidderDetails(bidder);
+          // 1b. Đóng băng toàn bộ tiền của người mới đặt giá
+          bidder.setBalance(bidder.getBalance() - amount);
+          bidder.setFrozenBalance(bidder.getFrozenBalance() + amount);
+          userDAO.updateBidderDetails(bidder);
 
-        // --- Cập nhật realtime cho người đặt giá (nếu là Bidder) ---
-        com.auction.server.network.ClientHandler bidderHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(bidder.getId());
-        if (bidderHandler != null) {
-            Dto.DepositResultResponse result = new Dto.DepositResultResponse(bidder.getBalance());
-            bidderHandler.sendResponse(Response.success(ActionType.DEPOSIT_BALANCE, "Đã đóng băng số dư", result));
+          // Cập nhật realtime cho người mới đặt giá
+          com.auction.server.network.ClientHandler bidderHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(bidder.getId());
+          if (bidderHandler != null) {
+              Dto.DepositResultResponse result = new Dto.DepositResultResponse(bidder.getBalance());
+              bidderHandler.sendResponse(Response.success(ActionType.DEPOSIT_BALANCE, "Đã đóng băng số dư", result));
+          }
         }
 
         // --- CẬP NHẬT TRẠNG THÁI PHIÊN ---
