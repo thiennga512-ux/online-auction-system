@@ -399,7 +399,8 @@ public class UserDAO {
     String phoneNumber = rs.getString("phone_number");
     String gender = rs.getString("gender");
     String dateOfBirth = rs.getString("date_of_birth");
-    LocalDateTime createdAt = LocalDateTime.parse(rs.getString("created_at"));
+    LocalDateTime createdAt =
+      LocalDateTime.parse(rs.getString("created_at"));
     boolean active = rs.getBoolean("active");
     String role = rs.getString("role");
 

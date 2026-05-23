@@ -91,6 +91,197 @@
     -fx-background-color: transparent;
 }
 
+/* Dark Theme cho DatePicker - popup lịch */
+.date-picker > .text-field {
+    -fx-background-color: #374151;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12;
+    -fx-font-size: 14px;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.date-picker:focused > .text-field {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 8, 0, 0, 0);
+    -fx-background-color: #1f2937;
+}
+
+/* Nút mở lịch (calendar icon button) */
+.date-picker > .arrow-button {
+    -fx-background-color: #374151;
+    -fx-background-radius: 0 6 6 0;
+    -fx-border-color: #4b5563;
+    -fx-border-width: 1;
+    -fx-border-radius: 0 6 6 0;
+    -fx-padding: 6;
+}
+
+.date-picker > .arrow-button:hover {
+    -fx-background-color: #4b5563;
+}
+
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: #9ca3af;
+    -fx-effect: innershadow(gaussian, transparent, 0, 0, 0, 0);
+}
+
+.date-picker:focused > .arrow-button {
+    -fx-border-color: #3b82f6;
+}
+
+/* Popup lịch - nền tối */
+.date-picker-popup {
+    -fx-background-color: #1f2937;
+    -fx-border-color: #374151;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 8);
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: #1e293b;
+    -fx-padding: 8;
+}
+
+.date-picker-popup > .month-year-pane > .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Nút tháng trước/sau */
+.date-picker-popup > .month-year-pane > .spinner > .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-padding: 4 8;
+}
+
+.date-picker-popup > .month-year-pane > .spinner > .button:hover {
+    -fx-background-color: #374151;
+    -fx-text-fill: #ffffff;
+}
+
+/* Lưới ngày trong tháng */
+.date-picker-popup > .calendar-grid {
+    -fx-background-color: #1f2937;
+    -fx-padding: 6;
+}
+
+/* Day cells */
+.date-picker-popup > .calendar-grid > .day-cell {
+    -fx-text-fill: #e5e7eb;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 13px;
+    -fx-padding: 6 8;
+}
+
+.date-picker-popup > .calendar-grid > .day-cell:hover {
+    -fx-background-color: #374151;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* Ngày đang được chọn */
+.date-picker-popup > .calendar-grid > .day-cell:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* Ngày trong tháng hiện tại */
+.date-picker-popup > .calendar-grid > .day-cell:current-month {
+    -fx-text-fill: #f3f4f6;
+}
+
+/* Ngày không thuộc tháng hiện tại */
+.date-picker-popup > .calendar-grid > .day-cell:other-month {
+    -fx-text-fill: #6b7280;
+}
+
+/* Header ngày trong tuần */
+.date-picker-popup > .calendar-grid > .day-name-cell {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4;
+    -fx-background-color: transparent;
+}
+
+/* Week number cell */
+.date-picker-popup > .calendar-grid > .week-number-cell {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+/* ============================================================
+ * SPINNER STYLING — Dark theme matching ComboBox
+ * ============================================================
+ */
+.spinner {
+    -fx-background-color: #374151;
+    -fx-background-radius: 6;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.spinner:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #1f2937;
+}
+
+/* Text field bên trong Spinner */
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-padding: 4 2;
+}
+
+/* Nút tăng/giảm */
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: #4b5563;
+    -fx-background-radius: 0;
+    -fx-padding: 4 6;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.spinner .increment-arrow-button {
+    -fx-background-radius: 0 6 0 0;
+}
+
+.spinner .decrement-arrow-button {
+    -fx-background-radius: 0 0 6 0;
+}
+
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+    -fx-background-color: #3b82f6;
+}
+
+.spinner .increment-arrow-button:pressed,
+.spinner .decrement-arrow-button:pressed {
+    -fx-background-color: #2563eb;
+}
+
+/* Mũi tên bên trong nút */
+.spinner .increment-arrow-button .increment-arrow,
+.spinner .decrement-arrow-button .decrement-arrow {
+    -fx-background-color: #e5e7eb;
+    -fx-effect: innershadow(gaussian, transparent, 0, 0, 0, 0);
+}
+
 /* --- Buttons --- */
 .primary-button {
     -fx-background-color: #3b82f6;
@@ -460,4 +651,445 @@
 #searchContainer {
     -fx-padding: 0;
     -fx-spacing: 8;
+}
+
+/* ============================================================
+ * SELLER DASHBOARD — SUB-MENU TABS (CHUYỂN TRANG) ĐẲNG CẤP
+ * ============================================================
+ * Thiết kế phẳng (Flat Design) hiện đại, đồng bộ header tối.
+ * ============================================================
+ */
+
+/* --- TabPane tổng thể Seller --- */
+.seller-tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 48;
+    -fx-tab-max-height: 48;
+    -fx-tab-min-width: 140;
+    -fx-tab-max-width: 200;
+    -fx-padding: 0 0 0 0;
+}
+
+/* Ẩn viền mặc định của TabPane và TabHeaderArea */
+.seller-tab-pane > .tab-header-area {
+    -fx-padding: 12 24 0 24;
+    -fx-background-color: transparent;
+}
+
+.seller-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.seller-tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-size: 14px;
+    -fx-text-fill: #9ca3af;
+    -fx-font-weight: 500;
+    -fx-transition: all 0.2s ease;
+}
+
+/* Hover: nền xanh xám mịn */
+.seller-tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.10);
+    -fx-text-fill: #e5e7eb;
+}
+
+/* Active tab: chữ xanh dương chủ đạo, bold */
+.seller-tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.15);
+    -fx-border-color: transparent transparent #3b82f6 transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+/* Label bên trong tab */
+.seller-tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-alignment: CENTER;
+    -fx-padding: 0;
+    -fx-text-alignment: CENTER;
+}
+
+.seller-tab-pane > .tab-header-area > .headers-region > .tab:hover .tab-label {
+    -fx-text-fill: #f3f4f6;
+}
+
+.seller-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: #3b82f6;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Ẩn focus highlight khi chọn tab */
+.seller-tab-pane > .tab-header-area > .headers-region > .tab:focus {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Ẩn đường kẻ dọc giữa các tab */
+.seller-tab-pane > .tab-header-area > .headers-region > .tab .tab-close-button {
+    -fx-background-color: transparent;
+}
+
+.seller-tab-pane > .tab-header-area > .control-buttons-tab {
+    -fx-background-color: transparent;
+}
+
+/* Điều chỉnh padding giữa các tab header và content */
+.seller-tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ============================================================
+ * TABLE VIEW: CĂN GIỮA HOÀN HẢO & CLASS CỘT TRÁI
+ * ============================================================
+ * Mọi ô dữ liệu (table-cell) mặc định căn giữa (CENTER).
+ * Cột nào cần căn trái (VD: Tên Sản Phẩm) gắn styleClass="col-left".
+ * ============================================================
+ */
+
+/* Tất cả ô dữ liệu mặc định căn giữa */
+.table-cell {
+    -fx-alignment: CENTER;
+}
+
+/* Background tiêu đề bảng — tone xám Charcoal/đen đồng bộ Header */
+.table-view .column-header-background {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: #1e293b;
+    -fx-border-color: transparent transparent #334155 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 4;
+    -fx-size: 44;
+    -fx-background-radius: 0;
+}
+
+/* Chữ tiêu đề: TRẮNG TINH, bold, 13px, căn giữa */
+.table-view .column-header .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER;
+    -fx-padding: 0 4;
+    -fx-text-alignment: CENTER;
+}
+
+/* Cột căn trái — dành cho cột Tên Sản Phẩm, dễ đọc */
+.col-left {
+    -fx-alignment: CENTER_LEFT;
+}
+/* Buộc mọi TableCell trong cột .col-left đều căn trái */
+.table-column.col-left .table-cell {
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* ============================================================
+ * TABLE VIEW: HÀNG DỮ LIỆU & ZEBRA STRIPING
+ * ============================================================
+ */
+
+/* Ô dữ liệu trong bảng */
+.table-row-cell {
+    -fx-background-color: #1a1f2b;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cell-size: 40;
+}
+
+/* Chỉ giữ đường kẻ ngang mỏng giữa các dòng */
+.table-row-cell .table-cell {
+    -fx-border-color: transparent transparent #2d3748 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 6;
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+}
+
+/* Zebra striping: hàng chẵn */
+.table-row-cell:even {
+    -fx-background-color: #1a1f2b;
+}
+
+/* Zebra striping: hàng lẻ */
+.table-row-cell:odd {
+    -fx-background-color: #1e2431;
+}
+
+/* Hover: sáng lên với màu xanh mờ mịn */
+.table-row-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.12);
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.25);
+    -fx-table-cell-border-color: transparent;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #f8fafc;
+    -fx-font-weight: 600;
+}
+
+/* Ẩn đường kẻ dọc giữa các cột */
+.table-view .column-header .filler,
+.table-view .column-header .show-hide-columns-button,
+.table-view .column-header .column-resize-line {
+    -fx-background-color: transparent;
+}
+
+/* Bỏ focus màu mặc định */
+.table-view:focused {
+    -fx-background-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Placeholder text khi bảng trống */
+.table-view .placeholder .label {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+}
+
+/* ============================================================
+ * STATUS BADGES — Thiết kế Badge dạng viên thuốc chuyên nghiệp
+ * ============================================================
+ * - Padding đều 4 cạnh để chữ không bị chèn/dính mép
+ * - Không ép chiều cao/min-height cứng — kích thước tự co dãn theo font
+ * - Căn giữa tuyệt đối cả chiều ngang và dọc
+ * - Font 12.5px bold vừa đủ đẹp, không quá to
+ * ============================================================
+ */
+
+/* Badge gốc — Label dạng viên thuốc bo tròn */
+.status-badge {
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-wrap-text: false;
+}
+
+/* --- AVAILABLE: Xanh lá nhạt / Xanh lá đậm --- */
+.status-available {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #166534;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* --- SOLD / FINISHED: Xanh dương nhạt / Xanh dương đậm --- */
+.status-sold,
+.status-finished {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e40af;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* --- CANCELLED: Đỏ nhạt / Đỏ đậm --- */
+.status-cancelled {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #b91c1c;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* --- PENDING: Vàng nhạt / Vàng đậm --- */
+.status-pending {
+    -fx-background-color: #fef3c7;
+    -fx-text-fill: #92400e;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* --- OPEN / RUNNING: Xanh dương nhạt / Xanh đậm (đang chạy) --- */
+.status-open,
+.status-running {
+    -fx-background-color: #e0f2fe;
+    -fx-text-fill: #0369a1;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* Fallback cho status không xác định: Xám nhạt / Xám đậm */
+.status-unknown {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #475569;
+    -fx-background-radius: 14;
+    -fx-padding: 4 14 4 14;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+/* ============================================================
+ * TABLE ACTION BUTTONS (Refresh / Cancel)
+ * ============================================================
+ */
+
+.table-refresh-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #93c5fd;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 6 14;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(59, 130, 246, 0.25);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.table-refresh-btn:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.15);
+    -fx-text-fill: #bfdbfe;
+    -fx-border-color: rgba(59, 130, 246, 0.4);
+}
+
+.table-cancel-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #fca5a5;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 6 14;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(239, 68, 68, 0.25);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.table-cancel-btn:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.15);
+    -fx-text-fill: #fecaca;
+    -fx-border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ============================================================
+ * CÁC CLASS BUTTON BỔ TRỢ (dùng trong Form)
+ * ============================================================
+ */
+
+.btn-primary {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.3), 8, 0, 0, 0);
+}
+
+.btn-primary:hover {
+    -fx-background-color: #2563eb;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.5), 12, 0, 0, 0);
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #1d4ed8;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-padding: 10 24;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #374151;
+    -fx-text-fill: #f3f4f6;
+    -fx-border-color: #6b7280;
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #4b5563;
+}
+
+/* ============================================================
+ * SCROLLPANE & TEXTAREA (đồng bộ dark theme)
+ * ============================================================
+ */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #475569;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #64748b;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.text-area {
+    -fx-background-color: #374151;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-background-radius: 6;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 4;
+    -fx-font-size: 14px;
+}
+
+.text-area:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 8, 0, 0, 0);
+    -fx-background-color: #1f2937;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-padding: 6;
 }

@@ -153,7 +153,7 @@ public class MainController {
       contentArea.getChildren().clear();
       contentArea.getChildren().add(node);
     } catch (Exception e) {
-      System.err.println("Lỗi khi nạp " + fxmlFile);
+      System.out.println("===== LOAD ERROR =====");
       e.printStackTrace();
     }
   }

@@ -5,7 +5,9 @@ import com.auction.common.dto.Dto;
 import com.auction.common.network.ActionType;
 import com.auction.common.network.Request;
 import com.auction.common.network.Response;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.application.Platform;
@@ -15,12 +17,18 @@ import java.util.Optional;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 
 /**
  * ============================================================
@@ -86,8 +94,12 @@ public class SellerDashboardController implements LifecycleAwareController {
 
   // --- Tab 3: Tạo phiên đấu giá ---
   @FXML private ComboBox<Dto.ItemResponse> itemComboBox;
-  @FXML private TextField startTimeField;
-  @FXML private TextField endTimeField;
+  @FXML private DatePicker startDatePicker;
+  @FXML private DatePicker endDatePicker;
+  @FXML private Spinner<Integer> startHourSpinner;
+  @FXML private Spinner<Integer> startMinSpinner;
+  @FXML private Spinner<Integer> endHourSpinner;
+  @FXML private Spinner<Integer> endMinSpinner;
   @FXML private TextField antiSnipingField;
   @FXML private Label auctionFormMessageLabel;
 
@@ -160,10 +172,26 @@ public class SellerDashboardController implements LifecycleAwareController {
       });
     }
 
-    // Đặt placeholder thời gian
-    if (startTimeField != null) startTimeField.setPromptText("VD: " + LocalDateTime.now().plusHours(1).withSecond(0).withNano(0).toString());
-    if (endTimeField != null) endTimeField.setPromptText("VD: " + LocalDateTime.now().plusHours(3).withSecond(0).withNano(0).toString());
+    // Khởi tạo DatePicker + Spinner cho form tạo phiên đấu giá
+    if (startDatePicker != null) startDatePicker.setValue(LocalDate.now());
+    if (endDatePicker != null) endDatePicker.setValue(LocalDate.now().plusDays(1));
     if (antiSnipingField != null) antiSnipingField.setText("30");
+
+    startHourSpinner.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 8)
+    );
+
+    startMinSpinner.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0)
+    );
+
+    endHourSpinner.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 10)
+    );
+
+    endMinSpinner.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0)
+    );
 
     // Đăng ký listener (một lần duy nhất, sẽ gỡ bỏ khi onBeforeHide)
     SocketClient.getInstance().removeListener(listener);
@@ -194,6 +222,95 @@ public class SellerDashboardController implements LifecycleAwareController {
           else setText(String.format("%,.0f đ", price));
         }
       });
+    }
+
+    // === STATUS BADGE CELL FACTORIES ===
+    // Áp dụng cho cột Trạng Thái trong "Sản phẩm của tôi"
+    if (colStatus != null) {
+      colStatus.setCellFactory(tc -> new StatusBadgeCell<>());
+    }
+    // Áp dụng cho cột Trạng Thái trong "Phiên đấu giá của tôi"
+    if (colAuctionStatus != null) {
+      colAuctionStatus.setCellFactory(tc -> new StatusBadgeCell<>());
+    }
+  }
+
+  /**
+   * ============================================================
+   * StatusBadgeCell — Custom TableCell hiển thị trạng thái dạng Badge
+   * ============================================================
+   * Tự động nhận diện giá trị status và gán CSS class tương ứng:
+   *   - AVAILABLE  -> .status-available  (xanh lá)
+   *   - SOLD/FINISHED -> .status-sold / .status-finished (xanh dương)
+   *   - CANCELLED  -> .status-cancelled (đỏ)
+   *   - PENDING    -> .status-pending   (vàng)
+   *   - OPEN/RUNNING -> .status-open / .status-running (xanh dương nhạt)
+   *   - khác       -> .status-unknown   (xám)
+   * ============================================================
+   */
+  private static class StatusBadgeCell<S> extends TableCell<S, String> {
+    private final Label badgeLabel;
+
+    public StatusBadgeCell() {
+      badgeLabel = new Label();
+      badgeLabel.getStyleClass().add("status-badge");
+      // Cho phép Label tự động tính toán kích thước dựa trên font chữ — không ép cứng
+      badgeLabel.setPrefHeight(Region.USE_COMPUTED_SIZE);
+      badgeLabel.setMinHeight(Region.USE_COMPUTED_SIZE);
+      badgeLabel.setMaxHeight(Region.USE_COMPUTED_SIZE);
+      // Dùng StackPane để căn giữa badge trong ô
+      StackPane container = new StackPane(badgeLabel);
+      container.setStyle("-fx-alignment: CENTER; -fx-padding: 4 0;");
+      setGraphic(container);
+      setText(null); // Không dùng text mặc định của cell
+    }
+
+    @Override
+    protected void updateItem(String status, boolean empty) {
+      super.updateItem(status, empty);
+      if (empty || status == null || status.isBlank()) {
+        setGraphic(null);
+        return;
+      }
+      setGraphic(badgeLabel.getParent()); // StackPane container
+
+      // Chuẩn hóa status: loại bỏ khoảng trắng, viết hoa
+      String normalized = status.trim().toUpperCase();
+
+      // Xoá tất cả style status cũ, chỉ giữ status-badge
+      badgeLabel.getStyleClass().removeIf(cls ->
+          cls.startsWith("status-") && !cls.equals("status-badge")
+      );
+
+      // Gán class tương ứng
+      switch (normalized) {
+        case "AVAILABLE":
+          badgeLabel.getStyleClass().add("status-available");
+          badgeLabel.setText("Sẵn sàng");
+          break;
+        case "SOLD":
+        case "FINISHED":
+          badgeLabel.getStyleClass().add("status-finished");
+          badgeLabel.setText(normalized.equals("SOLD") ? "Đã bán" : "Hoàn tất");
+          break;
+        case "CANCELLED":
+          badgeLabel.getStyleClass().add("status-cancelled");
+          badgeLabel.setText("Đã huỷ");
+          break;
+        case "PENDING":
+          badgeLabel.getStyleClass().add("status-pending");
+          badgeLabel.setText("Chờ duyệt");
+          break;
+        case "OPEN":
+        case "RUNNING":
+          badgeLabel.getStyleClass().add("status-running");
+          badgeLabel.setText("Đang chạy");
+          break;
+        default:
+          badgeLabel.getStyleClass().add("status-unknown");
+          badgeLabel.setText(status); // Giữ nguyên giá trị gốc
+          break;
+      }
     }
   }
 
@@ -265,6 +382,12 @@ public class SellerDashboardController implements LifecycleAwareController {
         handleRefreshMyAuctions();
         // Xóa form
         if (itemComboBox != null) itemComboBox.getSelectionModel().clearSelection();
+        if (startDatePicker != null) startDatePicker.setValue(LocalDate.now());
+        if (endDatePicker != null) endDatePicker.setValue(LocalDate.now().plusDays(1));
+        if (startHourSpinner != null) startHourSpinner.getValueFactory().setValue(8);
+        if (startMinSpinner != null) startMinSpinner.getValueFactory().setValue(0);
+        if (endHourSpinner != null) endHourSpinner.getValueFactory().setValue(10);
+        if (endMinSpinner != null) endMinSpinner.getValueFactory().setValue(0);
         if (antiSnipingField != null) antiSnipingField.setText("30");
       } else {
         auctionFormMessageLabel.setStyle("-fx-text-fill: #ef4444;");
@@ -398,29 +521,58 @@ public class SellerDashboardController implements LifecycleAwareController {
   }
 
   // -------------------------------------------------------
-  // TAB 3: TẠO PHIÊN ĐẤU GIÁ
+  // TAB 3: TẠO PHIÊN ĐẤU GIÁ (CẢI TIẾN VỚI DatePicker + Spinner)
   // -------------------------------------------------------
 
   @FXML
   private void handleCreateAuction() {
+    // === Validate sản phẩm ===
     if (itemComboBox == null || itemComboBox.getValue() == null) {
       setAuctionMessage("❌ Vui lòng chọn sản phẩm.", false);
       return;
     }
     String itemId = itemComboBox.getValue().id();
-    String startTimeStr = startTimeField.getText().trim();
-    String endTimeStr = endTimeField.getText().trim();
-    String antiSnipingStr = antiSnipingField.getText().trim();
 
-    if (startTimeStr.isEmpty() || endTimeStr.isEmpty()) {
-      setAuctionMessage("❌ Vui lòng nhập thời gian bắt đầu và kết thúc.", false);
+    // === Validate DatePicker ===
+    LocalDate startDate = (startDatePicker != null) ? startDatePicker.getValue() : null;
+    LocalDate endDate   = (endDatePicker != null)   ? endDatePicker.getValue()   : null;
+    if (startDate == null || endDate == null) {
+      setAuctionMessage("❌ Vui lòng chọn ngày bắt đầu và kết thúc.", false);
       return;
     }
 
+    // === Lấy giờ/phút từ Spinner ===
+    int startHour = (startHourSpinner != null && startHourSpinner.getValue() != null)
+        ? startHourSpinner.getValue() : 8;
+    int startMin  = (startMinSpinner != null && startMinSpinner.getValue() != null)
+        ? startMinSpinner.getValue() : 0;
+    int endHour   = (endHourSpinner != null && endHourSpinner.getValue() != null)
+        ? endHourSpinner.getValue() : 10;
+    int endMin    = (endMinSpinner != null && endMinSpinner.getValue() != null)
+        ? endMinSpinner.getValue() : 0;
+
+    // === Ghép thành LocalDateTime ===
+    LocalDateTime startDateTime = LocalDateTime.of(startDate, java.time.LocalTime.of(startHour, startMin));
+    LocalDateTime endDateTime   = LocalDateTime.of(endDate,   java.time.LocalTime.of(endHour, endMin));
+
+    // === Validate logic thời gian ===
+    LocalDateTime now = LocalDateTime.now();
+    if (startDateTime.isBefore(now.plusMinutes(5))) {
+      setAuctionMessage("❌ Thời gian bắt đầu phải cách ít nhất 5 phút từ bây giờ.", false);
+      return;
+    }
+    if (!endDateTime.isAfter(startDateTime.plusHours(1))) {
+      setAuctionMessage("❌ Thời gian kết thúc phải sau thời gian bắt đầu ít nhất 1 tiếng.", false);
+      return;
+    }
+
+    // === Định dạng ISO chuẩn "yyyy-MM-dd'T'HH:mm" ===
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    String startTimeStr = startDateTime.format(formatter);
+    String endTimeStr   = endDateTime.format(formatter);
+    String antiSnipingStr = antiSnipingField.getText().trim();
+
     try {
-      // Validate parse
-      LocalDateTime.parse(startTimeStr);
-      LocalDateTime.parse(endTimeStr);
       int antiSniping = antiSnipingStr.isEmpty() ? 30 : Integer.parseInt(antiSnipingStr);
 
       Dto.CreateAuctionRequest payload = new Dto.CreateAuctionRequest(
@@ -429,9 +581,8 @@ public class SellerDashboardController implements LifecycleAwareController {
       SocketClient.getInstance().sendRequest(new Request(ActionType.CREATE_AUCTION, payload));
       setAuctionMessage("⏳ Đang gửi yêu cầu tạo phiên...", true);
 
-    } catch (Exception e) {
-      setAuctionMessage("❌ Thời gian không đúng định dạng (ISO: yyyy-MM-ddTHH:mm:ss). Ví dụ: " +
-          LocalDateTime.now().plusHours(1).withSecond(0).withNano(0), false);
+    } catch (NumberFormatException e) {
+      setAuctionMessage("❌ Anti-Sniping phải là số nguyên hợp lệ.", false);
     }
   }
 
