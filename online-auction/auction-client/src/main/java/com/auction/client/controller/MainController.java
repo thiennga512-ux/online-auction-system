@@ -5,16 +5,22 @@ import com.auction.client.network.SocketClient;
 import com.auction.client.util.SessionManager;
 import com.auction.common.network.ActionType;
 import com.auction.common.network.Request;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
+import javafx.util.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import com.auction.common.dto.Dto;
 
 public class MainController {
@@ -28,19 +34,31 @@ public class MainController {
   @FXML private Button sellerDashboardButton;
   @FXML private Button adminDashboardButton;
 
+  @FXML private Button homeNavButton;
+  @FXML private Button auctionRoomButton;
+  @FXML private Button auctionHistoryButton;
+  @FXML private Label timeLabel;
+  @FXML private Label dateLabel;
+
   @FXML private StackPane contentArea;
-  
+
   @FXML private Button notificationBellButton;
   @FXML private Label notificationBadge;
   
   private ContextMenu notificationMenu = new ContextMenu();
   private int unreadCount = 0;
 
+  private Timeline clockTimeline;
+  private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
   private Object activeContentController;
 
   @FXML
   public void initialize() {
     ClientMain.setMainController(this);
+    setupClock();
+    setActiveMenu(homeNavButton);
 
     // Lắng nghe sự kiện đăng nhập/đăng xuất để đổi Header
     SessionManager.getInstance().addLoginStateListener(user -> {
@@ -151,6 +169,60 @@ public class MainController {
   private void handleLogout() {
     Request request = new Request(ActionType.LOGOUT, null);
     SocketClient.getInstance().sendRequest(request);
+  }
+
+  @FXML
+  private void handleNavHome() {
+    setActiveMenu(homeNavButton);
+    goToHome();
+  }
+
+  @FXML
+  private void handleNavAuctionRoom() {
+    setActiveMenu(auctionRoomButton);
+    switchContent("auction_detail.fxml");
+  }
+
+  @FXML
+  private void handleNavAuctionHistory() {
+    setActiveMenu(auctionHistoryButton);
+    // future route: create auction history screen and navigate here
+  }
+
+  private void setActiveMenu(Button activeButton) {
+    homeNavButton.getStyleClass().removeAll("nav-link-active");
+    auctionRoomButton.getStyleClass().removeAll("nav-link-active");
+    auctionHistoryButton.getStyleClass().removeAll("nav-link-active");
+
+    if (!homeNavButton.getStyleClass().contains("nav-link")) {
+      homeNavButton.getStyleClass().add("nav-link");
+    }
+    if (!auctionRoomButton.getStyleClass().contains("nav-link")) {
+      auctionRoomButton.getStyleClass().add("nav-link");
+    }
+    if (!auctionHistoryButton.getStyleClass().contains("nav-link")) {
+      auctionHistoryButton.getStyleClass().add("nav-link");
+    }
+
+    if (!activeButton.getStyleClass().contains("nav-link-active")) {
+      activeButton.getStyleClass().add("nav-link-active");
+    }
+  }
+
+  private void setupClock() {
+    updateDateTime();
+    clockTimeline = new Timeline(
+      new KeyFrame(Duration.seconds(0), event -> updateDateTime()),
+      new KeyFrame(Duration.seconds(1))
+    );
+    clockTimeline.setCycleCount(Timeline.INDEFINITE);
+    clockTimeline.play();
+  }
+
+  private void updateDateTime() {
+    LocalDateTime now = LocalDateTime.now();
+    timeLabel.setText(now.format(TIME_FORMAT));
+    dateLabel.setText(now.format(DATE_FORMAT));
   }
 
   @FXML

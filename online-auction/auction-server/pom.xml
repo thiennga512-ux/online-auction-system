@@ -19,6 +19,11 @@
   <packaging>jar</packaging>
   <name>Auction Server</name>
 
+  <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+  </properties>
+
   <dependencies>
     <!-- Phụ thuộc vào auction-common để dùng các class model chung -->
     <dependency>

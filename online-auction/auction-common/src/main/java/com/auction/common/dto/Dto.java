@@ -152,6 +152,7 @@ public class Dto {
       String startTime,
       String actualEndTime,
       int antiSnipingSeconds,
+      String itemCategory,
       String imageUrl
   ) {}
 }

@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
@@ -13,50 +15,67 @@
 
     <!-- HEADER BAR -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-bar">
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="header-bar">
             <padding>
-                <Insets bottom="15" left="30" right="30" top="15" />
+                <Insets bottom="10" left="18" right="18" top="10" />
             </padding>
             
-            <!-- Logo khu vực trái -->
-            <Label text="ONLINE AUCTION" styleClass="logo-text" onMouseClicked="#goToHome" />
-            
-            <!-- Khoảng trống ở giữa đẩy các nút sang phải -->
-            <HBox HBox.hgrow="ALWAYS" />
+            <!-- Logo khu vực trái - chiều dọc -->
+            <VBox alignment="CENTER" spacing="4" styleClass="header-left-group">
+                <ImageView fitWidth="48" fitHeight="48" preserveRatio="true" smooth="true">
+                    <Image url="@../images/logoo.jpg" />
+                    <style>
+                        -fx-cursor: hand;
+                    </style>
+                </ImageView>
+                <Label text="ONLINE AUCTION" styleClass="logo-text-small" onMouseClicked="#handleNavHome" />
+            </VBox>
 
-            <!-- Nút Đăng nhập/Đăng ký (Cho Guest) -->
-            <HBox fx:id="guestBox" spacing="15" alignment="CENTER">
-                <Button text="Đăng ký" styleClass="header-text-button" onAction="#goToRegister" />
-                <Button text="Đăng nhập" styleClass="primary-button" onAction="#goToLogin" />
+            <!-- Menu links ở giữa, lệch trái -->
+            <HBox fx:id="headerMenuBox" alignment="CENTER_LEFT" spacing="16" styleClass="header-menu nav-links-wrapper">
+                <Button fx:id="homeNavButton" text="Trang chủ" styleClass="nav-link nav-link-active" onAction="#handleNavHome" />
+                <Button fx:id="auctionRoomButton" text="Phòng đấu giá" styleClass="nav-link" onAction="#handleNavAuctionRoom" />
+                <Button fx:id="auctionHistoryButton" text="Lịch sử đấu giá" styleClass="nav-link" onAction="#handleNavAuctionHistory" />
             </HBox>
 
-            <!-- Menu User (Khi đã login) -->
-            <HBox fx:id="userBox" spacing="16" alignment="CENTER" managed="false" visible="false">
+            <HBox HBox.hgrow="ALWAYS" />
 
-                <!-- Nút riêng cho Bidder -->
-                <Button fx:id="upgradeSellerButton" text="Mở Kênh Người Bán" styleClass="secondary-button" onAction="#handleUpgradeSeller" />
-                <Button fx:id="depositButton" text="💰 Nạp Tiền" styleClass="deposit-button"
-                        onAction="#handleGoToDeposit" managed="false" visible="false"/>
+            <!-- Cụm thông tin user bên phải -->
+            <HBox alignment="CENTER" spacing="12" HBox.hgrow="NEVER">
+                <!-- Thời gian thật -->
+                <HBox fx:id="timeWidget" alignment="CENTER" spacing="10" styleClass="time-widget">
+                    <Label text="🕒" styleClass="time-icon" />
+                    <VBox alignment="CENTER_LEFT" spacing="2">
+                        <Label fx:id="timeLabel" text="00:00:00" styleClass="time-value" />
+                        <Label fx:id="dateLabel" text="01/01/2025" styleClass="time-date" />
+                    </VBox>
+                </HBox>
+                
+                <!-- Guest Box -->
+                <HBox fx:id="guestBox" spacing="12" alignment="CENTER">
+                    <Button text="Đăng ký" styleClass="header-text-button" onAction="#goToRegister" />
+                    <Button text="Đăng nhập" styleClass="primary-button" onAction="#goToLogin" />
+                </HBox>
 
-                <!-- Nút riêng cho Seller -->
-                <Button fx:id="sellerDashboardButton" text="Kênh Người Bán" styleClass="secondary-button" onAction="#goToSellerDashboard" />
-
-                <!-- Nút riêng cho Admin -->
-                <Button fx:id="adminDashboardButton" text="Quản trị" styleClass="secondary-button" onAction="#goToAdminDashboard" />
-
-                <!-- Notification Bell -->
-                <StackPane alignment="TOP_RIGHT">
-                    <Button fx:id="notificationBellButton" text="🔔" styleClass="header-text-button" onAction="#toggleNotificationMenu" />
-                    <Label fx:id="notificationBadge" text="0" style="-fx-background-color: red; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 1 5; -fx-font-size: 10px;" visible="false"/>
-                </StackPane>
-
-                <!-- Thông tin user + số dư (chỉ Bidder mới có số dư) -->
-                <VBox alignment="CENTER_RIGHT" spacing="2">
-                    <Label fx:id="greetingLabel" text="Xin chào, User" styleClass="header-text" />
-                    <Label fx:id="balanceLabel" text="" styleClass="balance-label" visible="false" managed="false"/>
-                </VBox>
-
-                <Button text="Đăng xuất" styleClass="header-text-button" onAction="#handleLogout" />
+                <!-- Menu User (Khi đã login) -->
+                <HBox fx:id="userBox" spacing="12" alignment="CENTER" managed="false" visible="false">
+                    <Button fx:id="upgradeSellerButton" text="Mở Kênh Người Bán" styleClass="header-nav-button" onAction="#handleUpgradeSeller" />
+                    <Button fx:id="depositButton" text="💰 Nạp Tiền" styleClass="deposit-button" onAction="#handleGoToDeposit" managed="false" visible="false"/>
+                    <Button fx:id="sellerDashboardButton" text="Kênh Người Bán" styleClass="header-nav-button" onAction="#goToSellerDashboard" />
+                    <Button fx:id="adminDashboardButton" text="Quản trị" styleClass="header-nav-button" onAction="#goToAdminDashboard" />
+                    
+                    <StackPane alignment="TOP_RIGHT">
+                        <Button fx:id="notificationBellButton" text="🔔" styleClass="header-text-button" onAction="#toggleNotificationMenu" />
+                        <Label fx:id="notificationBadge" text="0" style="-fx-background-color: red; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 1 5; -fx-font-size: 10px;" visible="false"/>
+                    </StackPane>
+                    
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label fx:id="greetingLabel" text="Xin chào, User" styleClass="header-text-small" />
+                        <Label fx:id="balanceLabel" text="" styleClass="balance-label" visible="false" managed="false"/>
+                    </VBox>
+                    
+                    <Button text="Đăng xuất" styleClass="logout-button" onAction="#handleLogout" />
+                </HBox>
             </HBox>
         </HBox>
     </top>

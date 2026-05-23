@@ -149,6 +149,133 @@
     -fx-background-color: #1f2937;
     -fx-border-color: transparent transparent #374151 transparent;
     -fx-border-width: 1px;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 12 18;
+    -fx-spacing: 16;
+}
+
+.header-left-group {
+    -fx-alignment: CENTER;
+    -fx-spacing: 4;
+}
+
+.logo-text-small {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3b82f6;
+    -fx-cursor: hand;
+    -fx-text-alignment: CENTER;
+}
+
+.header-menu {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 16;
+}
+
+.nav-links-wrapper {
+    -fx-padding: 0 0 0 40;
+}
+
+.nav-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 16;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.nav-link:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.12), 8, 0, 0, 0);
+}
+
+.nav-link-active {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.4), 10, 0, 0, 0);
+}
+
+.nav-link-active:hover {
+    -fx-background-color: #2563eb;
+}
+
+.time-widget {
+    -fx-background-color: #111827;
+    -fx-padding: 18 32;
+    -fx-background-radius: 999;
+    -fx-border-color: #374151;
+    -fx-border-width: 1px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.time-icon {
+    -fx-text-fill: #3b82f6;
+    -fx-font-size: 16px;
+}
+
+.time-value {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.time-date {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 10px;
+}
+
+.header-text-small {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.logout-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.logout-button:hover {
+    -fx-background-color: #dc2626;
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.4), 10, 0, 0, 0);
+}
+
+.logout-button:pressed {
+    -fx-background-color: #b91c1c;
+}
+
+.header-nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 16;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.header-nav-button:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.12), 8, 0, 0, 0);
+}
+
+.header-nav-button:pressed {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
 }
 
 .logo-text {
@@ -244,4 +371,93 @@
     -fx-text-fill: white;
     -fx-border-color: #7c3aed;
     -fx-effect: dropshadow(three-pass-box, rgba(124, 58, 237, 0.5), 10, 0, 0, 0);
+}
+
+/* --- Category filter cards --- */
+.category-item {
+    -fx-alignment: CENTER;
+    -fx-spacing: 10;
+    -fx-padding: 12 10;
+    -fx-cursor: hand;
+}
+
+.category-circle {
+    -fx-min-width: 88px;
+    -fx-min-height: 88px;
+    -fx-max-width: 88px;
+    -fx-max-height: 88px;
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-background-radius: 999;
+    -fx-text-fill: #3b82f6;
+    -fx-font-size: 30px;
+    -fx-alignment: CENTER;
+}
+
+.category-name {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+    -fx-text-alignment: CENTER;
+}
+
+.category-item:hover .category-circle {
+    -fx-background-color: rgba(59, 130, 246, 0.28);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.category-item-selected .category-circle {
+    -fx-background-color: rgba(59, 130, 246, 0.35);
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.25), 15, 0, 0, 0);
+}
+
+/* ============================================================
+ * SEARCH BAR STYLING
+ * ============================================================
+ */
+
+/* Search Input Field - Transparent background inside capsule */
+#searchInput {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+}
+
+#searchInput:focused {
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+}
+
+/* Search Button - Using primary button style with smaller padding */
+#searchButton {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+#searchButton:hover {
+    -fx-background-color: #2563eb;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.6), 10, 0, 0, 0);
+}
+
+#searchButton:pressed {
+    -fx-background-color: #1d4ed8;
+}
+
+/* Search Error/Info Label */
+#searchErrorLabel {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 12px;
+}
+
+/* Search Container */
+#searchContainer {
+    -fx-padding: 0;
+    -fx-spacing: 8;
 }

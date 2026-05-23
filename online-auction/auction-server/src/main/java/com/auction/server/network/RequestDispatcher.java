@@ -176,6 +176,7 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
+            s.getItem().getCategory().name(),
             s.getItem().getImageUrl()
         ))
         .toList();
@@ -210,6 +211,7 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
+            s.getItem().getCategory().name(),
             s.getItem().getImageUrl()
         ))
         .toList();

@@ -16,25 +16,57 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
 public class HomeController implements LifecycleAwareController {
 
   @FXML
   private FlowPane productsGrid;
+
+  @FXML
+  private ScrollPane auctionScrollPane;
+
+  @FXML
+  private TextField searchInput;
+
+  @FXML
+  private Button searchButton;
+
+  @FXML
+  private Label searchErrorLabel;
+
+  @FXML
+  private VBox searchContainer;
+
+  @FXML
+  private VBox allCategoryItem;
+
+  @FXML
+  private VBox electronicsCategoryItem;
+
+  @FXML
+  private VBox artCategoryItem;
+
+  @FXML
+  private VBox vehicleCategoryItem;
+
+  // Lưu danh sách auctions gốc (để có thể restore sau khi search và filter)
+  private List<Dto.AuctionCardDto> originalAuctions = new java.util.ArrayList<>();
+
+  private String activeCategoryFilter;
 
   private final Consumer<com.auction.common.network.Response> responseListener = this::handleResponse;
 
@@ -53,12 +85,191 @@ public class HomeController implements LifecycleAwareController {
   public void initialize() {
     SocketClient.getInstance().removeListener(responseListener);
     SocketClient.getInstance().addListener(responseListener);
+    
+    // Khởi tạo event listener cho search
+    setupSearchHandlers();
+    
     renderLoadingState();
     refreshActiveAuctions();
   }
 
+  /**
+   * Thiết lập các event listener cho thanh tìm kiếm
+   */
+  private void setupSearchHandlers() {
+    // Bấm nút "Tìm kiếm"
+    searchButton.setOnAction(e -> performSearch());
+    
+    // Nhấn phím "Enter" trong ô input
+    searchInput.setOnKeyPressed(e -> {
+      if (e.getCode() == javafx.scene.input.KeyCode.ENTER) {
+        performSearch();
+      }
+    });
+    
+    // Xóa thông báo lỗi khi người dùng chỉnh sửa input
+    searchInput.textProperty().addListener((obs, oldVal, newVal) -> {
+      searchErrorLabel.setText("");
+      searchErrorLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px;");
+    });
+  }
+
   private void refreshActiveAuctions() {
     SocketClient.getInstance().sendRequest(new Request(ActionType.GET_ACTIVE_AUCTIONS, null));
+  }
+
+  // -------------------------------------------------------
+  // SEARCH & FILTER LOGIC
+  // -------------------------------------------------------
+
+  /**
+   * Xử lý tìm kiếm khi người dùng bấm nút "Tìm kiếm" hoặc nhấn Enter
+   * - Kiểm tra input có trống
+   * - Tìm kiếm không phân biệt hoa/thường
+   * - Di chuyển kết quả trùng khớp lên đầu danh sách
+   * - Cuộn mượt mà đến vị trí danh sách
+   */
+  private void performSearch() {
+    String searchQuery = searchInput.getText().trim();
+    
+    // ===== KIỂM TRA: INPUT TRỐNG =====
+    if (searchQuery.isEmpty()) {
+      showSearchToast("Vui lòng nhập tên tài sản cần tìm kiếm!");
+      return;
+    }
+    
+    // ===== THỰC HIỆN TÌM KIẾM (không phân biệt hoa/thường) =====
+    String searchLower = searchQuery.toLowerCase();
+    List<Dto.AuctionCardDto> matchedAuctions = new java.util.ArrayList<>();
+    List<Dto.AuctionCardDto> unmatchedAuctions = new java.util.ArrayList<>();
+    
+    for (Dto.AuctionCardDto auction : originalAuctions) {
+      String itemNameLower = auction.itemName().toLowerCase();
+      if (itemNameLower.contains(searchLower)) {
+        matchedAuctions.add(auction);
+      } else {
+        unmatchedAuctions.add(auction);
+      }
+    }
+    
+    // ===== KIỂM TRA: KHÔNG TÌM THẤY =====
+    if (matchedAuctions.isEmpty()) {
+      showSearchError("Không tìm thấy phiên đấu giá nào phù hợp với từ khóa!");
+      return;
+    }
+    
+    // ===== ĐẨY KẾT QUẢ LÊN TRÊN CÙNG & CUỘN =====
+    List<Dto.AuctionCardDto> reorderedList = new java.util.ArrayList<>(matchedAuctions);
+    reorderedList.addAll(unmatchedAuctions);
+    
+    // Cập nhật giao diện
+    Platform.runLater(() -> {
+      renderAuctions(reorderedList);
+      scrollToAuctionListTop();
+      
+      // Hiển thị thông báo thành công
+      showSearchSuccess("Tìm thấy " + matchedAuctions.size() + " phiên đấu giá phù hợp!");
+    });
+  }
+
+  /**
+   * Hiển thị toast thông báo lỗi dưới thanh tìm kiếm
+   */
+  private void showSearchError(String message) {
+    Platform.runLater(() -> {
+      searchErrorLabel.setText("❌ " + message);
+      searchErrorLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12px;");
+    });
+  }
+
+  /**
+   * Hiển thị toast thông báo thành công dưới thanh tìm kiếm
+   */
+  private void showSearchSuccess(String message) {
+    Platform.runLater(() -> {
+      searchErrorLabel.setText("✅ " + message);
+      searchErrorLabel.setStyle("-fx-text-fill: #10b981; -fx-font-size: 12px;");
+      
+      // Tự động ẩn thông báo sau 3 giây
+      javafx.animation.Timeline hideTimeline = new javafx.animation.Timeline(
+          new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3), e -> {
+            searchErrorLabel.setText("");
+          })
+      );
+      hideTimeline.play();
+    });
+  }
+
+  /**
+   * Hiển thị toast thông báo cảnh báo (input trống)
+   */
+  private void showSearchToast(String message) {
+    Platform.runLater(() -> {
+      searchErrorLabel.setText("⚠️ " + message);
+      searchErrorLabel.setStyle("-fx-text-fill: #f59e0b; -fx-font-size: 12px;");
+    });
+  }
+
+  @FXML
+  private void onCategoryClicked(javafx.scene.input.MouseEvent event) {
+    javafx.scene.Node node = (javafx.scene.Node) event.getTarget();
+    while (node != null && node.getUserData() == null) {
+      node = node.getParent();
+    }
+    if (node == null) {
+      return;
+    }
+
+    String categoryKey = String.valueOf(node.getUserData());
+    if ("ALL".equals(categoryKey) || categoryKey.equals(activeCategoryFilter)) {
+      activeCategoryFilter = null;
+      updateCategoryVisual(null);
+      renderAuctions(originalAuctions);
+      scrollToAuctionListTop();
+      return;
+    }
+
+    activeCategoryFilter = categoryKey;
+    updateCategoryVisual(categoryKey);
+    applyCategoryFilter(categoryKey);
+  }
+
+  private void applyCategoryFilter(String categoryKey) {
+    List<Dto.AuctionCardDto> filtered = originalAuctions.stream()
+        .filter(auction -> auction.itemCategory() != null && auction.itemCategory().equalsIgnoreCase(categoryKey))
+        .toList();
+
+    Platform.runLater(() -> {
+      if (filtered.isEmpty()) {
+        productsGrid.getChildren().clear();
+        productsGrid.getChildren().add(createInfoCard("Hiện tại chưa có phiên đấu giá nào thuộc danh mục này!"));
+        scrollToAuctionListTop();
+        return;
+      }
+      renderAuctions(filtered);
+      scrollToAuctionListTop();
+    });
+  }
+
+  private void updateCategoryVisual(String selectedCategory) {
+    for (VBox card : java.util.List.of(allCategoryItem, electronicsCategoryItem, artCategoryItem, vehicleCategoryItem)) {
+      card.getStyleClass().remove("category-item-selected");
+      if (card.getUserData() != null && card.getUserData().toString().equals(selectedCategory)) {
+        if (!card.getStyleClass().contains("category-item-selected")) {
+          card.getStyleClass().add("category-item-selected");
+        }
+      }
+    }
+  }
+
+  private void scrollToAuctionListTop() {
+    if (auctionScrollPane == null) {
+      return;
+    }
+    Timeline scrollTimeline = new Timeline(
+        new KeyFrame(Duration.millis(300), new KeyValue(auctionScrollPane.vvalueProperty(), 0.0))
+    );
+    scrollTimeline.play();
   }
 
   private void handleResponse(com.auction.common.network.Response response) {
@@ -68,6 +279,9 @@ public class HomeController implements LifecycleAwareController {
         return;
       }
       List<Dto.AuctionCardDto> sessions = response.getDataAsList(Dto.AuctionCardDto.class);
+      originalAuctions = new java.util.ArrayList<>(sessions != null ? sessions : java.util.Collections.emptyList());
+      activeCategoryFilter = null;
+      updateCategoryVisual(null);
       renderAuctions(sessions);
       return;
     }
@@ -351,10 +565,19 @@ public class HomeController implements LifecycleAwareController {
   private VBox createInfoCard(String message) {
     VBox card = new VBox(10);
     card.getStyleClass().add("card-container");
-    card.setPadding(new Insets(20));
-    card.setPrefWidth(400);
+    card.setPadding(new Insets(24));
+    card.setAlignment(Pos.CENTER);
+    card.setPrefWidth(1520);
+    card.setMaxWidth(Double.MAX_VALUE);
+    card.setStyle("-fx-background-radius: 0; -fx-border-radius: 0;");
+
     Label messageLabel = new Label(message);
-    messageLabel.setStyle("-fx-text-fill: #d1d5db; -fx-font-size: 14px;");
+    messageLabel.setStyle("-fx-text-fill: #e5e7eb; -fx-font-size: 18px; -fx-font-weight: bold; -fx-letter-spacing: 0.4px;");
+    messageLabel.setWrapText(true);
+    messageLabel.setTextAlignment(TextAlignment.CENTER);
+    messageLabel.setAlignment(Pos.CENTER);
+    messageLabel.setMaxWidth(Double.MAX_VALUE);
+
     card.getChildren().add(messageLabel);
     return card;
   }
