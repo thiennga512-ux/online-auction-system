@@ -512,6 +512,29 @@ public class SellerDashboardController implements LifecycleAwareController {
   }
 
   // -------------------------------------------------------
+  // CHỌN ẢNH TỪ THIẾT BỊ
+  // -------------------------------------------------------
+
+  @FXML
+  private void handleChooseImage(javafx.event.ActionEvent event) {
+    javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+    fileChooser.setTitle("Chọn ảnh sản phẩm");
+
+    // Bộ lọc chỉ chấp nhận file ảnh phổ biến
+    fileChooser.getExtensionFilters().addAll(
+        new javafx.stage.FileChooser.ExtensionFilter("Hình ảnh (*.jpg, *.jpeg, *.png)", "*.jpg", "*.jpeg", "*.png"),
+        new javafx.stage.FileChooser.ExtensionFilter("JPEG (*.jpg, *.jpeg)", "*.jpg", "*.jpeg"),
+        new javafx.stage.FileChooser.ExtensionFilter("PNG (*.png)", "*.png")
+    );
+
+    java.io.File selectedFile = fileChooser.showOpenDialog(imageUrlField.getScene().getWindow());
+    if (selectedFile != null) {
+      // Đặt đường dẫn tuyệt đối vào TextField
+      imageUrlField.setText(selectedFile.toURI().toString());
+    }
+  }
+
+  // -------------------------------------------------------
   // TAB 2: SẢN PHẨM CỦA TÔI
   // -------------------------------------------------------
 

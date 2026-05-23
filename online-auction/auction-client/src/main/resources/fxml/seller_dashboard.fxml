@@ -84,9 +84,13 @@
 
                             <Label text="Image URL:" GridPane.columnIndex="0" GridPane.rowIndex="5"
                                    style="-fx-font-size: 14px; -fx-text-fill: #d1d5db; -fx-font-weight: 500; -fx-min-width: 150; -fx-alignment: CENTER_RIGHT;" />
-                            <TextField fx:id="imageUrlField" promptText="https://example.com/image.png"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="480"
-                                       style="-fx-pref-height: 40;" />
+                            <HBox spacing="10" alignment="CENTER_LEFT"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="480">
+                                <TextField fx:id="imageUrlField" promptText="https://example.com/image.png"
+                                           HBox.hgrow="ALWAYS" style="-fx-pref-height: 40;" />
+                                <Button text="📁 Chọn ảnh" fx:id="btnBrowseImage" onAction="#handleChooseImage"
+                                        style="-fx-pref-height: 40;" />
+                            </HBox>
                         </GridPane>
 
                         <!-- ===== THÔNG TIN CHI TIẾT ===== -->

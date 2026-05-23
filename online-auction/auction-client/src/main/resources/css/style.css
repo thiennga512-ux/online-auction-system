@@ -1038,6 +1038,37 @@
 }
 
 /* ============================================================
+ * BROWSE IMAGE BUTTON — nút "📁 Chọn ảnh" trong form đăng sản phẩm
+ * ============================================================
+ * Tone xanh dương mờ (Accent Blue) làm điểm nhấn, đồng bộ dark theme
+ * ============================================================
+ */
+
+#btnBrowseImage {
+    -fx-background-color: #2a3f5f;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6;
+    -fx-border-color: #3b82f6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 8 15;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.15), 4, 0, 0, 0);
+}
+
+#btnBrowseImage:hover {
+    -fx-background-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.4), 8, 0, 0, 0);
+}
+
+#btnBrowseImage:pressed {
+    -fx-background-color: #1d4ed8;
+    -fx-translate-y: 1;
+}
+
+/* ============================================================
  * SCROLLPANE & TEXTAREA (đồng bộ dark theme)
  * ============================================================
  */
