@@ -1188,6 +1188,81 @@
     -fx-pref-height: 10;
 }
 
+/* ============================================================
+ * ADMIN SCROLLPANE — wrapper toàn màn hình cho Admin Dashboard
+ * ============================================================
+ * ScrollPane ngoài cùng bao bọc toàn bộ nội dung Tab Admin.
+ * fitToWidth=true giúp nội dung co dãn theo chiều ngang,
+ * không sinh thanh cuộn ngang. Nền trong suốt để lộ background.
+ * ============================================================
+ */
+.admin-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.admin-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ===== ScrollBar dọc — Dark Mode cho Admin ===== */
+.admin-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+    -fx-padding: 0;
+}
+
+/* Track — nền trong suốt hoà vào background tối #111827 */
+.admin-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-border-color: transparent;
+    -fx-background-insets: 2 1 2 1;
+}
+
+/* Thumb (con chạy) — màu xám xanh tối #334155, bo góc 4px */
+.admin-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #334155;
+    -fx-background-radius: 4px;
+    -fx-border-color: transparent;
+    -fx-background-insets: 2 1 2 1;
+    -fx-min-height: 40;
+    -fx-opacity: 0.9;
+}
+
+/* Thumb khi hover — sáng lên #475569 */
+.admin-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #475569;
+    -fx-opacity: 1.0;
+}
+
+/* Thumb khi đang kéo (pressed) */
+.admin-scroll-pane .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #64748b;
+    -fx-opacity: 1.0;
+}
+
+/* Ẩn nút mũi tên tăng/giảm */
+.admin-scroll-pane .scroll-bar:vertical .increment-button,
+.admin-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+.admin-scroll-pane .scroll-bar:vertical .increment-arrow,
+.admin-scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
 .text-area {
     -fx-background-color: #374151;
     -fx-text-fill: #ffffff;
@@ -1209,4 +1284,436 @@
 .text-area .content {
     -fx-background-color: transparent;
     -fx-padding: 6;
+}
+
+/* ================================================================
+ *  ADMIN DASHBOARD — Dark SaaS Premium Theme
+ * ================================================================
+ *  Phong cách: Bảng điều khiển hiện đại, tối giản, sang trọng.
+ *  Bảng màu: Charcoal (#1e293b / #111827), Accent Blue (#3b82f6),
+ *            Emerald (#10b981), Amber (#f59e0b), Indigo (#6366f1)
+ * ================================================================ */
+
+/* ===== TABPANE ADMIN ===== */
+.admin-tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 48;
+    -fx-tab-max-height: 48;
+    -fx-tab-min-width: 180;
+    -fx-tab-max-width: 260;
+}
+
+.admin-tab-pane > .tab-header-area {
+    -fx-padding: 0;
+    -fx-background-color: #0f172a;
+}
+
+.admin-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #0f172a;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 12 24 12 24;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.08);
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.12);
+    -fx-border-color: transparent transparent #3b82f6 transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-alignment: CENTER;
+    -fx-padding: 0;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab:hover .tab-label {
+    -fx-text-fill: #e2e8f0;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: #60a5fa;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.admin-tab-pane > .tab-header-area > .headers-region > .tab:focus {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-tab-pane > .tab-header-area > .control-buttons-tab {
+    -fx-background-color: transparent;
+}
+
+.admin-tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ===== TAB CONTENT ===== */
+.admin-tab-content {
+    -fx-background-color: #111827;
+    -fx-spacing: 20;
+}
+
+/* ===== TITLE & SUBTITLE ===== */
+.admin-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1f5f9;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.admin-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+}
+
+/* ===== KPI ROW ===== */
+.kpi-row {
+    -fx-spacing: 16;
+    -fx-padding: 8 0 4 0;
+}
+
+/* ===== KPI CARD ===== */
+.kpi-card {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 10;
+    -fx-border-color: #334155;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 18 25 18 25;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+    /* KHÔNG đặt prefWidth; để card tự động co dãn theo nội dung */
+    -fx-pref-width: -1;
+    -fx-max-width: Infinity;
+}
+
+.kpi-card:hover {
+    -fx-border-color: #475569;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.08), 16, 0, 0, 4);
+}
+
+/* Icon wrap */
+.kpi-icon-wrap {
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+    -fx-background-radius: 10;
+    -fx-alignment: CENTER;
+}
+
+.kpi-icon-blue {
+    -fx-background-color: rgba(59, 130, 246, 0.15);
+}
+.kpi-icon-amber {
+    -fx-background-color: rgba(245, 158, 11, 0.15);
+}
+.kpi-icon-indigo {
+    -fx-background-color: rgba(99, 102, 241, 0.15);
+}
+.kpi-icon-emerald {
+    -fx-background-color: rgba(16, 185, 129, 0.15);
+}
+
+/* Icon shape placeholder (simple dot/circle) */
+.kpi-icon-shape {
+    -fx-min-width: 20;
+    -fx-min-height: 20;
+    -fx-max-width: 20;
+    -fx-max-height: 20;
+    -fx-background-radius: 5;
+}
+
+.kpi-icon-blue .kpi-icon-shape {
+    -fx-background-color: #3b82f6;
+}
+.kpi-icon-amber .kpi-icon-shape {
+    -fx-background-color: #f59e0b;
+}
+.kpi-icon-indigo .kpi-icon-shape {
+    -fx-background-color: #6366f1;
+}
+.kpi-icon-emerald .kpi-icon-shape {
+    -fx-background-color: #10b981;
+}
+
+.kpi-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.kpi-value {
+    -fx-text-fill: #f1f5f9;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.kpi-updated {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+/* ===== SECTION CONTAINER (List containers) ===== */
+.section-container {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 10;
+    -fx-border-color: #334155;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 18 20;
+    -fx-spacing: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);
+}
+
+/* Section dot indicator */
+.section-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-radius: 4;
+}
+
+.dot-green { -fx-background-color: #10b981; }
+.dot-amber { -fx-background-color: #f59e0b; }
+.dot-indigo { -fx-background-color: #6366f1; }
+.dot-emerald { -fx-background-color: #34d399; }
+
+.section-title {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+/* ===== LISTVIEW — Custom Dark ===== */
+.admin-listview {
+    -fx-background-color: #111827;
+    -fx-background-radius: 8;
+    -fx-border-color: #2d3a50;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-fixed-cell-size: -1;
+}
+
+/* HARD OVERRIDE: buộc mọi cell text trong admin listview phải màu sáng,
+   tránh chữ đen mặc định của JavaFX bị chìm vào nền dark mode */
+.admin-listview .list-cell {
+    -fx-background-color: #111827;
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+    -fx-padding: 10 14;
+    -fx-border-color: transparent transparent #1e293b transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.admin-listview .list-cell:odd {
+    -fx-background-color: #151d2b;
+}
+
+.admin-listview .list-cell:hover {
+    -fx-background-color: #1e293b;
+}
+
+.admin-listview .list-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+    -fx-text-fill: #f1f5f9;
+    -fx-font-weight: 600;
+}
+
+.admin-listview .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Hard override: buộc mọi Label con bên trong list-cell phải màu sáng */
+.admin-listview .list-cell .label {
+    -fx-text-fill: #e2e8f0;
+}
+
+/* Hard override: buộc TextFlow hoặc node văn bản khác bên trong cell */
+.admin-listview .list-cell > .text {
+    -fx-fill: #e2e8f0 !important;
+}
+
+.admin-listview .placeholder .label {
+    -fx-text-fill: #5a6a8a;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+/* ================================================================
+ *  ADMIN BUTTONS — Premium Action Buttons
+ * ================================================================ */
+
+/* --- Base button shape --- */
+.btn-refresh,
+.btn-approve,
+.btn-reject,
+.btn-cancel,
+.btn-lock,
+.btn-unlock,
+.btn-deposit {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 22;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-radius: 8;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);
+    -fx-text-fill: white;
+}
+
+/* --- Refresh (Blue) --- */
+.btn-refresh {
+    -fx-background-color: #2563eb;
+}
+.btn-refresh:hover {
+    -fx-background-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.35), 12, 0, 0, 3);
+}
+.btn-refresh:pressed {
+    -fx-background-color: #1d4ed8;
+    -fx-translate-y: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 1);
+}
+
+/* --- Approve (Emerald Green) --- */
+.btn-approve {
+    -fx-background-color: #16a34a;
+}
+.btn-approve:hover {
+    -fx-background-color: #22c55e;
+    -fx-effect: dropshadow(gaussian, rgba(22, 163, 74, 0.4), 14, 0, 0, 3);
+}
+.btn-approve:pressed {
+    -fx-background-color: #15803d;
+    -fx-translate-y: 1;
+}
+
+/* --- Reject (Crimson Red) --- */
+.btn-reject {
+    -fx-background-color: #dc2626;
+}
+.btn-reject:hover {
+    -fx-background-color: #ef4444;
+    -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.4), 14, 0, 0, 3);
+}
+.btn-reject:pressed {
+    -fx-background-color: #b91c1c;
+    -fx-translate-y: 1;
+}
+
+/* --- Cancel (Orange/Amber) --- */
+.btn-cancel {
+    -fx-background-color: #d97706;
+}
+.btn-cancel:hover {
+    -fx-background-color: #f59e0b;
+    -fx-effect: dropshadow(gaussian, rgba(217, 119, 6, 0.35), 12, 0, 0, 3);
+}
+.btn-cancel:pressed {
+    -fx-background-color: #b45309;
+    -fx-translate-y: 1;
+}
+
+/* --- Lock (Red variant) --- */
+.btn-lock {
+    -fx-background-color: #b91c1c;
+}
+.btn-lock:hover {
+    -fx-background-color: #dc2626;
+    -fx-effect: dropshadow(gaussian, rgba(185, 28, 28, 0.35), 12, 0, 0, 3);
+}
+.btn-lock:pressed {
+    -fx-background-color: #991b1b;
+    -fx-translate-y: 1;
+}
+
+/* --- Unlock (Teal variant) --- */
+.btn-unlock {
+    -fx-background-color: #0d9488;
+}
+.btn-unlock:hover {
+    -fx-background-color: #14b8a6;
+    -fx-effect: dropshadow(gaussian, rgba(13, 148, 136, 0.35), 12, 0, 0, 3);
+}
+.btn-unlock:pressed {
+    -fx-background-color: #0f766e;
+    -fx-translate-y: 1;
+}
+
+/* --- Deposit (Violet/Purple) --- */
+.btn-deposit {
+    -fx-background-color: #7c3aed;
+}
+.btn-deposit:hover {
+    -fx-background-color: #8b5cf6;
+    -fx-effect: dropshadow(gaussian, rgba(124, 58, 237, 0.35), 14, 0, 0, 3);
+}
+.btn-deposit:pressed {
+    -fx-background-color: #6d28d9;
+    -fx-translate-y: 1;
+}
+
+/* ===== ADMIN FOCUS FIELD ===== */
+.admin-field {
+    -fx-background-color: #111827;
+    -fx-text-fill: #f1f5f9;
+    -fx-prompt-text-fill: #64748b;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14;
+    -fx-font-size: 13px;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+}
+
+.admin-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #0f172a;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.25), 10, 0, 0, 2);
+}
+
+/* ===== ADMIN MESSAGE ===== */
+.admin-message {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94a3b8;
+    -fx-padding: 4 0 0 0;
+}
+
+/* ===== NOTE BOX (Warning) ===== */
+.note-box {
+    -fx-background-color: rgba(245, 158, 11, 0.08);
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(245, 158, 11, 0.2);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+}
+
+.note-text {
+    -fx-text-fill: #fbbf24;
+    -fx-font-size: 12px;
 }

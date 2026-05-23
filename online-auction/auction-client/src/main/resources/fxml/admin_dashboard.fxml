@@ -4,83 +4,165 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="com.auction.client.controller.AdminDashboardController">
+         fx:controller="com.auction.client.controller.AdminDashboardController"
+         styleClass="admin-tab-pane">
+
     <tabs>
-        <!-- ====== TAB 1: PHIÊN ĐẤU GIÁ ====== -->
+
+        <!-- ================================================================
+             TAB 1: QUẢN LÝ PHIÊN ĐẤU GIÁ
+             ================================================================ -->
         <Tab text="🔨 Quản Lý Phiên Đấu Giá">
-            <VBox spacing="14">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
+            <ScrollPane fitToWidth="true" fitToHeight="false" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="admin-scroll-pane">
+            <VBox spacing="0" styleClass="admin-tab-content">
+                <padding><Insets top="28" right="32" bottom="28" left="32"/></padding>
 
-                <!-- Header thông tin -->
-                <Label text="BẢNG ĐIỀU KHIỂN QUẢN TRỊ" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
-                <Label fx:id="adminNameLabel" style="-fx-text-fill: #9ca3af; -fx-font-size: 13px;" text="Quản trị viên: -" />
+                <!-- ===== HEADER ===== -->
+                <VBox spacing="6">
+                    <Label text="BẢNG ĐIỀU KHIỂN QUẢN TRỊ" styleClass="admin-title" />
+                    <Label fx:id="adminNameLabel" styleClass="admin-subtitle" text="Quản trị viên: -" />
+                </VBox>
 
-                <HBox spacing="30">
-                    <Label fx:id="totalActiveAuctionsLabel" style="-fx-text-fill: #10b981; -fx-font-weight: bold;" text="Phiên đang hoạt động: -" />
-                    <Label fx:id="lastUpdatedLabel" style="-fx-text-fill: #6b7280; -fx-font-size: 12px;" text="Cập nhật lúc: -" />
-                    <Button text="🔄 Làm mới dữ liệu" styleClass="primary-button" onAction="#handleRefresh" />
+                <!-- ===== KPI CARDS ROW ===== -->
+                <HBox spacing="16" styleClass="kpi-row">
+                    <!-- Card 1: Phiên đang hoạt động (Không giới hạn độ rộng) -->
+                    <VBox styleClass="kpi-card" minHeight="100">
+                        <HBox spacing="14" alignment="CENTER_LEFT">
+                            <StackPane styleClass="kpi-icon-wrap,kpi-icon-blue">
+                                <Region styleClass="kpi-icon-shape" />
+                            </StackPane>
+                            <VBox spacing="2">
+                                <Label text="Phiên đang hoạt động" styleClass="kpi-label" wrapText="true" minWidth="-Infinity" />
+                                <Label fx:id="totalActiveAuctionsLabel" text="0" styleClass="kpi-value" />
+                            </VBox>
+                        </HBox>
+                        <Label fx:id="lastUpdatedLabel" styleClass="kpi-updated" text="Cập nhật lúc: -" />
+                    </VBox>
+
+                    <!-- Card 2: Phiên chờ duyệt (Không giới hạn độ rộng) -->
+                    <VBox styleClass="kpi-card" minHeight="100">
+                        <HBox spacing="14" alignment="CENTER_LEFT">
+                            <StackPane styleClass="kpi-icon-wrap,kpi-icon-amber">
+                                <Region styleClass="kpi-icon-shape" />
+                            </StackPane>
+                            <VBox spacing="2">
+                                <Label text="Phiên chờ duyệt" styleClass="kpi-label" wrapText="true" />
+                                <Label text="0" styleClass="kpi-value" fx:id="pendingCountLabel" />
+                            </VBox>
+                        </HBox>
+                        <Label text="Chờ phê duyệt từ Admin" styleClass="kpi-updated" />
+                    </VBox>
+
+                    <!-- Card 3: Refresh -->
+                    <VBox styleClass="kpi-card" minHeight="100" alignment="CENTER">
+                        <Button text="🔄 Làm mới dữ liệu" styleClass="btn-refresh" onAction="#handleRefresh" />
+                        <Label text="Nhấn để đồng bộ" styleClass="kpi-updated" />
+                    </VBox>
                 </HBox>
 
-                <!-- Phiên OPEN/RUNNING -->
-                <Label text="Phiên đang hoạt động (OPEN / RUNNING)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
-                <ListView fx:id="activeAuctionsListView" prefHeight="200" />
-                <HBox spacing="10">
-                    <Button text="⛔ Huỷ phiên đang hoạt động đã chọn" styleClass="secondary-button" onAction="#handleCancelActiveAuction" />
-                </HBox>
+                <!-- ===== ACTIVE AUCTIONS SECTION ===== -->
+                <VBox spacing="10" styleClass="section-container" VBox.vgrow="ALWAYS">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Region styleClass="section-dot,dot-green" />
+                        <Label text="Phiên đang hoạt động (OPEN / RUNNING)" styleClass="section-title" />
+                    </HBox>
 
-                <!-- Phiên PENDING -->
-                <Label text="Phiên chờ duyệt (PENDING)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
-                <ListView fx:id="pendingAuctionsListView" prefHeight="200" />
+                    <ListView fx:id="activeAuctionsListView" prefHeight="350" minHeight="200" styleClass="admin-listview" VBox.vgrow="ALWAYS" />
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <TextField fx:id="rejectReasonField" promptText="Lý do từ chối (bắt buộc khi bấm Từ chối)" prefWidth="400" />
-                </HBox>
-                <HBox spacing="10">
-                    <Button text="✅ Duyệt phiên đã chọn" styleClass="primary-button" onAction="#handleApproveSelected" />
-                    <Button text="❌ Từ chối phiên đã chọn" styleClass="secondary-button" onAction="#handleRejectSelected" />
-                </HBox>
-                <Label fx:id="adminActionMessageLabel" style="-fx-font-size: 13px;" text="" wrapText="true" />
+                    <HBox spacing="10">
+                        <Button text="⛔ Huỷ phiên đã chọn" styleClass="btn-cancel" onAction="#handleCancelActiveAuction" />
+                    </HBox>
+                </VBox>
+
+                <!-- ===== PENDING AUCTIONS SECTION ===== -->
+                <VBox spacing="10" styleClass="section-container" VBox.vgrow="ALWAYS">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Region styleClass="section-dot,dot-amber" />
+                        <Label text="Phiên chờ duyệt (PENDING)" styleClass="section-title" />
+                    </HBox>
+
+                    <ListView fx:id="pendingAuctionsListView" prefHeight="350" minHeight="200" styleClass="admin-listview" VBox.vgrow="ALWAYS" />
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <TextField fx:id="rejectReasonField" promptText="Nhập lý do từ chối (bắt buộc)" prefWidth="420" styleClass="admin-field" />
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <Button text="✅ Duyệt phiên đã chọn" styleClass="btn-approve" onAction="#handleApproveSelected" />
+                        <Button text="❌ Từ chối phiên đã chọn" styleClass="btn-reject" onAction="#handleRejectSelected" />
+                    </HBox>
+
+                    <Label fx:id="adminActionMessageLabel" styleClass="admin-message" text="" wrapText="true" />
+                </VBox>
             </VBox>
+            </ScrollPane>
         </Tab>
 
-        <!-- ====== TAB 2: QUẢN LÝ USER ====== -->
+        <!-- ================================================================
+             TAB 2: QUẢN LÝ NGƯỜI DÙNG
+             ================================================================ -->
         <Tab text="👥 Quản Lý Người Dùng">
-            <VBox spacing="14">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
+            <ScrollPane fitToWidth="true" fitToHeight="false" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="admin-scroll-pane">
+            <VBox spacing="0" styleClass="admin-tab-content">
+                <padding><Insets top="28" right="32" bottom="28" left="32"/></padding>
 
-                <Label text="QUẢN LÝ NGƯỜI DÙNG" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f3f4f6;" />
-                <Label text="Xem, khoá/mở khoá tài khoản và nạp tiền cho Bidder" style="-fx-text-fill: #9ca3af;" />
+                <!-- ===== HEADER ===== -->
+                <VBox spacing="6">
+                    <Label text="QUẢN LÝ NGƯỜI DÙNG" styleClass="admin-title" />
+                    <Label text="Xem, khoá / mở khoá tài khoản và nạp tiền cho Bidder" styleClass="admin-subtitle" />
+                </VBox>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Button text="🔄 Tải lại danh sách" styleClass="primary-button" onAction="#handleRefreshUsers" />
-                    <Button text="🔒 Khoá tài khoản" styleClass="secondary-button" onAction="#handleLockUser" />
-                    <Button text="🔓 Mở khoá tài khoản" styleClass="primary-button" onAction="#handleUnlockUser" />
+                <!-- ===== ACTION BUTTONS ===== -->
+                <HBox spacing="12" styleClass="section-container">
+                    <Button text="🔄 Tải lại danh sách" styleClass="btn-refresh" onAction="#handleRefreshUsers" />
+                    <Button text="🔒 Khoá tài khoản" styleClass="btn-lock" onAction="#handleLockUser" />
+                    <Button text="🔓 Mở khoá tài khoản" styleClass="btn-unlock" onAction="#handleUnlockUser" />
                 </HBox>
 
-                <ListView fx:id="usersListView" prefHeight="360" />
+                <!-- ===== USER LIST ===== -->
+                <VBox spacing="10" styleClass="section-container" VBox.vgrow="ALWAYS">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Region styleClass="section-dot,dot-indigo" />
+                        <Label text="Danh sách người dùng" styleClass="section-title" />
+                    </HBox>
 
-                <Label text="Nạp tiền cho Bidder đã chọn" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #e5e7eb;" />
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <TextField fx:id="depositAmountField" promptText="Số tiền VND (VD: 10000000)" prefWidth="280" />
-                    <Button text="💰 Nạp tiền" styleClass="primary-button" onAction="#handleDepositForUser" />
-                </HBox>
+                    <ListView fx:id="usersListView" prefHeight="350" minHeight="200" styleClass="admin-listview" VBox.vgrow="ALWAYS" />
+                </VBox>
 
-                <Label fx:id="userActionMessageLabel" style="-fx-font-size: 13px;" text="" wrapText="true" />
+                <!-- ===== DEPOSIT SECTION ===== -->
+                <VBox spacing="10" styleClass="section-container">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Region styleClass="section-dot,dot-emerald" />
+                        <Label text="Nạp tiền cho Bidder đã chọn" styleClass="section-title" />
+                    </HBox>
 
-                <Label text="⚠️  Lưu ý: Chỉ tài khoản BIDDER mới có thể nạp tiền. Admin không thể tự khoá tài khoản mình."
-                       style="-fx-text-fill: #f59e0b; -fx-font-size: 12px;" wrapText="true" maxWidth="700" />
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <TextField fx:id="depositAmountField" promptText="Số tiền VND (VD: 10000000)" prefWidth="300" styleClass="admin-field" />
+                        <Button text="💰 Nạp tiền" styleClass="btn-deposit" onAction="#handleDepositForUser" />
+                    </HBox>
+
+                    <Label fx:id="userActionMessageLabel" styleClass="admin-message" text="" wrapText="true" />
+
+                    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="note-box">
+                        <Label text="⚠️" style="-fx-font-size: 14px;" />
+                        <Label text="Chỉ tài khoản BIDDER mới có thể nạp tiền. Admin không thể tự khoá tài khoản mình."
+                               styleClass="note-text" wrapText="true" maxWidth="680" />
+                    </HBox>
+                </VBox>
             </VBox>
+            </ScrollPane>
         </Tab>
+
     </tabs>
 </TabPane>
