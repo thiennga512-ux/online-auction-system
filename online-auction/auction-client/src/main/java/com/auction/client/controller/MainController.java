@@ -180,7 +180,20 @@ public class MainController {
   @FXML
   private void handleNavAuctionRoom() {
     setActiveMenu(auctionRoomButton);
-    switchContent("auction_detail.fxml");
+    // Nếu chưa ở trang chủ → về home trước
+    if (!(activeContentController instanceof HomeController)) {
+      switchContent("home.fxml");
+      // Đợi HomeController load xong rồi mới gọi filter + scroll
+      Platform.runLater(() -> {
+        if (activeContentController instanceof HomeController homeCtrl) {
+          homeCtrl.scrollToAndFilterActiveAuctions();
+        }
+      });
+    } else {
+      // Đã ở trang chủ → gọi trực tiếp filter + scroll
+      HomeController homeCtrl = (HomeController) activeContentController;
+      homeCtrl.scrollToAndFilterActiveAuctions();
+    }
   }
 
   @FXML

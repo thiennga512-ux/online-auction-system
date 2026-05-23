@@ -1069,37 +1069,123 @@
 }
 
 /* ============================================================
- * SCROLLPANE & TEXTAREA (đồng bộ dark theme)
+ * SCROLLPANE & SCROLLBAR CUSTOM — Dark Theme sang trọng
+ * ============================================================
+ * - Nền ScrollPane trong suốt, viewport trong suốt
+ * - Scrollbar mỏng, bo tròn, màu xám tối
+ * - Thumb sáng dần khi hover, track mờ nâu xám
+ * - Ẩn các nút increment/decrement để thanh cuộn gọn gàng
  * ============================================================
  */
 
+/* --- ScrollPane tổng thể --- */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
 }
 
 .scroll-pane > .viewport {
     -fx-background-color: transparent;
 }
 
+/* --- Thanh cuộn dọc và ngang --- */
 .scroll-bar {
-    -fx-background-color: #1e293b;
-    -fx-background-radius: 4;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-pref-width: 8;
+    -fx-pref-height: 8;
 }
 
+/* Track (đường ray) */
+.scroll-bar .track {
+    -fx-background-color: rgba(30, 41, 59, 0.6);
+    -fx-background-radius: 4;
+    -fx-border-color: transparent;
+    -fx-background-insets: 2 0 2 0;
+}
+
+/* Thanh kéo (thumb) */
 .scroll-bar .thumb {
     -fx-background-color: #475569;
-    -fx-background-radius: 4;
+    -fx-background-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-background-insets: 2;
+    -fx-opacity: 0.85;
+    -fx-transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
+/* Thumb khi di chuột hover — sáng lên */
 .scroll-bar .thumb:hover {
-    -fx-background-color: #64748b;
+    -fx-background-color: #94a3b8;
+    -fx-opacity: 1.0;
 }
 
+/* Thumb khi đang kéo (pressed) */
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #cbd5e1;
+    -fx-opacity: 1.0;
+}
+
+/* Ẩn hoàn toàn nút tăng/giảm (increment/decrement) */
 .scroll-bar .increment-button,
 .scroll-bar .decrement-button {
     -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
     -fx-padding: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+/* Ẩn mũi tên trong nút */
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+/* --- ScrollBar dọc (vertical) — bo góc riêng --- */
+.scroll-bar:vertical {
+    -fx-pref-width: 8;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-insets: 2 1 2 1;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-min-height: 40;
+    -fx-background-insets: 2 1 2 1;
+}
+
+/* --- ScrollBar ngang (horizontal) — bo góc riêng --- */
+.scroll-bar:horizontal {
+    -fx-pref-height: 8;
+}
+
+.scroll-bar:horizontal .track {
+    -fx-background-insets: 1 2 1 2;
+}
+
+.scroll-bar:horizontal .thumb {
+    -fx-min-width: 40;
+    -fx-background-insets: 1 2 1 2;
+}
+
+/* Bỏ đường viền mặc định Focus */
+.scroll-pane:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Tăng nhẹ kích thước hover vùng scrollbar để dễ thao tác */
+.scroll-bar:hover {
+    -fx-pref-width: 10;
+    -fx-pref-height: 10;
 }
 
 .text-area {

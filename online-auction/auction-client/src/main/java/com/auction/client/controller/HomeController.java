@@ -37,7 +37,7 @@ public class HomeController implements LifecycleAwareController {
   private FlowPane productsGrid;
 
   @FXML
-  private ScrollPane auctionScrollPane;
+  private ScrollPane mainScrollPane;
 
   @FXML
   private TextField searchInput;
@@ -63,8 +63,17 @@ public class HomeController implements LifecycleAwareController {
   @FXML
   private VBox vehicleCategoryItem;
 
+  @FXML
+  private Label welcomeMessageLabel;
+
+  // Listener đăng ký với SessionManager để cập nhật welcome message động
+  private final java.util.function.Consumer<Dto.UserProfileResponse> loginStateListener = this::onLoginStateChanged;
+
   // Lưu danh sách auctions gốc (để có thể restore sau khi search và filter)
   private List<Dto.AuctionCardDto> originalAuctions = new java.util.ArrayList<>();
+
+  // Flag đánh dấu đã lọc "Phòng đấu giá" — để không filter chồng lên nhau
+  private boolean isAuctionRoomFilterActive = false;
 
   private String activeCategoryFilter;
 
@@ -89,8 +98,28 @@ public class HomeController implements LifecycleAwareController {
     // Khởi tạo event listener cho search
     setupSearchHandlers();
     
+    // Đăng ký lắng nghe sự kiện login/logout để cập nhật welcome message
+    SessionManager.getInstance().addLoginStateListener(loginStateListener);
+    
     renderLoadingState();
     refreshActiveAuctions();
+  }
+
+  /**
+   * Được gọi khi trạng thái đăng nhập thay đổi (login/logout).
+   * Cập nhật nội dung welcome message trong banner động dựa trên user hiện tại.
+   */
+  private void onLoginStateChanged(Dto.UserProfileResponse user) {
+    Platform.runLater(() -> {
+      if (welcomeMessageLabel == null) return;
+      if (user == null) {
+        // CHƯA ĐĂNG NHẬP
+        welcomeMessageLabel.setText("Đăng nhập để tham gia đặt giá ngay hôm nay!");
+      } else {
+        // ĐÃ ĐĂNG NHẬP THÀNH CÔNG
+        welcomeMessageLabel.setText("Chào mừng bạn đến với hệ thống đấu giá trực tuyến của chúng tôi!");
+      }
+    });
   }
 
   /**
@@ -165,7 +194,7 @@ public class HomeController implements LifecycleAwareController {
     // Cập nhật giao diện
     Platform.runLater(() -> {
       renderAuctions(reorderedList);
-      scrollToAuctionListTop();
+      scrollToContentTop();
       
       // Hiển thị thông báo thành công
       showSearchSuccess("Tìm thấy " + matchedAuctions.size() + " phiên đấu giá phù hợp!");
@@ -210,6 +239,140 @@ public class HomeController implements LifecycleAwareController {
     });
   }
 
+  /**
+   * Mở trang "Phòng đấu giá": lọc phiên đang hoạt động và cuộn mượt.
+   * Được gọi từ MainController khi người dùng nhấn nút "Phòng đấu giá".
+   * Có thể gọi từ bất kỳ thread nào (tự bọc Platform.runLater nếu cần).
+   */
+  public void scrollToAndFilterActiveAuctions() {
+    if (Platform.isFxApplicationThread()) {
+      doFilterAndScroll();
+    } else {
+      Platform.runLater(this::doFilterAndScroll);
+    }
+  }
+
+  /**
+   * Thực hiện lọc và cuộn trên JavaFX Application Thread.
+   */
+  private void doFilterAndScroll() {
+    // ===== 1. LỌC THỜI GIAN: Chỉ giữ phiên ĐANG DIỄN RA =====
+    LocalDateTime now = LocalDateTime.now();
+    List<Dto.AuctionCardDto> activeAuctions = originalAuctions.stream()
+        .filter(session -> {
+          try {
+            LocalDateTime startTime = LocalDateTime.parse(session.startTime());
+            LocalDateTime endTime   = LocalDateTime.parse(session.actualEndTime());
+            return startTime.isBefore(now) && endTime.isAfter(now);
+          } catch (Exception e) {
+            // Nếu parse lỗi → bỏ qua phiên này
+            return false;
+          }
+        })
+        .toList();
+
+    isAuctionRoomFilterActive = !activeAuctions.isEmpty();
+
+    // ===== 2. CẬP NHẬT UI TRỰC TIẾP (đã ở FX thread) =====
+    productsGrid.getChildren().clear();
+    countdownLabelsBySessionId.clear();
+    statusBySessionId.clear();
+    startTimeBySessionId.clear();
+    endTimeBySessionId.clear();
+    stopCountdownTimer();
+
+    if (activeAuctions.isEmpty()) {
+      // Không có phiên nào đang diễn ra
+      VBox emptyCard = createInfoCard("Hiện tại không có phiên đấu giá nào đang diễn ra!");
+      productsGrid.getChildren().add(emptyCard);
+      // Vẫn cuộn đến vị trí để thông báo
+    } else {
+      for (Dto.AuctionCardDto session : activeAuctions) {
+        try {
+          productsGrid.getChildren().add(createAuctionCard(session));
+        } catch (Exception e) {
+          System.err.println("[HomeController] Lỗi hiển thị thẻ đấu giá " + session.sessionId() + ": " + e.getMessage());
+          e.printStackTrace();
+        }
+      }
+      startCountdownTimer();
+    }
+
+    // ===== 3. CUỘN MƯỢT — đợi layout hoàn tất (1 frame) =====
+    Platform.runLater(this::smoothScrollToProductsGrid);
+  }
+
+  /**
+   * Cuộn mượt mà (Smooth Scroll) đến vị trí của productsGrid
+   * bên trong ScrollPane tổng, sử dụng Timeline + KeyFrame.
+   * 
+   * Tính toán tỷ lệ vvalue chính xác dựa trên layoutY của container
+   * so với tổng chiều cao nội dung ScrollPane.
+   */
+  private void smoothScrollToProductsGrid() {
+    if (mainScrollPane == null || productsGrid == null) {
+      return;
+    }
+
+    try {
+      // Lấy nội dung VBox bên trong ScrollPane
+      javafx.scene.Node content = mainScrollPane.getContent();
+      if (!(content instanceof VBox contentVBox)) {
+        return;
+      }
+
+      double contentHeight = contentVBox.getHeight();
+      double viewportHeight = mainScrollPane.getViewportBounds().getHeight();
+
+      // Nội dung chưa layout xong hoặc không đủ cao để cuộn
+      if (contentHeight <= 0 || viewportHeight <= 0 || contentHeight <= viewportHeight) {
+        return;
+      }
+
+      // Tính layoutY của productsGrid trong tọa độ của VBox (content)
+      double productsY = productsGrid.getBoundsInParent().getMinY();
+      
+      // Fallback nếu bounds chưa sẵn sàng
+      if (productsY < 0) {
+        productsY = productsGrid.localToParent(productsGrid.getBoundsInLocal()).getMinY();
+      }
+      if (productsY < 0) {
+        productsY = 0;
+      }
+
+      // Tính vvalue target (0.0 → đầu, 1.0 → cuối)
+      double maxScroll = contentHeight - viewportHeight;
+      double targetVValue = Math.min(productsY / maxScroll, 1.0);
+
+      double startVValue = mainScrollPane.getVvalue();
+      double distance = targetVValue - startVValue;
+
+      // Đã ở đúng vị trí hoặc quá gần → không cần cuộn
+      if (Math.abs(distance) < 0.005) {
+        return;
+      }
+
+      // Tạo Timeline cuộn mượt với EASE_BOTH (chậm dần ở đầu và cuối)
+      Timeline scrollTimeline = new Timeline(
+          new KeyFrame(
+              Duration.millis(700),
+              new KeyValue(
+                  mainScrollPane.vvalueProperty(),
+                  targetVValue,
+                  javafx.animation.Interpolator.EASE_BOTH
+              )
+          )
+      );
+      scrollTimeline.play();
+
+    } catch (Exception e) {
+      System.err.println("[HomeController] Lỗi smooth scroll: " + e.getMessage());
+      e.printStackTrace();
+      // Fallback an toàn: nhảy đến vị trí ước lượng
+      mainScrollPane.setVvalue(0.35);
+    }
+  }
+
   @FXML
   private void onCategoryClicked(javafx.scene.input.MouseEvent event) {
     javafx.scene.Node node = (javafx.scene.Node) event.getTarget();
@@ -224,8 +387,13 @@ public class HomeController implements LifecycleAwareController {
     if ("ALL".equals(categoryKey) || categoryKey.equals(activeCategoryFilter)) {
       activeCategoryFilter = null;
       updateCategoryVisual(null);
-      renderAuctions(originalAuctions);
-      scrollToAuctionListTop();
+      // Nếu đang ở chế độ lọc "Phòng đấu giá" → giữ filter khi chọn category
+      if (isAuctionRoomFilterActive) {
+        doFilterAndScroll();
+      } else {
+        renderAuctions(originalAuctions);
+      }
+      scrollToContentTop();
       return;
     }
 
@@ -243,11 +411,11 @@ public class HomeController implements LifecycleAwareController {
       if (filtered.isEmpty()) {
         productsGrid.getChildren().clear();
         productsGrid.getChildren().add(createInfoCard("Hiện tại chưa có phiên đấu giá nào thuộc danh mục này!"));
-        scrollToAuctionListTop();
+        scrollToContentTop();
         return;
       }
       renderAuctions(filtered);
-      scrollToAuctionListTop();
+      scrollToContentTop();
     });
   }
 
@@ -262,12 +430,12 @@ public class HomeController implements LifecycleAwareController {
     }
   }
 
-  private void scrollToAuctionListTop() {
-    if (auctionScrollPane == null) {
+  private void scrollToContentTop() {
+    if (mainScrollPane == null) {
       return;
     }
     Timeline scrollTimeline = new Timeline(
-        new KeyFrame(Duration.millis(300), new KeyValue(auctionScrollPane.vvalueProperty(), 0.0))
+        new KeyFrame(Duration.millis(300), new KeyValue(mainScrollPane.vvalueProperty(), 0.0))
     );
     scrollTimeline.play();
   }
@@ -281,6 +449,7 @@ public class HomeController implements LifecycleAwareController {
       List<Dto.AuctionCardDto> sessions = response.getDataAsList(Dto.AuctionCardDto.class);
       originalAuctions = new java.util.ArrayList<>(sessions != null ? sessions : java.util.Collections.emptyList());
       activeCategoryFilter = null;
+      isAuctionRoomFilterActive = false;
       updateCategoryVisual(null);
       renderAuctions(sessions);
       return;
@@ -685,5 +854,7 @@ public class HomeController implements LifecycleAwareController {
     startTimeBySessionId.clear();
     endTimeBySessionId.clear();
     SocketClient.getInstance().removeListener(responseListener);
+    // Hủy đăng ký listener login/logout để tránh memory leak
+    SessionManager.getInstance().removeLoginStateListener(loginStateListener);
   }
 }

@@ -82,4 +82,12 @@ public class SessionManager {
     // Kích hoạt ngay lập tức với state hiện tại
     listener.accept(this.currentUser);
   }
+
+  /**
+   * Hủy đăng ký listener. Dùng trong LifecycleAwareController.onBeforeHide()
+   * để tránh memory leak khi controller không còn hoạt động.
+   */
+  public void removeLoginStateListener(Consumer<UserProfileResponse> listener) {
+    listeners.remove(listener);
+  }
 }
