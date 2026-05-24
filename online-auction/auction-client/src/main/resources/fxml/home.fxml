@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-background: transparent; -fx-background-color: transparent;" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.HomeController">
+<ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-background: transparent; -fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.HomeController">
 
     <!-- Nội dung chính của trang chủ - cuộn dọc duy nhất -->
     <VBox spacing="20" styleClass="root" VBox.vgrow="ALWAYS">

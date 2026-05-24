@@ -10,15 +10,19 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.util.Duration;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.auction.common.dto.Dto;
@@ -144,18 +148,65 @@ public class MainController {
 
   public void switchContent(String fxmlFile) {
     try {
-      if (activeContentController instanceof LifecycleAwareController lifecycleAware) {
-        lifecycleAware.onBeforeHide();
+      String fxmlPath = "/fxml/" + fxmlFile;
+      InputStream fxmlStream = getClass().getResourceAsStream(fxmlPath);
+      if (fxmlStream == null) {
+        throw new IllegalStateException("Không tìm thấy file FXML trên classpath: " + fxmlPath);
       }
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/" + fxmlFile));
-      Node node = loader.load();
-      activeContentController = loader.getController();
-      contentArea.getChildren().clear();
-      contentArea.getChildren().add(node);
+
+      FXMLLoader loader = new FXMLLoader();
+      // Load qua InputStream — tránh lỗi URL khi đường dẫn project có dấu/khoảng trắng
+      try (InputStream in = fxmlStream) {
+        Node node = loader.load(in);
+        Object newController = loader.getController();
+
+        if (activeContentController instanceof LifecycleAwareController lifecycleAware) {
+          lifecycleAware.onBeforeHide();
+        }
+
+        activeContentController = newController;
+        applyGlobalStylesheet(node);
+        if (node instanceof Region region) {
+          region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        }
+        contentArea.getChildren().setAll(node);
+      }
     } catch (Exception e) {
-      System.out.println("===== LOAD ERROR =====");
+      System.err.println("===== LOAD ERROR (" + fxmlFile + ") =====");
       e.printStackTrace();
+      Platform.runLater(() -> {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Không mở được trang");
+        alert.setHeaderText(fxmlFile);
+        alert.setContentText(describeLoadError(e));
+        alert.showAndWait();
+      });
     }
+  }
+
+  /** Gắn CSS toàn cục qua classpath (không dùng đường dẫn tương đối @../css trong FXML). */
+  private void applyGlobalStylesheet(Node node) {
+    var cssUrl = getClass().getResource("/css/style.css");
+    if (cssUrl == null || !(node instanceof Parent parent)) {
+      return;
+    }
+    String css = cssUrl.toExternalForm();
+    if (!parent.getStylesheets().contains(css)) {
+      parent.getStylesheets().add(css);
+    }
+  }
+
+  private static String describeLoadError(Throwable e) {
+    StringBuilder sb = new StringBuilder();
+    Throwable cur = e;
+    while (cur != null) {
+      if (cur.getMessage() != null && !cur.getMessage().isBlank()) {
+        if (sb.length() > 0) sb.append("\n→ ");
+        sb.append(cur.getMessage());
+      }
+      cur = cur.getCause();
+    }
+    return sb.length() > 0 ? sb.toString() : e.getClass().getSimpleName();
   }
 
   @FXML private void goToHome()            { switchContent("home.fxml"); }

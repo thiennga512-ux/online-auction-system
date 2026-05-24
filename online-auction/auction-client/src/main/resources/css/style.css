@@ -603,6 +603,234 @@
     -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.25), 15, 0, 0, 0);
 }
 
+/* ================================================================
+ *  AUCTION CARD — Premium Modern Design
+ * ================================================================
+ *  Phong cách: Card sản phẩm hiện đại, bo góc mềm mại, đổ bóng tinh tế.
+ *  Hover: nhấc nhẹ lên, bóng đổ đậm hơn tạo chiều sâu không gian.
+ * ================================================================ */
+
+/* --- Card Container tổng thể --- */
+.auction-card {
+    -fx-background-color: #1f2937;
+    -fx-background-radius: 12;
+    -fx-border-color: #374151;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 10, 0, 0, 4);
+    -fx-transition: -fx-translate-y 0.2s ease, -fx-effect 0.2s ease;
+}
+
+.auction-card:hover {
+    -fx-border-color: #4b5563;
+    -fx-translate-y: -4;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 20, 0, 0, 8);
+}
+
+/* --- Image Container (StackPane wrapper) --- */
+.image-container {
+    -fx-background-color: #111827;
+    -fx-background-radius: 8;
+    -fx-padding: 0;
+    -fx-alignment: CENTER;
+    /* Giới hạn kích thước khung chứa ảnh đồng bộ với ImageView trong code */
+    -fx-min-height: 140;
+    -fx-max-height: 140;
+    -fx-min-width: 220;
+    -fx-max-width: 220;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 4, 0, 0, 2);
+}
+
+/* ===== BADGE TRẠNG THÁI ===== */
+/* Badge gốc — compact, bo tròn, chữ IN HOA */
+.auction-badge {
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 3 10;
+    -fx-alignment: CENTER;
+    -fx-letter-spacing: 0.5px;
+}
+
+/* RUNNING: nền đỏ mờ, chữ đỏ tươi */
+.auction-badge--running {
+    -fx-background-color: rgba(220, 38, 38, 0.15);
+    -fx-border-color: rgba(220, 38, 38, 0.4);
+    -fx-text-fill: #ef4444;
+}
+
+/* OPEN: nền xanh lam mờ, chữ xanh lam */
+.auction-badge--open {
+    -fx-background-color: rgba(59, 130, 246, 0.12);
+    -fx-border-color: rgba(59, 130, 246, 0.35);
+    -fx-text-fill: #60a5fa;
+}
+
+/* ===== TÊN SẢN PHẨM ===== */
+.auction-card__title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-wrap-text: true;
+    -fx-max-height: 44;
+    -fx-line-spacing: 2px;
+}
+
+/* ===== MÔ TẢ & NGƯỜI BÁN ===== */
+.auction-card__description {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+    -fx-wrap-text: true;
+}
+
+.auction-card__seller {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+/* ===== LEADER LABEL ===== */
+.auction-card__leader {
+    -fx-text-fill: #fbbf24;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.auction-card__leader--empty {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 12px;
+}
+
+/* ===== KHỐI GIÁ HIỆN TẠI ===== */
+.price-block {
+    -fx-background-color: rgba(16, 185, 129, 0.08);
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(16, 185, 129, 0.15);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 10 12;
+    -fx-spacing: 4;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.price-block__label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+
+.price-block__value {
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #10b981;
+}
+
+/* ===== COUNTDOWN LABEL ===== */
+.countdown-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.countdown-label--running {
+    -fx-text-fill: #f59e0b;
+}
+
+.countdown-label--open {
+    -fx-text-fill: #60a5fa;
+}
+
+.countdown-label--ended {
+    -fx-text-fill: #6b7280;
+}
+
+/* ===== SCHEDULE LABEL (dòng phụ) ===== */
+.auction-card__schedule {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 10px;
+    -fx-wrap-text: true;
+}
+
+/* ===== ACTION BUTTONS ===== */
+
+/* Outline Button — "CHI TIẾT" */
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 8;
+    -fx-background-radius: 8;
+    -fx-border-color: #475569;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 0, 1);
+    -fx-transition: -fx-background-color 0.15s ease, -fx-border-color 0.15s ease;
+}
+
+.btn-outline:hover {
+    -fx-background-color: rgba(71, 85, 105, 0.25);
+    -fx-border-color: #64748b;
+    -fx-text-fill: #f1f5f9;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 4, 0, 0, 2);
+}
+
+.btn-outline:pressed {
+    -fx-background-color: rgba(71, 85, 105, 0.4);
+    -fx-scale-x: 0.96;
+    -fx-scale-y: 0.96;
+}
+
+/* Primary CTA Button — "ĐẶT GIÁ" */
+.btn-bid {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.3), 6, 0, 0, 2);
+    -fx-transition: -fx-background-color 0.15s ease, -fx-effect 0.15s ease;
+}
+
+.btn-bid:hover {
+    -fx-background-color: #3b82f6;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.5), 12, 0, 0, 4);
+}
+
+.btn-bid:pressed {
+    -fx-background-color: #1d4ed8;
+    -fx-scale-x: 0.96;
+    -fx-scale-y: 0.96;
+    -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.2), 2, 0, 0, 1);
+}
+
+/* Disabled Bid Button */
+.btn-bid:disabled {
+    -fx-background-color: #374151;
+    -fx-text-fill: #6b7280;
+    -fx-opacity: 0.8;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+.btn-bid:disabled:hover {
+    -fx-background-color: #374151;
+    -fx-effect: none;
+}
+
+/* ===== ACTION ROW (HBox chứa 2 nút) ===== */
+.auction-action-row {
+    -fx-spacing: 8;
+    -fx-alignment: CENTER;
+    -fx-padding: 4 0 0 0;
+}
+
 /* ============================================================
  * SEARCH BAR STYLING
  * ============================================================
@@ -1716,4 +1944,600 @@
 .note-text {
     -fx-text-fill: #fbbf24;
     -fx-font-size: 12px;
+}
+
+/* ================================================================
+ *  NAVIGATION BUTTONS — Professional Hierarchy for Room Toolbar
+ * ================================================================
+ *  Phân cấp thị giác rõ ràng:
+ *  - .nav-btn-back:    Outline (trong suốt, viền xám, chữ xám bạc)
+ *  - .nav-btn-refresh: Primary (nền xanh Blue #2563eb, chữ trắng)
+ *  - .nav-btn-notify:  Secondary (nền xám tối #334155, chữ trắng)
+ * ================================================================ */
+
+/* === BASE SHARED === */
+.nav-btn-back,
+.nav-btn-refresh,
+.nav-btn-notify {
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-border-radius: 6;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 3, 0, 0, 1);
+    -fx-transition: all 0.15s ease;
+}
+
+/* === OUTLINE — Quay lại === */
+.nav-btn-back {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cbd5e1;
+    -fx-border-color: #475569;
+}
+
+.nav-btn-back:hover {
+    -fx-background-color: rgba(71, 85, 105, 0.25);
+    -fx-text-fill: #f1f5f9;
+    -fx-border-color: #64748b;
+    -fx-effect: dropshadow(gaussian, rgba(71,85,105,0.2), 6, 0, 0, 1);
+}
+
+.nav-btn-back:pressed {
+    -fx-background-color: rgba(71, 85, 105, 0.4);
+    -fx-translate-y: 1;
+}
+
+/* === PRIMARY — Làm mới === */
+.nav-btn-refresh {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: transparent;
+}
+
+.nav-btn-refresh:hover {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.45), 10, 0, 0, 2);
+}
+
+.nav-btn-refresh:pressed {
+    -fx-background-color: #1d4ed8;
+    -fx-translate-y: 1;
+}
+
+/* === SECONDARY — Đăng ký thông báo === */
+.nav-btn-notify {
+    -fx-background-color: #334155;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: transparent;
+}
+
+.nav-btn-notify:hover {
+    -fx-background-color: #475569;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(51, 65, 85, 0.35), 8, 0, 0, 2);
+}
+
+.nav-btn-notify:pressed {
+    -fx-background-color: #1e293b;
+    -fx-translate-y: 1;
+}
+
+/* Disabled state for notify */
+.nav-btn-notify:disabled {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #64748b;
+    -fx-opacity: 0.7;
+    -fx-cursor: default;
+    -fx-effect: none;
+}
+
+/* ================================================================
+ *  LIVE AUCTION ROOM — Phòng đấu giá trực tiếp (auction_detail.fxml)
+ *  Font UTF-8 / tiếng Việt: Segoe UI, Roboto, Inter
+ * ================================================================ */
+
+/* ===== ScrollPane outer wrapper ===== */
+.auction-room-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.auction-room-scroll > .viewport {
+    -fx-background-color: #0b0f17;
+}
+
+.auction-room-root {
+    -fx-background-color: #0b0f17;
+    -fx-font-family: "Segoe UI", "Roboto", "Inter", "Arial Unicode MS", sans-serif;
+}
+
+.auction-room-toolbar {
+    -fx-padding: 0 0 16 0;
+}
+
+.auction-btn-back {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-color: #374151;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.auction-btn-back:hover {
+    -fx-background-color: #374151;
+    -fx-border-color: #4b5563;
+}
+
+.auction-btn-notify {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-color: #374151;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.auction-btn-notify:hover {
+    -fx-text-fill: #f3f4f6;
+    -fx-border-color: #6366f1;
+}
+
+/* ===== Top section (image + info) ===== */
+.auction-room-top {
+    -fx-background-color: #111827;
+    -fx-background-radius: 16;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 20, 0, 0, 6);
+}
+
+/* ===== Image frame ===== */
+.auction-image-frame {
+    -fx-background-color: #0a0e14;
+    -fx-background-radius: 16;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-alignment: center;
+    -fx-min-height: 260;
+    -fx-pref-height: 280;
+}
+
+.auction-image-frame > .image-view-wrapper {
+    -fx-background-color: transparent;
+}
+
+.auction-product-image {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 12, 0, 0, 2);
+}
+
+/* ===== Left column description card ===== */
+.auction-desc-card {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 12;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-spacing: 10;
+}
+
+.auction-desc-heading {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e2e8f0;
+}
+
+.auction-desc-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #94a3b8;
+    -fx-line-spacing: 4px;
+    -fx-wrap-text: true;
+}
+
+/* ===== Right panel ===== */
+.auction-live-panel {
+    -fx-spacing: 14;
+}
+
+/* ===== Merged badge row: live dot + status + viewer count ===== */
+.auction-badge-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.live-viewer-group {
+    -fx-background-color: rgba(59, 130, 246, 0.10);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(59, 130, 246, 0.25);
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-padding: 4 12 4 8;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 6;
+}
+
+.live-pulse-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-color: #ef4444;
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.9), 8, 0.3, 0, 0);
+}
+
+.viewer-text {
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+    -fx-text-fill: #cbd5e1;
+    -fx-font-weight: 500;
+}
+
+.auction-status-badge {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+}
+
+/* ===== Product title ===== */
+.auction-product-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-wrap-text: true;
+}
+
+/* ===== Price hero ===== */
+.auction-price-hero {
+    -fx-background-color: rgba(16, 185, 129, 0.08);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(16, 185, 129, 0.25);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 16 20;
+}
+
+.auction-price-caption {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6ee7b7;
+    -fx-font-weight: 600;
+    -fx-letter-spacing: 0.5px;
+}
+
+.auction-current-price {
+    -fx-font-size: 42px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34d399;
+    -fx-effect: dropshadow(gaussian, rgba(52, 211, 153, 0.45), 16, 0.2, 0, 0);
+}
+
+.auction-leader-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #fbbf24;
+    -fx-font-weight: 600;
+}
+
+.auction-leader-label-muted {
+    -fx-text-fill: #6b7280;
+    -fx-font-weight: normal;
+}
+
+/* ===== Countdown card ===== */
+.auction-countdown-card {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 12;
+    -fx-padding: 14 16;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.auction-countdown-text {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #60a5fa;
+}
+
+.auction-countdown-muted {
+    -fx-text-fill: #6b7280;
+}
+
+.auction-countdown-urgent {
+    -fx-text-fill: #f87171;
+}
+
+.auction-meta-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94a3b8;
+}
+
+.auction-separator {
+    -fx-background-color: #1e293b;
+    -fx-pref-height: 1;
+}
+
+/* ===== Time progress bar ===== */
+.auction-time-progress {
+    -fx-pref-height: 8;
+    -fx-background-radius: 4;
+    -fx-background-color: #1e293b;
+    -fx-accent: linear-gradient(to right, #10b981, #3b82f6);
+}
+
+.auction-time-progress > .bar {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-padding: 0;
+}
+
+.auction-time-progress > .track {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 4;
+}
+
+.auction-time-progress-urgent {
+    -fx-accent: linear-gradient(to right, #f59e0b, #ef4444);
+}
+
+/* ===== Bid panel ===== */
+.auction-bid-panel {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 12;
+    -fx-border-color: #334155;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.auction-bid-panel-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1f5f9;
+}
+
+.auction-bid-hint {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94a3b8;
+}
+
+.auction-preset-flow {
+    -fx-padding: 4 0;
+}
+
+/* ===== Preset buttons with balanced sizing ===== */
+.auction-preset-btn {
+    -fx-background-color: #1e293b;
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-min-width: 72;
+}
+
+.auction-preset-btn:hover {
+    -fx-background-color: #334155;
+    -fx-border-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.auction-preset-btn:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
+
+.auction-bid-field {
+    -fx-background-color: rgba(15, 23, 42, 0.9);
+    -fx-text-fill: #f8fafc;
+    -fx-prompt-text-fill: #64748b;
+    -fx-font-size: 15px;
+    -fx-font-family: "Segoe UI", "Roboto", "Inter", sans-serif;
+    -fx-background-radius: 10;
+    -fx-padding: 12 16;
+    -fx-border-color: #334155;
+    -fx-border-radius: 10;
+    -fx-border-width: 1.5;
+}
+
+.auction-bid-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #0b1220;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.35), 12, 0, 0, 0);
+}
+
+/* ===== Submit bid button — large & prominent ===== */
+.auction-submit-bid-btn {
+    -fx-background-color: linear-gradient(to bottom, #10b981, #059669);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 14 28;
+    -fx-cursor: hand;
+    -fx-min-width: 160;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.5), 14, 0.2, 0, 2);
+}
+
+.auction-submit-bid-btn:hover {
+    -fx-background-color: linear-gradient(to bottom, #34d399, #10b981);
+    -fx-effect: dropshadow(gaussian, rgba(52, 211, 153, 0.75), 22, 0.35, 0, 4);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.auction-submit-bid-btn:pressed {
+    -fx-background-color: #047857;
+    -fx-translate-y: 1;
+}
+
+.auction-submit-bid-btn:disabled {
+    -fx-background-color: #374151;
+    -fx-text-fill: #6b7280;
+    -fx-effect: none;
+    -fx-cursor: default;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
+.auction-bid-status {
+    -fx-font-size: 12px;
+    -fx-text-fill: #ef4444;
+}
+
+.auction-bid-status-ok {
+    -fx-text-fill: #34d399;
+}
+
+/* ===== Bottom section ===== */
+.auction-room-bottom {
+    -fx-padding: 8 0 0 0;
+}
+
+/* ===== Bid history section ===== */
+.auction-history-section {
+    -fx-background-color: #111827;
+    -fx-background-radius: 12;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 18 20;
+    -fx-spacing: 12;
+}
+
+.auction-section-heading {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1f5f9;
+}
+
+.auction-history-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #64748b;
+    -fx-font-style: italic;
+}
+
+/* ===== BID HISTORY LISTVIEW — Styled like a premium table ===== */
+.auction-bid-history-list {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 10;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 4;
+    -fx-fixed-cell-size: 48;
+}
+
+.auction-bid-history-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", "Roboto", "Inter", sans-serif;
+    -fx-padding: 10 14;
+    -fx-border-color: transparent transparent rgba(30, 41, 59, 0.6) transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.auction-bid-history-list .list-cell:odd {
+    -fx-background-color: rgba(15, 23, 42, 0.5);
+}
+
+.auction-bid-history-list .list-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.08);
+}
+
+.auction-bid-history-list .list-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.15);
+    -fx-text-fill: #f8fafc;
+}
+
+/* Bid leader — highest bid highlighted gold */
+.auction-bid-history-list .list-cell.bid-history-leader {
+    -fx-background-color: linear-gradient(to right, rgba(251, 191, 36, 0.18), rgba(245, 158, 11, 0.08));
+    -fx-border-color: rgba(251, 191, 36, 0.55) transparent transparent transparent;
+    -fx-border-width: 1 0 1 0;
+    -fx-text-fill: #fde68a;
+    -fx-font-weight: bold;
+}
+
+.auction-bid-history-list .list-cell.bid-history-leader:hover {
+    -fx-background-color: linear-gradient(to right, rgba(251, 191, 36, 0.28), rgba(245, 158, 11, 0.12));
+}
+
+.auction-bid-history-list .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.auction-bid-history-list .placeholder .label {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+}
+
+/* ===== ScrollPane cho bid history ===== */
+.auction-history-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-border-radius: 10;
+    -fx-padding: 0;
+}
+
+.auction-history-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+}
+
+.auction-history-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+    -fx-padding: 2 2 2 0;
+}
+
+.auction-history-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.auction-history-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #334155;
+    -fx-background-radius: 4;
+    -fx-min-height: 36;
+}
+
+.auction-history-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #475569;
+}
+
+.auction-history-scroll .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
+
+.auction-history-scroll .scroll-bar:vertical .increment-button,
+.auction-history-scroll .scroll-bar:vertical .decrement-button {
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
 }

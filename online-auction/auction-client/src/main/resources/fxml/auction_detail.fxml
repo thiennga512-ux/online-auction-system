@@ -4,130 +4,149 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<HBox spacing="24" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.controller.AuctionDetailController">
-    <padding>
-        <Insets top="20" right="32" bottom="20" left="32"/>
-    </padding>
+<!--
+  ================================================================
+  auction_detail.fxml — Phòng Đấu Giá Trực Tiếp (Redesigned)
+  ================================================================
+  Fixes applied:
+  1. ScrollPane outer wrapper: fitToWidth=true, vbarPolicy=ALWAYS
+  2. 2-column layout: Left 40% (image + description), Right (bid panel)
+  3. Image in bordered StackPane with fitWidth=400, preserveRatio=true
+  4. Description label below image (not in right panel)
+  5. Viewer count merged into badge row with live pulse dot
+  6. Full bid history ListView restored at bottom
+  ================================================================
+-->
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS"
+            styleClass="auction-room-scroll"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.controller.AuctionDetailController">
 
-    <!-- ===== CỘT TRÁI: Ảnh + Thông tin + Thao tác ===== -->
-    <VBox spacing="14" prefWidth="380">
+    <VBox spacing="0" styleClass="auction-room-root">
 
-        <!-- Nút điều hướng -->
-        <HBox spacing="10">
-            <Button text="← Quay lại" onAction="#handleBack"
-                    style="-fx-background-color: #374151; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 7 14; -fx-cursor: hand;"/>
-            <Button text="🔄 Làm mới" styleClass="primary-button" onAction="#handleRefresh"/>
+        <padding>
+            <Insets top="16" right="28" bottom="24" left="28"/>
+        </padding>
+
+        <!-- ===== TOOLBAR — Navigation Buttons ===== -->
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="auction-room-toolbar">
+            <Button text="← Quay lại" onAction="#handleBack" styleClass="nav-btn-back"/>
+            <Button text="↻ Làm mới" onAction="#handleRefresh" styleClass="nav-btn-refresh"/>
+            <Region HBox.hgrow="ALWAYS"/>
             <Button fx:id="notifyButton" text="🔔 Đăng ký thông báo" onAction="#handleRegisterNotification"
-                    style="-fx-background-color: #374151; -fx-text-fill: #9ca3af; -fx-background-radius: 6; -fx-padding: 7 14; -fx-cursor: hand;"/>
+                    styleClass="nav-btn-notify"/>
         </HBox>
 
-        <!-- Badge trạng thái -->
-        <Label fx:id="statusBadgeLabel" text=""
-               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 5 12; -fx-background-radius: 20; -fx-border-radius: 20;"/>
+        <VBox spacing="20" VBox.vgrow="ALWAYS">
 
-        <!-- Ảnh sản phẩm -->
-        <StackPane style="-fx-background-color: #1f2937; -fx-background-radius: 12;" minHeight="220">
-            <ImageView fx:id="productImageView" fitWidth="360" fitHeight="220" preserveRatio="true"/>
-        </StackPane>
+            <!-- ===== TOP: 2-COLUMN LAYOUT ===== -->
+            <HBox spacing="28" alignment="TOP_LEFT" styleClass="auction-room-top">
 
-        <!-- Tên sản phẩm -->
-        <Label fx:id="titleLabel" text="Đang tải..." styleClass="title-text"
-               style="-fx-font-size: 22px; -fx-wrap-text: true;" wrapText="true"/>
+                <!-- ===== LEFT COLUMN: Image + Description (~40%) ===== -->
+                <VBox spacing="16" prefWidth="450" maxWidth="460">
 
-        <!-- Mô tả sản phẩm -->
-        <Label fx:id="descriptionLabel" text=""
-               style="-fx-text-fill: #9ca3af; -fx-font-size: 13px; -fx-wrap-text: true;"
-               wrapText="true"/>
+                    <!-- Image frame -->
+                    <StackPane styleClass="auction-image-frame" minWidth="340" prefWidth="420">
+                        <ImageView fx:id="productImageView" fitWidth="400" fitHeight="280"
+                                   preserveRatio="true" styleClass="auction-product-image"/>
+                    </StackPane>
 
-        <!-- Giá hiện tại -->
-        <Label fx:id="priceLabel" text="Giá hiện tại: -"
-               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                    <!-- Product Description Card -->
+                    <VBox spacing="10" styleClass="auction-desc-card" VBox.vgrow="ALWAYS">
+                        <Label text="📋 Mô tả chi tiết sản phẩm" styleClass="auction-desc-heading"/>
+                        <Label fx:id="descriptionLabel" text="Đang tải..." styleClass="auction-desc-text" wrapText="true"
+                               VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </VBox>
 
-        <!-- Người dẫn đầu -->
-        <Label fx:id="leaderLabel" text="👑 Chưa có người đặt giá"
-               style="-fx-font-size: 14px; -fx-text-fill: #fbbf24;"/>
+                <!-- ===== RIGHT COLUMN: Live Panel (~60%) ===== -->
+                <VBox spacing="16" HBox.hgrow="ALWAYS" styleClass="auction-live-panel">
 
-        <Separator style="-fx-background-color: #374151;"/>
+                    <!-- Merged Badge Row: Live dot + Status + Viewers -->
+                    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="auction-badge-row">
+                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="live-viewer-group">
+                            <Region fx:id="livePulseDot" styleClass="live-pulse-dot" managed="false" visible="false"/>
+                            <Label fx:id="statusBadgeLabel" text="" styleClass="auction-status-badge"/>
+                            <Label text="·" style="-fx-text-fill: #4b5563; -fx-font-size: 14px;"/>
+                            <Label fx:id="viewerCountLabel" text="Đang tải..." styleClass="viewer-text"/>
+                        </HBox>
+                    </HBox>
 
-        <!-- Thông tin thời gian -->
-        <VBox spacing="6" style="-fx-background-color: #1f2937; -fx-background-radius: 10; -fx-padding: 14;">
+                    <!-- Product Title -->
+                    <Label fx:id="titleLabel" text="Đang tải..." styleClass="auction-product-title" wrapText="true"/>
 
-            <!-- Đếm ngược chính (thay đổi tuỳ OPEN/RUNNING) -->
-            <Label fx:id="countdownLabel" text="⏳ Đang tải..."
-                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #60a5fa;"/>
+                    <!-- Price Hero -->
+                    <VBox spacing="4" styleClass="auction-price-hero">
+                        <Label text="Giá hiện tại" styleClass="auction-price-caption"/>
+                        <Label fx:id="priceLabel" text="-" styleClass="auction-current-price"/>
+                        <Label fx:id="leaderLabel" text="👑 Chưa có người đặt giá" styleClass="auction-leader-label"/>
+                    </VBox>
 
-            <!-- Thời gian cụ thể -->
-            <Label fx:id="startTimeLabel" text="📅 Khai mạc: -"
-                   style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
-            <Label fx:id="endTimeLabel" text="🏁 Kết thúc: -"
-                   style="-fx-font-size: 12px; -fx-text-fill: #6b7280;"/>
-        </VBox>
+                    <!-- Countdown Card -->
+                    <VBox spacing="8" styleClass="auction-countdown-card">
+                        <Label fx:id="countdownLabel" text="⏳ Đang tải..." styleClass="auction-countdown-text"/>
+                        <HBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+                            <ProgressBar fx:id="timeProgressBar" progress="1.0" maxWidth="1.7976931348623157E308"
+                                         HBox.hgrow="ALWAYS" styleClass="auction-time-progress"/>
+                        </HBox>
+                        <HBox spacing="16">
+                            <Label fx:id="startTimeLabel" text="📅 Khai mạc: -" styleClass="auction-meta-label"/>
+                            <Label fx:id="endTimeLabel" text="🏁 Kết thúc: -" styleClass="auction-meta-label"/>
+                        </HBox>
+                        <Label fx:id="sellerLabel" text="👤 Người bán: -" styleClass="auction-meta-label"/>
+                    </VBox>
 
-        <!-- Người bán -->
-        <Label fx:id="sellerLabel" text="👤 Người bán: -"
-               style="-fx-font-size: 13px; -fx-text-fill: #9ca3af;"/>
+                    <!-- Bid Panel -->
+                    <VBox fx:id="bidPanel" spacing="12" styleClass="auction-bid-panel">
 
-    </VBox>
+                        <Label text="Đặt giá ngay" styleClass="auction-bid-panel-title"/>
 
-    <!-- ===== CỘT PHẢI: Đặt giá + Lịch sử bid ===== -->
-    <VBox spacing="14" HBox.hgrow="ALWAYS">
+                        <Label fx:id="minBidHintLabel" text="Giá tối thiểu: -" styleClass="auction-bid-hint"/>
 
-        <!-- ===== KHU VỰC ĐẶT GIÁ ===== -->
-        <VBox fx:id="bidPanel" spacing="12"
-              style="-fx-background-color: #1f2937; -fx-background-radius: 12; -fx-padding: 18;">
+                        <FlowPane hgap="10" vgap="8" styleClass="auction-preset-flow">
+                            <Button fx:id="preset1Btn" text="+100K" onAction="#handlePreset1" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset2Btn" text="+500K" onAction="#handlePreset2" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset3Btn" text="+1M" onAction="#handlePreset3" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset4Btn" text="+5M" onAction="#handlePreset4" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset5Btn" text="+10M" onAction="#handlePreset5" styleClass="auction-preset-btn"/>
+                        </FlowPane>
 
-            <Label text="🏷 Đặt giá"
-                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <TextField fx:id="bidAmountField" promptText="Nhập số tiền (VND)..."
+                                       styleClass="auction-bid-field" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="submitBidBtn" text="ĐẶT GIÁ" onAction="#handleSubmitBid"
+                                    styleClass="auction-submit-bid-btn" minWidth="160"/>
+                        </HBox>
 
-            <!-- Gợi ý giá tối thiểu -->
-            <Label fx:id="minBidHintLabel" text="Giá tối thiểu: -"
-                   style="-fx-font-size: 13px; -fx-text-fill: #9ca3af;"/>
-
-            <!-- Preset nhanh -->
-            <FlowPane hgap="8" vgap="8">
-                <Button fx:id="preset1Btn" text="+100K" onAction="#handlePreset1"
-                        style="-fx-background-color: #374151; -fx-text-fill: #d1d5db; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
-                <Button fx:id="preset2Btn" text="+500K" onAction="#handlePreset2"
-                        style="-fx-background-color: #374151; -fx-text-fill: #d1d5db; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
-                <Button fx:id="preset3Btn" text="+1M" onAction="#handlePreset3"
-                        style="-fx-background-color: #374151; -fx-text-fill: #d1d5db; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
-                <Button fx:id="preset4Btn" text="+5M" onAction="#handlePreset4"
-                        style="-fx-background-color: #374151; -fx-text-fill: #d1d5db; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
-                <Button fx:id="preset5Btn" text="+10M" onAction="#handlePreset5"
-                        style="-fx-background-color: #374151; -fx-text-fill: #d1d5db; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
-            </FlowPane>
-
-            <!-- Ô nhập giá + nút xác nhận -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <TextField fx:id="bidAmountField"
-                           promptText="Nhập số tiền (VND)..."
-                           style="-fx-background-color: #111827; -fx-text-fill: white; -fx-prompt-text-fill: #6b7280; -fx-border-color: #374151; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10 14; -fx-font-size: 14px;"
-                           HBox.hgrow="ALWAYS"/>
-                <Button fx:id="submitBidBtn" text="✅ Đặt giá" onAction="#handleSubmitBid"
-                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                        <Label fx:id="bidStatusLabel" text="" styleClass="auction-bid-status" wrapText="true"/>
+                    </VBox>
+                </VBox>
             </HBox>
 
-            <!-- Thông báo lỗi / trạng thái -->
-            <Label fx:id="bidStatusLabel" text=""
-                   style="-fx-font-size: 12px; -fx-text-fill: #ef4444;" wrapText="true"/>
+            <!-- ===== BOTTOM: Bid History ===== -->
+            <VBox spacing="10" VBox.vgrow="ALWAYS" styleClass="auction-history-section">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="📊 Lịch sử đặt giá" styleClass="auction-section-heading"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Giá cao nhất được đánh dấu vàng" styleClass="auction-history-hint"/>
+                </HBox>
+
+                <ListView fx:id="bidHistoryList" prefHeight="300" minHeight="200"
+                          styleClass="auction-bid-history-list" VBox.vgrow="ALWAYS"/>
+            </VBox>
 
         </VBox>
-
-        <Separator style="-fx-background-color: #374151;"/>
-
-        <!-- ===== LỊCH SỬ BID ===== -->
-        <Label text="📋 Lịch sử đặt giá" styleClass="title-text" style="-fx-font-size: 18px;"/>
-        <ListView fx:id="bidHistoryList" VBox.vgrow="ALWAYS"
-                  style="-fx-background-color: #1f2937; -fx-border-color: #374151; -fx-border-radius: 8; -fx-background-radius: 8;"/>
     </VBox>
-
-</HBox>
+</ScrollPane>
