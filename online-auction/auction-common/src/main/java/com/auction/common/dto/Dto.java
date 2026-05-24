@@ -134,9 +134,15 @@ public class Dto {
   ) {}
 
   /**
-   * DTO đầy đủ cho màn hình Home (thay thế việc gửi AuctionSession trực tiếp).
-   * Tránh vấn đề GSON không deserialize được abstract class Item.
+   * DTO cho màn hình Kết quả đấu giá.
    */
+  public record AuctionResultDto(
+      String endTime,
+      String auctionName,
+      String status, // SUCCESS / FAILED
+      String reason
+  ) {}
+
   public record AuctionCardDto(
       String sessionId,
       String itemId,

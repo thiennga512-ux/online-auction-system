@@ -82,11 +82,8 @@ public class LoginController implements LifecycleAwareController {
       Dto.UserProfileResponse profile = response.getDataAs(Dto.UserProfileResponse.class);
       Platform.runLater(() -> {
         SessionManager.getInstance().setCurrentUser(profile);
-        if (profile != null && "ADMIN".equals(profile.role())) {
-          ClientMain.getMainController().switchContent("admin_dashboard.fxml");
-        } else {
-          ClientMain.getMainController().switchContent("home.fxml");
-        }
+        // Mọi role (Bidder, Seller, Admin) đều về Trang chủ và highlight nút Trang chủ
+        ClientMain.getMainController().goToHome();
       });
       return;
     }

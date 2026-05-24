@@ -138,6 +138,12 @@ public class MainController {
       });
     });
 
+    // ===== QUAN TRỌNG: Khởi động đồng hồ thời gian thực =====
+    // setupClock() tạo Timeline INDEFINITE chạy độc lập trên FX Application Thread.
+    // Việc load/nạp view con vào contentArea (switchContent) KHÔNG làm ảnh hưởng
+    // đến Timeline này vì nó không phụ thuộc vào nội dung contentArea.
+    setupClock();
+
     goToHome();
 
     // Lắng nghe response từ Server (Logout + Notification)
@@ -235,7 +241,10 @@ public class MainController {
     return sb.length() > 0 ? sb.toString() : e.getClass().getSimpleName();
   }
 
-  @FXML private void goToHome()            { switchContent("home.fxml"); }
+  @FXML public void goToHome()            {
+    updateNavbarHighlight(homeNavButton);
+    switchContent("home.fxml");
+  }
   @FXML private void goToLogin()           { switchContent("login.fxml"); }
   @FXML private void goToRegister()        { switchContent("register.fxml"); }
   @FXML private void goToSellerDashboard() {
@@ -259,7 +268,6 @@ public class MainController {
 
   @FXML
   private void handleNavHome() {
-    updateNavbarHighlight(homeNavButton);
     goToHome();
   }
 
@@ -283,9 +291,9 @@ public class MainController {
   }
 
   @FXML
-  private void handleNavAuctionHistory() {
+  private void handleNavAuctionResults() {
     updateNavbarHighlight(auctionHistoryButton);
-    // future route: create auction history screen and navigate here
+    switchContent("auction_results.fxml");
   }
 
   /**
@@ -330,6 +338,19 @@ public class MainController {
     }
   }
 
+  /**
+   * ===== ĐỒNG HỒ THỜI GIAN THỰC TRÊN NAVBAR =====
+   * 
+   * Tạo Timeline INDEFINITE cập nhật timeLabel và dateLabel mỗi giây.
+   * 
+   * Quan trọng: Timeline này chạy độc lập trên FX Application Thread,
+   * KHÔNG phụ thuộc vào contentArea hay bất kỳ view con nào.
+   * Việc gọi switchContent() để load view con vào contentArea
+   * KHÔNG làm ảnh hưởng đến vòng lặp đồng hồ này.
+   * 
+   * Timeline được khởi động một lần duy nhất trong initialize()
+   * và chạy mãi mãi (setCycleCount(INDEFINITE)).
+   */
   private void setupClock() {
     updateDateTime();
     clockTimeline = new Timeline(

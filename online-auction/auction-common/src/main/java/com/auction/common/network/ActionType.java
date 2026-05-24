@@ -56,6 +56,9 @@ public enum ActionType {
   // --- Auto-Bidding ---
   REGISTER_AUTO_BID,    // Đăng ký đấu giá tự động
 
+  // --- Kết quả đấu giá ---
+  GET_AUCTION_RESULTS,
+
   // --- Ping / Pong ---
   PING
 }

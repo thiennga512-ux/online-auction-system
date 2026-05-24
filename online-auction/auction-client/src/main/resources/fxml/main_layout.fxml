@@ -35,7 +35,7 @@
             <HBox fx:id="headerMenuBox" alignment="CENTER_LEFT" spacing="16" styleClass="header-menu nav-links-wrapper">
                 <Button fx:id="homeNavButton" text="Trang chủ" styleClass="nav-link nav-link-active nav-button" onAction="#handleNavHome" />
                 <Button fx:id="auctionRoomButton" text="Phòng đấu giá" styleClass="nav-link nav-button" onAction="#handleNavAuctionRoom" />
-                <Button fx:id="auctionHistoryButton" text="Lịch sử đấu giá" styleClass="nav-link nav-button" onAction="#handleNavAuctionHistory" />
+                <Button fx:id="auctionHistoryButton" text="Kết quả đấu giá" styleClass="nav-link nav-button" onAction="#handleNavAuctionResults" />
             </HBox>
 
             <HBox HBox.hgrow="ALWAYS" />

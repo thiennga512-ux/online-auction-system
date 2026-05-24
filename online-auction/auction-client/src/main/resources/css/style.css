@@ -1253,6 +1253,47 @@
 }
 
 /* ============================================================
+ * REFRESH BUTTON — Premium Neon Blue style
+ * Sử dụng cho nút "Làm mới" trên giao diện Kết quả đấu giá
+ * ============================================================
+ */
+.refresh-button {
+    -fx-background-color: rgba(59, 130, 246, 0.12);
+    -fx-text-fill: #93c5fd;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 22;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(59, 130, 246, 0.35);
+    -fx-border-radius: 6;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.08), 6, 0, 0, 0);
+}
+
+.refresh-button:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.25);
+    -fx-text-fill: #bfdbfe;
+    -fx-border-color: rgba(59, 130, 246, 0.55);
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.35), 12, 0, 0, 0);
+}
+
+.refresh-button:pressed {
+    -fx-background-color: rgba(59, 130, 246, 0.35);
+    -fx-text-fill: #dbeafe;
+    -fx-border-color: rgba(59, 130, 246, 0.7);
+}
+
+.refresh-button:disabled {
+    -fx-opacity: 0.65;
+    -fx-text-fill: #6b7280;
+    -fx-background-color: rgba(107, 114, 128, 0.10);
+    -fx-border-color: rgba(107, 114, 128, 0.2);
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
+/* ============================================================
  * CÁC CLASS BUTTON BỔ TRỢ (dùng trong Form)
  * ============================================================
  */
