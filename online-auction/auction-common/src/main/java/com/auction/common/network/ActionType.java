@@ -14,6 +14,7 @@ package com.auction.common.network;
 public enum ActionType {
   // --- Thao tác User ---
   LOGIN,
+  ADMIN_LOGIN,
   LOGOUT,
   REGISTER_USER,
   UPGRADE_TO_SELLER,

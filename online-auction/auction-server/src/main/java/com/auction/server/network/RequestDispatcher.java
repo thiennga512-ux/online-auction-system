@@ -64,6 +64,7 @@ public class RequestDispatcher {
     try {
       return switch (request.getAction()) {
         case LOGIN -> handleLogin(request, client);
+        case ADMIN_LOGIN -> handleAdminLogin(request, client);
         case LOGOUT -> handleLogout(client);
         case REGISTER_USER -> handleRegisterUser(request);
         case UPGRADE_TO_SELLER -> handleUpgradeToSeller(request, client);
@@ -106,6 +107,13 @@ public class RequestDispatcher {
     // Gọi AuthService xử lý xác thực
     User user = authService.login(payload.email(), payload.password());
 
+    // ===== BẢO MẬT PHÂN QUYỀN: User Login cổng =====
+    // Tại cổng User Login, chỉ cho phép BIDDER và SELLER đăng nhập.
+    // Admin buộc phải dùng cổng Admin Login riêng.
+    if (user instanceof Admin) {
+      throw new IllegalStateException("Tài khoản không có quyền truy cập cổng này. Vui lòng chọn cổng dành cho Quản trị viên!");
+    }
+
     // Đánh dấu Client này là user nào để check quyền sau này
     client.setLoggedInUserId(user.getId());
     com.auction.server.network.UserConnectionManager.getInstance().registerUser(user.getId(), client);
@@ -118,6 +126,38 @@ public class RequestDispatcher {
         user.getId(), user.getFullName(), user.getRole().name(), balance);
 
     return Response.success(ActionType.LOGIN, "Đăng nhập thành công", profile);
+  }
+
+  /**
+   * Xử lý đăng nhập cho cổng Admin Login.
+   * Chỉ chấp nhận tài khoản có role ADMIN.
+   * Nếu BIDDER/SELLER cố tình đăng nhập ở đây → báo lỗi phân quyền.
+   */
+  private Response handleAdminLogin(Request request, ClientHandler client) {
+    Dto.LoginRequest payload = request.getPayloadAs(Dto.LoginRequest.class);
+    if (payload == null) {
+      throw new IllegalArgumentException("Payload bị thiếu");
+    }
+
+    // Gọi AuthService xử lý xác thực
+    User user = authService.login(payload.email(), payload.password());
+
+    // ===== BẢO MẬT PHÂN QUYỀN: Admin Login cổng =====
+    // Tại cổng Admin Login, chỉ cho phép ADMIN đăng nhập.
+    if (!(user instanceof Admin)) {
+      throw new IllegalStateException("Tài khoản không có quyền quản trị!");
+    }
+
+    // Đánh dấu Client này là user nào để check quyền sau này
+    client.setLoggedInUserId(user.getId());
+    com.auction.server.network.UserConnectionManager.getInstance().registerUser(user.getId(), client);
+
+    double balance = 0.0; // Admin không có balance
+
+    Dto.UserProfileResponse profile = new Dto.UserProfileResponse(
+        user.getId(), user.getFullName(), user.getRole().name(), balance);
+
+    return Response.success(ActionType.ADMIN_LOGIN, "Đăng nhập Admin thành công", profile);
   }
 
   private Response handleLogout(ClientHandler client) {

@@ -11,17 +11,11 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 
-public class LoginController implements LifecycleAwareController {
+public class AdminLoginController implements LifecycleAwareController {
 
   @FXML
   private TextField emailField;
@@ -35,40 +29,19 @@ public class LoginController implements LifecycleAwareController {
   @FXML
   private Button loginButton;
 
-  @FXML
-  private Hyperlink adminLoginLink;
-
-  @FXML
-  private VBox rootContainer;
-
   private final Consumer<Response> listener = this::handleResponse;
-
-  /** Phím tắt bí mật: Ctrl + Shift + A để chuyển nhanh sang Admin Login */
-  private static final KeyCombination SECRET_HOTKEY =
-      new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
 
   @FXML
   public void initialize() {
     SocketClient.getInstance().removeListener(listener);
     SocketClient.getInstance().addListener(listener);
-
-    // ===== Phím tắt bí mật (Secret Hotkey): Ctrl + Shift + A =====
-    if (rootContainer != null) {
-      rootContainer.addEventFilter(KeyEvent.KEY_RELEASED, this::handleSecretHotkey);
-    }
   }
 
   /**
-   * Xử lý tổ hợp phím tắt Ctrl + Shift + A để chuyển nhanh
-   * sang màn hình Admin Login mà không cần click chuột.
+   * Xử lý đăng nhập Admin.
+   * Gửi request với ActionType.ADMIN_LOGIN.
+   * Khi đang xử lý, nút "ĐĂNG NHẬP ADMIN" sẽ hiển thị "Đang xác thực hệ thống..." và bị disable.
    */
-  private void handleSecretHotkey(KeyEvent event) {
-    if (SECRET_HOTKEY.match(event)) {
-      event.consume();
-      Platform.runLater(this::goToAdminLogin);
-    }
-  }
-
   @FXML
   private void handleLogin() {
     String email = emailField.getText().trim();
@@ -81,33 +54,39 @@ public class LoginController implements LifecycleAwareController {
     }
 
     errorLabel.setVisible(false);
-    loginButton.setDisable(true); // Tránh click nhiều lần
+    loginButton.setDisable(true);
+    // Hiệu ứng Loading State: đổi text nút
+    loginButton.setText("Đang xác thực hệ thống...");
 
     if (!SocketClient.getInstance().isConnected()) {
         errorLabel.setText("Lỗi: Không thể kết nối tới Server. Vui lòng bật ServerMain trước!");
         errorLabel.setVisible(true);
         loginButton.setDisable(false);
+        loginButton.setText("ĐĂNG NHẬP ADMIN");
         return;
     }
 
-    // Tạo payload và gửi request
+    // Tạo payload và gửi request với ActionType.ADMIN_LOGIN
     Dto.LoginRequest payload = new Dto.LoginRequest(email, password);
-    Request request = new Request(ActionType.LOGIN, payload);
+    Request request = new Request(ActionType.ADMIN_LOGIN, payload);
     SocketClient.getInstance().sendRequest(request);
   }
 
+  /**
+   * Quay lại màn hình đăng nhập người dùng (User Login).
+   */
   @FXML
-  private void goToRegister() {
-    ClientMain.getMainController().switchContent("register.fxml");
+  private void goToUserLogin() {
+    ClientMain.getMainController().switchContent("login.fxml");
   }
 
-  @FXML
-  private void goToAdminLogin() {
-    ClientMain.getMainController().switchContent("admin_login.fxml");
-  }
-
+  /**
+   * Xử lý response từ Server.
+   * Lắng nghe cả ADMIN_LOGIN và LOGIN để bắt trường hợp sai cổng.
+   */
   private void handleResponse(Response response) {
-    if (response.getActionType() != ActionType.LOGIN) {
+    // Chỉ xử lý ADMIN_LOGIN
+    if (response.getActionType() != ActionType.ADMIN_LOGIN) {
       return;
     }
 
@@ -115,24 +94,23 @@ public class LoginController implements LifecycleAwareController {
       Dto.UserProfileResponse profile = response.getDataAs(Dto.UserProfileResponse.class);
       Platform.runLater(() -> {
         SessionManager.getInstance().setCurrentUser(profile);
+        // Admin đăng nhập thành công → về Trang chủ (header sẽ hiện nút "Quản trị")
         ClientMain.getMainController().goToHome();
       });
       return;
     }
 
+    // Đăng nhập thất bại → khôi phục trạng thái nút
     Platform.runLater(() -> {
       errorLabel.setText(response.getMessage());
       errorLabel.setVisible(true);
       loginButton.setDisable(false);
+      loginButton.setText("ĐĂNG NHẬP ADMIN");
     });
   }
 
   @Override
   public void onBeforeHide() {
     SocketClient.getInstance().removeListener(listener);
-    // Xoá bộ lọc sự kiện bàn phím để tránh memory leak
-    if (rootContainer != null) {
-      rootContainer.removeEventFilter(KeyEvent.KEY_RELEASED, this::handleSecretHotkey);
-    }
   }
 }
