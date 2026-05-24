@@ -89,9 +89,9 @@ public class MainController {
           upgradeSellerButton.setVisible(isBidder);
           upgradeSellerButton.setManaged(isBidder);
 
-          // --- Nút Nạp Tiền (chỉ Bidder) ---
-          depositButton.setVisible(isBidder);
-          depositButton.setManaged(isBidder);
+          // --- Nút Nạp Tiền (Bidder + Seller) ---
+          depositButton.setVisible(isBidder || isSeller);
+          depositButton.setManaged(isBidder || isSeller);
 
           // --- Số dư (Bidder + Seller đều thấy) ---
           if (isBidder || isSeller) {

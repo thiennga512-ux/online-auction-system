@@ -1515,6 +1515,440 @@
 }
 
 /* ================================================================
+ *  UPGRADE SELLER PAGE — Dark Premium Card Form ✨
+ *  Phong cách: Card trung tâm tối giản, stepper 3 bước, form
+ *  chia nhóm rõ ràng, input neon glow khi focus.
+ * ================================================================ */
+
+/* --- Nền toàn màn hình --- */
+.upgrade-root {
+    -fx-background-color: #0b0f17;
+}
+
+/* ===== SCROLLPANE — trong suốt, không viền ===== */
+.upgrade-scrollpane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.upgrade-scrollpane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.upgrade-scrollpane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+    -fx-pref-width: 10;
+}
+
+.upgrade-scrollpane .scroll-bar:vertical .thumb {
+    -fx-background-color: #475569;
+    -fx-background-radius: 5;
+}
+
+.upgrade-scrollpane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 5;
+}
+
+.upgrade-scrollpane .scroll-bar:vertical .increment-button,
+.upgrade-scrollpane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+}
+
+.upgrade-backdrop {
+    -fx-background-color: #0b0f17;
+    -fx-spacing: 0;
+}
+
+/* ===== CARD CHÍNH ===== */
+.upgrade-card {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 30, 0, 0, 10);
+    -fx-border-color: #334155;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-max-width: Infinity;
+}
+
+/* ===== HEADER ===== */
+.upgrade-card-header {
+    -fx-padding: 32 36 12 36;
+    -fx-background-color: transparent;
+    -fx-background-radius: 16 16 0 0;
+}
+
+.upgrade-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.upgrade-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94a3b8;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-line-spacing: 2px;
+}
+
+/* ===== STEPPER ===== */
+.upgrade-stepper {
+    -fx-padding: 16 36 20 36;
+    -fx-background-color: transparent;
+}
+
+.stepper-step {
+    -fx-cursor: hand;
+    -fx-opacity: 0.45;
+    -fx-transition: all 0.2s ease;
+}
+
+.stepper-step--active {
+    -fx-opacity: 1.0;
+}
+
+.stepper-circle {
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-max-width: 34;
+    -fx-max-height: 34;
+    -fx-background-color: #374151;
+    -fx-background-radius: 17;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-padding: 0;
+}
+
+.stepper-step--active .stepper-circle {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.5), 10, 0, 0, 0);
+}
+
+.stepper-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94a3b8;
+    -fx-font-weight: 500;
+}
+
+.stepper-step--active .stepper-label {
+    -fx-text-fill: #60a5fa;
+    -fx-font-weight: bold;
+}
+
+/* Đường nối giữa các step */
+.stepper-connector {
+    -fx-min-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 3;
+    -fx-max-height: 3;
+    -fx-background-color: #334155;
+    -fx-background-radius: 2;
+    -fx-margin: 0 8;
+}
+
+.stepper-connector--active {
+    -fx-background-color: #3b82f6;
+}
+
+/* ===== BODY FORM ===== */
+.upgrade-card-body {
+    -fx-padding: 0 36 24 36;
+    -fx-background-color: transparent;
+}
+
+/* ===== SECTION TITLE & SEPARATOR ===== */
+.upgrade-section-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #60a5fa;
+    -fx-letter-spacing: 1px;
+    -fx-padding: 12 0 2 0;
+}
+
+.upgrade-separator {
+    -fx-background-color: #334155;
+    -fx-pref-height: 1;
+    -fx-max-width: Infinity;
+    -fx-padding: 0 0 6 0;
+}
+
+/* ===== FIELD LABEL ===== */
+.upgrade-field-label {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #cbd5e1;
+}
+
+/* ===== TEXT FIELDS ===== */
+.upgrade-field {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #f1f5f9;
+    -fx-prompt-text-fill: #64748b;
+    -fx-font-size: 14px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14;
+    -fx-pref-height: 44;
+    -fx-border-color: #334155;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 0);
+    -fx-transition: all 0.15s ease;
+}
+
+.upgrade-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #0d1321;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.35), 12, 0, 0, 0);
+}
+
+/* Error state — viền đỏ khi validate thất bại */
+.upgrade-field--error {
+    -fx-border-color: #ef4444;
+    -fx-effect: dropshadow(gaussian, rgba(239,68,68,0.3), 8, 0, 0, 0);
+}
+
+.upgrade-field--error:focused {
+    -fx-border-color: #ef4444;
+    -fx-effect: dropshadow(gaussian, rgba(239,68,68,0.5), 12, 0, 0, 0);
+}
+
+.upgrade-field:disabled {
+    -fx-opacity: 0.6;
+    -fx-background-color: #1a1f2b;
+}
+
+/* ===== COMBOBOX ===== */
+.upgrade-combo {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 8;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-padding: 0;
+    -fx-pref-height: 44;
+}
+
+.upgrade-combo:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.35), 12, 0, 0, 0);
+}
+
+.upgrade-combo .list-cell {
+    -fx-text-fill: #f1f5f9;
+    -fx-background-color: transparent;
+    -fx-padding: 10 14;
+    -fx-font-size: 14px;
+}
+
+.upgrade-combo .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 10;
+}
+
+.upgrade-combo .arrow-button .arrow {
+    -fx-background-color: #64748b;
+}
+
+/* Dropdown popup */
+.upgrade-combo .combo-box-popup .list-view {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 5);
+}
+
+.upgrade-combo .combo-box-popup .list-cell {
+    -fx-text-fill: #e2e8f0;
+    -fx-background-color: transparent;
+    -fx-padding: 10 14;
+    -fx-font-size: 13px;
+}
+
+.upgrade-combo .combo-box-popup .list-cell:hover {
+    -fx-background-color: #334155;
+}
+
+.upgrade-combo .combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+}
+
+/* ===== TERMS SECTION ===== */
+.upgrade-terms-section {
+    -fx-background-color: rgba(59,130,246,0.05);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(59,130,246,0.12);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 16 14;
+    -fx-spacing: 10;
+    -fx-margin: 4 0 8 0;
+}
+
+.upgrade-checkbox {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 500;
+}
+
+.upgrade-checkbox .box {
+    -fx-background-color: #0f172a;
+    -fx-border-color: #475569;
+    -fx-border-radius: 4;
+    -fx-border-width: 1.5;
+    -fx-padding: 2;
+    -fx-min-width: 18;
+    -fx-min-height: 18;
+}
+
+.upgrade-checkbox:selected .box {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+.upgrade-checkbox:selected .box .mark {
+    -fx-background-color: #ffffff;
+    -fx-shape: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
+}
+
+.upgrade-terms-link {
+    -fx-text-fill: #60a5fa;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+    -fx-cursor: hand;
+}
+
+.upgrade-terms-link:hover {
+    -fx-text-fill: #93c5fd;
+    -fx-underline: true;
+}
+
+.upgrade-terms-sep {
+    -fx-text-fill: #475569;
+    -fx-font-size: 12px;
+    -fx-padding: 0 5;
+}
+
+/* ===== ERROR LABEL (global) ===== */
+.upgrade-error-global {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-padding: 2 0 0 0;
+    -fx-background-color: rgba(239,68,68,0.06);
+    -fx-background-radius: 6;
+    -fx-padding: 8 12;
+}
+
+/* ===== BUTTON ROW ===== */
+.upgrade-button-row {
+    -fx-padding: 18 0 4 0;
+    -fx-spacing: 14;
+}
+
+/* ===== BUTTON: BACK (OUTLINE) ===== */
+.btn-upgrade-back {
+    -fx-background-color: transparent;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 12 28;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #475569;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-min-width: 140;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 0);
+    -fx-transition: all 0.15s ease;
+}
+
+.btn-upgrade-back:hover {
+    -fx-background-color: #334155;
+    -fx-text-fill: #f1f5f9;
+    -fx-border-color: #64748b;
+    -fx-effect: dropshadow(gaussian, rgba(71,85,105,0.3), 8, 0, 0, 0);
+}
+
+.btn-upgrade-back:pressed {
+    -fx-background-color: #475569;
+    -fx-translate-y: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 2, 0, 0, 0);
+}
+
+/* ===== BUTTON: SUBMIT (NEON EMERALD) ===== */
+.btn-upgrade-submit {
+    -fx-background-color: linear-gradient(to right, #059669, #10b981);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 12 32;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-min-width: 200;
+    -fx-letter-spacing: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.35), 12, 0, 0, 2);
+    -fx-transition: all 0.15s ease;
+}
+
+.btn-upgrade-submit:hover {
+    -fx-background-color: linear-gradient(to right, #10b981, #34d399);
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.65), 20, 0, 0, 5);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-translate-y: -1;
+}
+
+.btn-upgrade-submit:pressed {
+    -fx-background-color: #047857;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+    -fx-translate-y: 1;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.25), 4, 0, 0, 1);
+}
+
+.btn-upgrade-submit:disabled {
+    -fx-background-color: #374151;
+    -fx-text-fill: #6b7280;
+    -fx-effect: none;
+    -fx-cursor: default;
+    -fx-opacity: 0.7;
+    -fx-scale-x: 1.0;
+    -fx-scale-y: 1.0;
+}
+
+/* ===== FOOTER ===== */
+.upgrade-card-footer {
+    -fx-padding: 14 36 18 36;
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 0 0 16 16;
+    -fx-border-color: #1e293b;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-radius: 0 0 16 16;
+}
+
+.upgrade-footer-text {
+    -fx-font-size: 11px;
+    -fx-text-fill: #475569;
+    -fx-font-weight: 500;
+}
+
+/* ================================================================
  *  ADMIN DASHBOARD — Dark SaaS Premium Theme
  * ================================================================
  *  Phong cách: Bảng điều khiển hiện đại, tối giản, sang trọng.

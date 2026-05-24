@@ -2,34 +2,151 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="14" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.controller.UpgradeSellerController">
-    <padding>
-        <Insets top="24" right="32" bottom="24" left="32"/>
-    </padding>
+<StackPane styleClass="upgrade-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.auction.client.controller.UpgradeSellerController">
 
-    <Label text="Mở Kênh Người Bán" styleClass="title-text"/>
-    <Label text="Điền thông tin để nâng cấp tài khoản BIDDER thành SELLER" styleClass="subtitle-text"/>
+    <!-- ===== LỚP NỀN TỐI TOÀN MÀN HÌNH ===== -->
+    <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                styleClass="upgrade-scrollpane">
+        <VBox alignment="TOP_CENTER" styleClass="upgrade-backdrop">
+            <padding><Insets top="60" left="24" right="24" bottom="60"/></padding>
 
-    <VBox spacing="8" styleClass="card-container">
-        <Label text="Tên cửa hàng"/>
-        <TextField fx:id="shopNameField" promptText="Ví dụ: Cửa hàng Điện tử Minh Phát"/>
-        <Label fx:id="shopNameErrorLabel" styleClass="error-text"/>
+            <!-- ===== CARD TRUNG TÂM — RỘNG CỐ ĐỊNH 660px ===== -->
+            <VBox maxWidth="660" minWidth="600" styleClass="upgrade-card">
 
-        <Label text="Số CCCD/CMND"/>
-        <TextField fx:id="citizenIdField" promptText="Nhập 9-12 chữ số"/>
-        <Label fx:id="citizenIdErrorLabel" styleClass="error-text"/>
+                <!-- ===== HEADER CARD ===== -->
+                <VBox spacing="6" styleClass="upgrade-card-header">
+                    <Label text="🚀  Mở Kênh Người Bán" styleClass="upgrade-title"/>
+                    <Label text="Điền thông tin để nâng cấp tài khoản đấu giá thành Người bán chuyên nghiệp"
+                           styleClass="upgrade-subtitle" wrapText="true"/>
+                </VBox>
 
-        <Label fx:id="formErrorLabel" styleClass="error-text"/>
+                <!-- ===== THÂN CARD — FORM NHẬP LIỆU ===== -->
+                <VBox spacing="10" styleClass="upgrade-card-body">
 
-        <HBox spacing="10">
-            <Button text="Quay lại" styleClass="secondary-button" onAction="#handleBack"/>
-            <Button fx:id="submitButton" text="Nâng cấp thành Seller" styleClass="primary-button" onAction="#handleSubmit"/>
-        </HBox>
-    </VBox>
-</VBox>
+                    <!-- ================================================================ -->
+                    <!-- NHÓM 1: THÔNG TIN CỬA HÀNG                                        -->
+                    <!-- ================================================================ -->
+                    <Label text="THÔNG TIN CỬA HÀNG" styleClass="upgrade-section-title"/>
+                    <Separator styleClass="upgrade-separator"/>
+
+                    <!-- Tên cửa hàng -->
+                    <VBox spacing="5">
+                        <Label text="Tên cửa hàng *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="shopNameField" promptText="Ví dụ: Cửa hàng Điện tử Minh Phát"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- Số điện thoại -->
+                    <VBox spacing="5">
+                        <Label text="Số điện thoại liên hệ *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="phoneField" promptText="Ví dụ: 0987654321"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- Địa chỉ kho / lấy hàng -->
+                    <VBox spacing="5">
+                        <Label text="Địa chỉ kho / lấy hàng *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="addressField"
+                                   promptText="Ví dụ: 123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- ================================================================ -->
+                    <!-- NHÓM 2: XÁC MINH DANH TÍNH                                       -->
+                    <!-- ================================================================ -->
+                    <Label text="XÁC MINH DANH TÍNH" styleClass="upgrade-section-title"/>
+                    <Separator styleClass="upgrade-separator"/>
+
+                    <!-- Số CCCD/CMND -->
+                    <VBox spacing="5">
+                        <Label text="Số CCCD / CMND *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="citizenIdField" promptText="9-12 chữ số"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- Ngày cấp -->
+                    <VBox spacing="5">
+                        <Label text="Ngày cấp" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="issueDateField" promptText="Ví dụ: 15/06/2020"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- Nơi cấp -->
+                    <VBox spacing="5">
+                        <Label text="Nơi cấp" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="issuePlaceField" promptText="Ví dụ: Cục Cảnh sát QLHC về TTXH"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- ================================================================ -->
+                    <!-- NHÓM 3: TÀI KHOẢN NHẬN TIỀN                                    -->
+                    <!-- ================================================================ -->
+                    <Label text="TÀI KHOẢN NHẬN TIỀN ĐẤU GIÁ" styleClass="upgrade-section-title"/>
+                    <Separator styleClass="upgrade-separator"/>
+
+                    <!-- Tên ngân hàng -->
+                    <VBox spacing="5">
+                        <Label text="Tên ngân hàng *" styleClass="upgrade-field-label"/>
+                        <ComboBox fx:id="bankComboBox" promptText="Chọn ngân hàng..."
+                                  styleClass="upgrade-field, upgrade-combo" editable="false"/>
+                    </VBox>
+
+                    <!-- Số tài khoản -->
+                    <VBox spacing="5">
+                        <Label text="Số tài khoản *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="accountNumberField" promptText="Ví dụ: 1234567890"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- Tên chủ tài khoản -->
+                    <VBox spacing="5">
+                        <Label text="Tên chủ tài khoản *" styleClass="upgrade-field-label"/>
+                        <TextField fx:id="accountHolderField" promptText="Ví dụ: NGUYỄN VĂN A"
+                                   styleClass="upgrade-field"/>
+                    </VBox>
+
+                    <!-- ===== ĐIỀU KHOẢN & CHECKBOX ===== -->
+                    <VBox spacing="8" styleClass="upgrade-terms-section">
+                        <CheckBox fx:id="termsCheckBox" styleClass="upgrade-checkbox"
+                                  text="Tôi đồng ý với Quy chế hoạt động và Điều khoản bảo mật của Sàn Đấu Giá"/>
+                        <HBox spacing="2" alignment="CENTER_LEFT">
+                            <Label text="Xem:" styleClass="upgrade-terms-link"/>
+                            <Hyperlink styleClass="upgrade-terms-link" onAction="#handleTermsOfService">Quy chế hoạt động</Hyperlink>
+                            <Label text="|" styleClass="upgrade-terms-sep"/>
+                            <Hyperlink styleClass="upgrade-terms-link" onAction="#handlePrivacyPolicy">Điều khoản bảo mật</Hyperlink>
+                        </HBox>
+                    </VBox>
+
+                    <!-- ===== NHÃN LỖI CHUNG ===== -->
+                    <Label fx:id="formErrorLabel" styleClass="upgrade-error-global" wrapText="true"/>
+
+                    <!-- ===== HÀNG NÚT BẤM ===== -->
+                    <HBox spacing="14" alignment="CENTER" styleClass="upgrade-button-row">
+                        <Button text="← Quay lại" styleClass="btn-upgrade-back" onAction="#handleBack"/>
+                        <Button fx:id="submitButton" text="ĐĂNG KÝ MỞ KÊNH"
+                                styleClass="btn-upgrade-submit" onAction="#handleSubmit"/>
+                    </HBox>
+
+                </VBox><!-- end upgrade-card-body -->
+
+                <!-- ===== FOOTER CARD ===== -->
+                <VBox alignment="CENTER" styleClass="upgrade-card-footer">
+                    <Label text="© 2026 Sàn Đấu Giá Trực Tuyến — Bảo mật và An toàn" styleClass="upgrade-footer-text"/>
+                </VBox>
+
+            </VBox><!-- end upgrade-card -->
+        </VBox>
+    </ScrollPane>
+</StackPane>
