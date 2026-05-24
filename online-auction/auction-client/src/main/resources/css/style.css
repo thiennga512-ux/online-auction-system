@@ -398,6 +398,41 @@
     -fx-background-color: #2563eb;
 }
 
+/* ===== NAV-BUTTON SYSTEM — Unified Navigation Button Styling ===== */
+/* Base class for all toolbar/navigation buttons */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 16;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.12), 8, 0, 0, 0);
+}
+
+/* Active state — vibrant blue background, white text, rounded corners, no border */
+.nav-button-active {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(59,130,246,0.4), 10, 0, 0, 0);
+}
+
+.nav-button-active:hover {
+    -fx-background-color: #2563eb;
+}
+
 .time-widget {
     -fx-background-color: #111827;
     -fx-padding: 18 32;

@@ -49,7 +49,7 @@
                 <Button text="1,000,000 VND" styleClass="amount-chip" onAction="#selectAmount1M" GridPane.columnIndex="0" GridPane.rowIndex="1" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
                 <Button text="5,000,000 VND" styleClass="amount-chip" onAction="#selectAmount5M" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
                 <Button text="10,000,000 VND" styleClass="amount-chip" onAction="#selectAmount10M" GridPane.columnIndex="0" GridPane.rowIndex="2" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
-                <Button text="50,000,000 VND" styleClass="amount-chip amount-chip-highlight" onAction="#selectAmount50M" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                <Button text="50,000,000 VND" styleClass="amount-chip" onAction="#selectAmount50M" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
                 <columnConstraints>
                     <javafx.scene.layout.ColumnConstraints percentWidth="50"/>
                     <javafx.scene.layout.ColumnConstraints percentWidth="50"/>

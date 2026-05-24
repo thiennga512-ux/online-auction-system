@@ -25,6 +25,8 @@ import javafx.util.Duration;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import com.auction.common.dto.Dto;
 
 public class MainController {
@@ -58,11 +60,14 @@ public class MainController {
 
   private Object activeContentController;
 
+  /** Danh sách tất cả các nút điều hướng trên Top Navbar, dùng để quản lý active state */
+  private List<Button> navButtons;
+
   @FXML
   public void initialize() {
     ClientMain.setMainController(this);
-    setupClock();
-    setActiveMenu(homeNavButton);
+    initNavbarButtons();
+    updateNavbarHighlight(homeNavButton);
 
     // Lắng nghe sự kiện đăng nhập/đăng xuất để đổi Header
     SessionManager.getInstance().addLoginStateListener(user -> {
@@ -85,7 +90,7 @@ public class MainController {
           boolean isSeller = "SELLER".equals(user.role());
           boolean isAdmin  = "ADMIN".equals(user.role());
 
-          // --- Nút nâng cấp Seller ---
+          // --- Nút nâng cấp Seller (chỉ Bidder) ---
           upgradeSellerButton.setVisible(isBidder);
           upgradeSellerButton.setManaged(isBidder);
 
@@ -103,11 +108,32 @@ public class MainController {
             balanceLabel.setManaged(false);
           }
 
-          // --- Dashboard buttons ---
-          sellerDashboardButton.setVisible(isSeller);
-          sellerDashboardButton.setManaged(isSeller);
-          adminDashboardButton.setVisible(isAdmin);
-          adminDashboardButton.setManaged(isAdmin);
+          // --- Role-based visibility: BIDDER / SELLER / ADMIN ---
+          if (isBidder) {
+            // BIDDER: Hiển thị "Mở Kênh Người Bán", ẩn "Kênh Người Bán", ẩn "Quản trị"
+            upgradeSellerButton.setVisible(true);
+            upgradeSellerButton.setManaged(true);
+            sellerDashboardButton.setVisible(false);
+            sellerDashboardButton.setManaged(false);
+            adminDashboardButton.setVisible(false);
+            adminDashboardButton.setManaged(false);
+          } else if (isSeller) {
+            // SELLER: Ẩn "Mở Kênh Người Bán", hiển thị "Kênh Người Bán", ẩn "Quản trị"
+            upgradeSellerButton.setVisible(false);
+            upgradeSellerButton.setManaged(false);
+            sellerDashboardButton.setVisible(true);
+            sellerDashboardButton.setManaged(true);
+            adminDashboardButton.setVisible(false);
+            adminDashboardButton.setManaged(false);
+          } else if (isAdmin) {
+            // ADMIN: Ẩn cả 2 nút kênh người bán, chỉ hiển thị "Quản trị"
+            upgradeSellerButton.setVisible(false);
+            upgradeSellerButton.setManaged(false);
+            sellerDashboardButton.setVisible(false);
+            sellerDashboardButton.setManaged(false);
+            adminDashboardButton.setVisible(true);
+            adminDashboardButton.setManaged(true);
+          }
         }
       });
     });
@@ -212,9 +238,18 @@ public class MainController {
   @FXML private void goToHome()            { switchContent("home.fxml"); }
   @FXML private void goToLogin()           { switchContent("login.fxml"); }
   @FXML private void goToRegister()        { switchContent("register.fxml"); }
-  @FXML private void goToSellerDashboard() { switchContent("seller_dashboard.fxml"); }
-  @FXML private void goToAdminDashboard()  { switchContent("admin_dashboard.fxml"); }
-  @FXML private void handleGoToDeposit()   { switchContent("bidder_deposit.fxml"); }
+  @FXML private void goToSellerDashboard() {
+    updateNavbarHighlight(sellerDashboardButton);
+    switchContent("seller_dashboard.fxml");
+  }
+  @FXML private void goToAdminDashboard()  {
+    updateNavbarHighlight(adminDashboardButton);
+    switchContent("admin_dashboard.fxml");
+  }
+  @FXML private void handleGoToDeposit()   {
+    updateNavbarHighlight(depositButton);
+    switchContent("bidder_deposit.fxml");
+  }
 
   @FXML
   private void handleLogout() {
@@ -224,13 +259,13 @@ public class MainController {
 
   @FXML
   private void handleNavHome() {
-    setActiveMenu(homeNavButton);
+    updateNavbarHighlight(homeNavButton);
     goToHome();
   }
 
   @FXML
   private void handleNavAuctionRoom() {
-    setActiveMenu(auctionRoomButton);
+    updateNavbarHighlight(auctionRoomButton);
     // Nếu chưa ở trang chủ → về home trước
     if (!(activeContentController instanceof HomeController)) {
       switchContent("home.fxml");
@@ -249,27 +284,49 @@ public class MainController {
 
   @FXML
   private void handleNavAuctionHistory() {
-    setActiveMenu(auctionHistoryButton);
+    updateNavbarHighlight(auctionHistoryButton);
     // future route: create auction history screen and navigate here
   }
 
-  private void setActiveMenu(Button activeButton) {
-    homeNavButton.getStyleClass().removeAll("nav-link-active");
-    auctionRoomButton.getStyleClass().removeAll("nav-link-active");
-    auctionHistoryButton.getStyleClass().removeAll("nav-link-active");
+  /**
+   * Khởi tạo danh sách tất cả các nút điều hướng trên Top Navbar.
+   * Gọi một lần duy nhất trong initialize().
+   */
+  private void initNavbarButtons() {
+    navButtons = Arrays.asList(
+        homeNavButton,
+        auctionRoomButton,
+        auctionHistoryButton,
+        sellerDashboardButton,
+        adminDashboardButton,
+        depositButton,
+        upgradeSellerButton
+    );
+    // Bảo đảm tất cả các nút đều có styleClass "nav-button" để CSS áp dụng
+    for (Button btn : navButtons) {
+      if (!btn.getStyleClass().contains("nav-button")) {
+        btn.getStyleClass().add("nav-button");
+      }
+    }
+  }
 
-    if (!homeNavButton.getStyleClass().contains("nav-link")) {
-      homeNavButton.getStyleClass().add("nav-link");
+  /**
+   * Helper Method — Cập nhật trạng thái active (nền xanh) cho thanh điều hướng.
+   * Duyệt qua tất cả các navButtons, xóa class 'nav-button-active' khỏi tất cả,
+   * sau đó chỉ thêm vào đúng nút được truyền vào.
+   */
+  private void updateNavbarHighlight(Button activeButton) {
+    for (Button btn : navButtons) {
+      btn.getStyleClass().removeAll("nav-button-active");
+      // Bảo đảm vẫn giữ lại class nav-link để style nền tảng
+      if (!btn.getStyleClass().contains("nav-link")) {
+        btn.getStyleClass().add("nav-link");
+      }
     }
-    if (!auctionRoomButton.getStyleClass().contains("nav-link")) {
-      auctionRoomButton.getStyleClass().add("nav-link");
-    }
-    if (!auctionHistoryButton.getStyleClass().contains("nav-link")) {
-      auctionHistoryButton.getStyleClass().add("nav-link");
-    }
-
-    if (!activeButton.getStyleClass().contains("nav-link-active")) {
-      activeButton.getStyleClass().add("nav-link-active");
+    if (activeButton != null && !activeButton.getStyleClass().contains("nav-button-active")) {
+      activeButton.getStyleClass().add("nav-button-active");
+      // Xóa nav-link-active cũ nếu có để tránh xung đột CSS
+      activeButton.getStyleClass().removeAll("nav-link-active");
     }
   }
 
@@ -291,6 +348,7 @@ public class MainController {
 
   @FXML
   private void handleUpgradeSeller() {
+    updateNavbarHighlight(upgradeSellerButton);
     switchContent("upgrade_seller.fxml");
   }
 

@@ -33,9 +33,9 @@
 
             <!-- Menu links ở giữa, lệch trái -->
             <HBox fx:id="headerMenuBox" alignment="CENTER_LEFT" spacing="16" styleClass="header-menu nav-links-wrapper">
-                <Button fx:id="homeNavButton" text="Trang chủ" styleClass="nav-link nav-link-active" onAction="#handleNavHome" />
-                <Button fx:id="auctionRoomButton" text="Phòng đấu giá" styleClass="nav-link" onAction="#handleNavAuctionRoom" />
-                <Button fx:id="auctionHistoryButton" text="Lịch sử đấu giá" styleClass="nav-link" onAction="#handleNavAuctionHistory" />
+                <Button fx:id="homeNavButton" text="Trang chủ" styleClass="nav-link nav-link-active nav-button" onAction="#handleNavHome" />
+                <Button fx:id="auctionRoomButton" text="Phòng đấu giá" styleClass="nav-link nav-button" onAction="#handleNavAuctionRoom" />
+                <Button fx:id="auctionHistoryButton" text="Lịch sử đấu giá" styleClass="nav-link nav-button" onAction="#handleNavAuctionHistory" />
             </HBox>
 
             <HBox HBox.hgrow="ALWAYS" />
@@ -59,10 +59,10 @@
 
                 <!-- Menu User (Khi đã login) -->
                 <HBox fx:id="userBox" spacing="12" alignment="CENTER" managed="false" visible="false">
-                    <Button fx:id="upgradeSellerButton" text="Mở Kênh Người Bán" styleClass="header-nav-button" onAction="#handleUpgradeSeller" />
-                    <Button fx:id="depositButton" text="💰 Nạp Tiền" styleClass="deposit-button" onAction="#handleGoToDeposit" managed="false" visible="false"/>
-                    <Button fx:id="sellerDashboardButton" text="Kênh Người Bán" styleClass="header-nav-button" onAction="#goToSellerDashboard" />
-                    <Button fx:id="adminDashboardButton" text="Quản trị" styleClass="header-nav-button" onAction="#goToAdminDashboard" />
+                    <Button fx:id="upgradeSellerButton" text="Mở Kênh Người Bán" styleClass="nav-link nav-button" onAction="#handleUpgradeSeller" />
+                    <Button fx:id="depositButton" text="💰 Nạp Tiền" styleClass="nav-link nav-button" onAction="#handleGoToDeposit" managed="false" visible="false"/>
+                    <Button fx:id="sellerDashboardButton" text="Kênh Người Bán" styleClass="nav-link nav-button" onAction="#goToSellerDashboard" />
+                    <Button fx:id="adminDashboardButton" text="Quản trị" styleClass="nav-link nav-button" onAction="#goToAdminDashboard" />
                     
                     <StackPane alignment="TOP_RIGHT">
                         <Button fx:id="notificationBellButton" text="🔔" styleClass="header-text-button" onAction="#toggleNotificationMenu" />
