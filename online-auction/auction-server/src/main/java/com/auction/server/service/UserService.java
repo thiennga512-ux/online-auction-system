@@ -150,4 +150,32 @@ public class UserService {
       throw DatabaseException.queryFailed("nạp tiền", e);
     }
   }
+
+  // -------------------------------------------------------
+  // KHÔI PHỤC SỐ DƯ CHO SELLER (fix: nâng cấp từ Bidder bị mất số dư)
+  // -------------------------------------------------------
+
+  /**
+   * Lấy số dư deposit từ bidder_details cho một user.
+   * Dùng trong handleLogin để khôi phục số dư cho Seller nâng cấp từ Bidder.
+   */
+  public double getBidderDepositBalance(String userId) {
+    try {
+      return userDAO.getBidderDepositBalance(userId);
+    } catch (SQLException e) {
+      throw DatabaseException.queryFailed("lấy deposit_balance", e);
+    }
+  }
+
+  /**
+   * Cập nhật seller_details.balance.
+   * Dùng trong handleLogin để đồng bộ số dư sau khi khôi phục.
+   */
+  public void updateSellerBalance(String userId, double balance) {
+    try {
+      userDAO.updateSellerBalance(userId, balance);
+    } catch (SQLException e) {
+      throw DatabaseException.queryFailed("cập nhật balance seller", e);
+    }
+  }
 }

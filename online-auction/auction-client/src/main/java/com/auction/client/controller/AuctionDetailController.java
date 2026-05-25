@@ -955,25 +955,40 @@ public class AuctionDetailController implements LifecycleAwareController {
     boolean isRunning  = "RUNNING".equals(currentStatus);
     boolean isLoggedIn = SessionManager.getInstance().isLoggedIn();
     Dto.UserProfileResponse me = SessionManager.getInstance().getCurrentUser();
-    boolean isBidder   = isLoggedIn && me != null
-                         && !"ADMIN".equals(me.role())
-                         && !"SELLER".equals(me.role());
-    boolean canBid = isRunning && isBidder;
+
+    // ===== KIỂM TRA PHÂN QUYỀN ĐẶT GIÁ (QUAN TRỌNG) =====
+    // Quy tắc chuẩn xác:
+    // 1. ADMIN tuyệt đối không được đặt giá
+    // 2. CHỦ SỞ HỮU (người đăng) không được tự đặt giá sản phẩm của chính mình
+    // 3. BIDDER và SELLER đều được phép đặt giá (nếu không vi phạm 2 điều trên)
+    boolean canBid = false;
+    String hintText = "";
+
+    if (!isRunning) {
+      hintText = "Phiên đang " + ("OPEN".equals(currentStatus) ? "chờ mở" : "kết thúc");
+    } else if (!isLoggedIn || me == null) {
+      hintText = "Đăng nhập để tham gia đấu giá";
+    } else if ("ADMIN".equals(me.role())) {
+      hintText = "Tài khoản quản trị không được phép tham gia đấu giá";
+    } else {
+      // Kiểm tra nếu user là chủ sở hữu của phiên đấu giá này
+      String currentUserId = me.id();
+      String sessionSellerId = (currentSessionData != null) ? currentSessionData.sellerId() : null;
+      boolean isOwner = (sessionSellerId != null && sessionSellerId.equals(currentUserId));
+
+      if (isOwner) {
+        hintText = "Bạn không thể tự đấu giá sản phẩm do chính mình đăng bán";
+      } else {
+        canBid = true;
+        double nextMin = currentPrice + minIncrement;
+        hintText = "Giá tối thiểu tiếp theo: " + formatMoney(nextMin) + " VND";
+      }
+    }
 
     if (submitBidBtn != null) submitBidBtn.setDisable(!canBid);
     if (bidAmountField != null) bidAmountField.setDisable(!canBid);
     setPresetDisable(!canBid);
-
-    if (minBidHintLabel != null) {
-      if (!isRunning) {
-        minBidHintLabel.setText("Phiên đang " + ("OPEN".equals(currentStatus) ? "chờ mở" : "kết thúc"));
-      } else if (!isBidder) {
-        minBidHintLabel.setText("Đăng nhập bằng tài khoản Bidder để đặt giá");
-      } else {
-        double nextMin = currentPrice + minIncrement;
-        minBidHintLabel.setText("Giá tối thiểu tiếp theo: " + formatMoney(nextMin) + " VND");
-      }
-    }
+    if (minBidHintLabel != null) minBidHintLabel.setText(hintText);
     if (bidStatusLabel != null) bidStatusLabel.setText("");
   }
 

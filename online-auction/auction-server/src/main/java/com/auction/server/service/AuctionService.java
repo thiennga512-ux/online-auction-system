@@ -178,9 +178,12 @@ public class AuctionService {
     }
 
     try {
-      auctionSessionDAO.updateStatus(sessionId, AuctionStatus.CANCELLED);
+      auctionSessionDAO.updateStatusWithNote(sessionId, AuctionStatus.CANCELLED, reason, LocalDateTime.now());
       System.out.printf("[AuctionService] Admin %s từ chối phiên %s. Lý do: %s%n",
           adminId.substring(0, 8), sessionId.substring(0, 8), reason);
+      
+      // Broadcast SERVER_BROADCAST_REFRESH_RESULTS đến tất cả Client đang kết nối
+      broadcastRefreshResults("Phiên đấu giá đã bị từ chối bởi Admin");
     } catch (SQLException e) {
       throw new RuntimeException("Lỗi database: " + e.getMessage(), e);
     }
@@ -208,9 +211,12 @@ public class AuctionService {
     }
 
     try {
-      auctionSessionDAO.updateStatus(sessionId, AuctionStatus.CANCELLED);
+      auctionSessionDAO.updateStatusWithNote(sessionId, AuctionStatus.CANCELLED, null, LocalDateTime.now());
       System.out.printf("[AuctionService] User %s đã huỷ phiên %s%n",
           requester.getFullName(), sessionId.substring(0, 8));
+
+      // Broadcast SERVER_BROADCAST_REFRESH_RESULTS đến tất cả Client đang kết nối
+      broadcastRefreshResults("Phiên đấu giá đã bị huỷ");
 
       // Update item status back to available
       // Not directly required but good practice if itemDAO has a way to mark
@@ -305,7 +311,12 @@ public class AuctionService {
       // Global broadcast để refresh các Dashboard
       for (com.auction.server.network.ClientHandler h : com.auction.server.network.UserConnectionManager.getInstance().getActiveHandlers()) {
           h.sendResponse(Response.success(ActionType.NEW_AUCTION_BROADCAST, "Cập nhật danh sách đấu giá", null));
+          // Thông báo cho các Client đang ở tab Kết quả đấu giá tự động refresh
+          h.sendResponse(Response.success(ActionType.AUCTION_RESULTS_UPDATE_BROADCAST, "Phiên đấu giá đã kết thúc. Vui lòng cập nhật kết quả.", null));
       }
+      
+      // Broadcast SERVER_BROADCAST_REFRESH_RESULTS đến tất cả Client đang kết nối
+      broadcastRefreshResults("Phiên đấu giá đã kết thúc");
 
       // Gửi thông báo email cho Seller và Bidders đăng ký (nếu chưa được gửi)
       com.auction.server.service.NotificationService.getInstance().notifyAuctionEnded(session);
@@ -536,6 +547,15 @@ public class AuctionService {
     }
   }
 
+  /** Lấy tất cả phiên đã kết thúc hoặc bị hủy (Kết quả đấu giá) */
+  public List<AuctionSession> getFinishedOrCancelledAuctions() {
+    try {
+      return auctionSessionDAO.findFinishedOrCancelledAuctions();
+    } catch (SQLException e) {
+      throw new RuntimeException("Lỗi database: " + e.getMessage(), e);
+    }
+  }
+
   /** Lấy phiên theo trạng thái */
   public List<AuctionSession> getAuctionsByStatus(AuctionStatus status) {
     try {
@@ -566,8 +586,32 @@ public class AuctionService {
   }
 
   // -------------------------------------------------------
-  // PRIVATE HELPER
+  // PUBLIC HELPER
   // -------------------------------------------------------
+
+  /**
+   * Lấy phiên đấu giá theo ID (public để RequestDispatcher kiểm tra quyền).
+   *
+   * @param sessionId ID phiên đấu giá
+   * @return AuctionSession nếu tìm thấy
+   * @throws IllegalArgumentException nếu không tìm thấy
+   */
+  public AuctionSession getSessionById(String sessionId) {
+    return getSessionOrThrow(sessionId);
+  }
+
+  /**
+   * Broadcast SERVER_BROADCAST_REFRESH_RESULTS đến tất cả Client đang kết nối.
+   * Sau khi Admin hủy/kết thúc phiên, Server chủ động push lệnh buộc Client refresh lại danh sách kết quả.
+   *
+   * @param reason lý do refresh
+   */
+  private void broadcastRefreshResults(String reason) {
+    for (com.auction.server.network.ClientHandler h : com.auction.server.network.UserConnectionManager.getInstance().getActiveHandlers()) {
+        h.sendResponse(Response.success(ActionType.SERVER_BROADCAST_REFRESH_RESULTS, reason, null));
+    }
+    System.out.println("[AuctionService] Broadcast SERVER_BROADCAST_REFRESH_RESULTS: " + reason);
+  }
 
   /** Lấy AuctionSession theo ID, ném lỗi nếu không tìm thấy */
   private AuctionSession getSessionOrThrow(String sessionId) {

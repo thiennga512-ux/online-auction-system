@@ -153,6 +153,7 @@ public class Dto {
       double currentPrice,
       String currentWinnerId,
       String currentWinnerName,
+      String sellerId,
       String sellerName,
       String status,
       String startTime,

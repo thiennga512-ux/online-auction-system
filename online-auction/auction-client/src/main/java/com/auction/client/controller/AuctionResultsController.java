@@ -9,9 +9,9 @@ import com.auction.common.network.Response;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +22,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.util.Duration;
 
 public class AuctionResultsController implements LifecycleAwareController {
@@ -44,11 +46,20 @@ public class AuctionResultsController implements LifecycleAwareController {
 
   private final Consumer<Response> responseListener = this::handleResponse;
 
+  // ===== Periodic polling: tự động refresh mỗi 15 giây khi tab đang active =====
+  private Timeline pollingTimeline;
+  private static final int POLLING_INTERVAL_SECONDS = 15;
+
+  // ===== Throttle: ngăn gửi quá nhiều request GET_AUCTION_RESULT trong thời gian ngắn =====
+  private final AtomicLong lastRefreshRequestTime = new AtomicLong(0);
+  private static final long MIN_REFRESH_INTERVAL_MS = 2000; // 2 giây tối thiểu giữa các lần refresh
+
   @FXML
   public void initialize() {
     setupTableColumns();
     styleTable();
     SocketClient.getInstance().addListener(responseListener);
+    startPollingTimer();
     loadAuctionResults();
   }
 
@@ -81,8 +92,6 @@ public class AuctionResultsController implements LifecycleAwareController {
     colReason.setCellValueFactory(new PropertyValueFactory<>("reason"));
 
     // === CENTER ALIGNMENT FOR ALL COLUMNS (header + data) ===
-    // Chú ý: KHÔNG tạo Label graphic cho header để tránh lặp tiêu đề.
-    // Tiêu đề chỉ được lấy từ text attribute trong FXML.
     centerColumn(colEndTime);
     centerColumn(colAuctionName);
     centerColumn(colStatus);
@@ -167,20 +176,16 @@ public class AuctionResultsController implements LifecycleAwareController {
   }
 
   private void styleTable() {
-    // Remove default alternating row colors - we handle via CSS
     resultsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     resultsTable.setPlaceholder(new Label("📭 Chưa có phiên đấu giá nào kết thúc."));
   }
 
   /**
    * Center-align a column's header and data cells.
-   * KHÔNG tạo Label graphic cho header — chỉ dùng text từ FXML, tránh lặp tiêu đề.
    */
   private void centerColumn(TableColumn<AuctionResult, String> column) {
-    // Center via CSS cho header
     column.setStyle("-fx-alignment: CENTER;");
 
-    // Center data cells
     column.setCellFactory(new Callback<TableColumn<AuctionResult, String>, TableCell<AuctionResult, String>>() {
       @Override
       public TableCell<AuctionResult, String> call(TableColumn<AuctionResult, String> param) {
@@ -270,29 +275,59 @@ public class AuctionResultsController implements LifecycleAwareController {
   }
 
   // ===== Data Loading =====
+  /**
+   * Gửi request lên Server để lấy danh sách kết quả đấu giá.
+   * Có cơ chế throttle: nếu request trước đó cách đây chưa đầy 2 giây thì bỏ qua.
+   */
   private void loadAuctionResults() {
+    long now = System.currentTimeMillis();
+    long last = lastRefreshRequestTime.get();
+    if (now - last < MIN_REFRESH_INTERVAL_MS) {
+      // Đã có request gần đây, bỏ qua để tránh spam
+      System.out.println("[AuctionResultsController] Throttle: bỏ qua refresh, chưa đủ " + MIN_REFRESH_INTERVAL_MS + "ms từ lần cuối");
+      return;
+    }
+    lastRefreshRequestTime.set(now);
+
     showLoading(true);
     hideError();
     
-    // Request auction results from server
     SocketClient.getInstance().sendRequest(new Request(ActionType.GET_AUCTION_RESULTS, null));
   }
 
   private void handleResponse(Response response) {
-    if (response.getActionType() == ActionType.GET_AUCTION_RESULTS) {
+    ActionType action = response.getActionType();
+    
+    // ===== Xử lý broadcast: có phiên kết thúc/bị hủy → tự động refresh =====
+    if (action == ActionType.AUCTION_RESULTS_UPDATE_BROADCAST) {
+      System.out.println("[AuctionResultsController] Nhận AUCTION_RESULTS_UPDATE_BROADCAST: " + response.getMessage());
+      Platform.runLater(this::loadAuctionResults);
+      return;
+    }
+    
+    // ===== Xử lý broadcast: Server ép buộc refresh toàn bộ danh sách =====
+    if (action == ActionType.SERVER_BROADCAST_REFRESH_RESULTS) {
+      System.out.println("[AuctionResultsController] Nhận SERVER_BROADCAST_REFRESH_RESULTS: " + response.getMessage());
+      Platform.runLater(this::loadAuctionResults);
+      return;
+    }
+    
+    // ===== Xử lý response kết quả đấu giá =====
+    if (action == ActionType.GET_AUCTION_RESULTS) {
       Platform.runLater(() -> {
         showLoading(false);
         restoreRefreshButton();
         
         if (!response.isSuccess()) {
           showError("Không thể tải kết quả đấu giá: " + response.getMessage());
-          loadMockData();
-          return;
+          return; // Không load mock data — giữ nguyên dữ liệu cũ nếu có
         }
 
         List<Dto.AuctionResultDto> results = response.getDataAsList(Dto.AuctionResultDto.class);
         if (results == null || results.isEmpty()) {
-          loadMockData();
+          // Server trả về danh sách rỗng — xóa bảng và cập nhật dashboard
+          auctionResults.clear();
+          updateDashboard(0, 0);
           return;
         }
 
@@ -303,7 +338,6 @@ public class AuctionResultsController implements LifecycleAwareController {
 
   /**
    * Populate table from server data.
-   * Lấy TẤT CẢ các phiên đã kết thúc: SUCCESS, FAILED, CANCELED, REJECTED.
    */
   private void populateTable(List<Dto.AuctionResultDto> results) {
     auctionResults.clear();
@@ -312,16 +346,14 @@ public class AuctionResultsController implements LifecycleAwareController {
     int successCount = 0;
 
     for (Dto.AuctionResultDto dto : results) {
-      // Parse endTime
       String displayEndTime;
       try {
         LocalDateTime ldt = LocalDateTime.parse(dto.endTime());
         displayEndTime = ldt.format(DISPLAY_FORMATTER);
       } catch (Exception e) {
-        displayEndTime = dto.endTime(); // fallback to raw string
+        displayEndTime = dto.endTime();
       }
 
-      // Xác định trạng thái text dựa trên status từ server
       String statusText;
       String reasonText;
       String rawStatus = dto.status() != null ? dto.status().toUpperCase() : "";
@@ -337,7 +369,7 @@ public class AuctionResultsController implements LifecycleAwareController {
           reasonText = (dto.reason() != null && !dto.reason().isBlank())
               ? dto.reason() : "Không có người đặt giá";
         }
-        case "CANCELED" -> {
+        case "CANCELLED" -> {
           statusText = "Bị Hủy";
           reasonText = (dto.reason() != null && !dto.reason().isBlank())
               ? dto.reason() : "Phiên bị hủy bởi Admin";
@@ -356,32 +388,7 @@ public class AuctionResultsController implements LifecycleAwareController {
       auctionResults.add(new AuctionResult(displayEndTime, dto.auctionName(), statusText, reasonText));
     }
 
-    // Update dashboard badges
     updateDashboard(totalSessions, successCount);
-  }
-
-  /**
-   * Load mock data for demonstration when server is unavailable.
-   * Sử dụng đúng trạng thái: "Thành Công", "Thất Bại", "Bị Hủy"
-   */
-  private void loadMockData() {
-    auctionResults.clear();
-    
-    auctionResults.addAll(
-      new AuctionResult("15/05/2026 14:30:00", "Đồng hồ Rolex Submariner 2025",           "Thành Công", ""),
-      new AuctionResult("14/05/2026 09:15:00", "iPhone 16 Pro Max 1TB",                    "Thất Bại",   "Không có người đặt giá"),
-      new AuctionResult("12/05/2026 20:00:00", "Tranh sơn dầu 'Hoàng hôn Đà Lạt'",         "Thành Công", ""),
-      new AuctionResult("10/05/2026 10:30:00", "Xe máy Honda SH 2025",                     "Thất Bại",   "Giá sàn chưa được đáp ứng"),
-      new AuctionResult("08/05/2026 16:45:00", "Bộ sưu tập tiền cổ quý hiếm",              "Thành Công", ""),
-      new AuctionResult("05/05/2026 11:00:00", "Laptop MSI Gaming GT77",                   "Bị Hủy",     "Phiên bị hủy bởi Admin"),
-      new AuctionResult("01/05/2026 08:30:00", "Bức tượng Phật ngọc bích",                  "Thành Công", ""),
-      new AuctionResult("28/04/2026 15:00:00", "Máy ảnh Sony A7R V + Lens 24-70",          "Thất Bại",   "Không có người đặt giá"),
-      new AuctionResult("25/04/2026 19:30:00", "Đàn guitar acoustic Gibson 1960",           "Thành Công", ""),
-      new AuctionResult("20/04/2026 10:00:00", "Đồng hồ Casio G-Shock MRG-B2000B",         "Bị Hủy",     "Phiên bị hủy bởi Admin")
-    );
-
-    // Update dashboard with mock data: 10 phiên, 4 thành công
-    updateDashboard(auctionResults.size(), 4);
   }
 
   /**
@@ -393,7 +400,6 @@ public class AuctionResultsController implements LifecycleAwareController {
     int successRate = totalSessions > 0 ? (successCount * 100 / totalSessions) : 0;
     successRateValue.setText(successRate + "%");
     
-    // Color-code the success rate
     if (successRate >= 70) {
       successRateValue.setStyle("-fx-text-fill: #10b981; -fx-font-size: 28px; -fx-font-weight: bold;");
     } else if (successRate >= 40) {
@@ -401,6 +407,30 @@ public class AuctionResultsController implements LifecycleAwareController {
     } else {
       successRateValue.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 28px; -fx-font-weight: bold;");
     }
+  }
+
+  // ===== Periodic Polling =====
+  /**
+   * Khởi động Timeline tự động refresh mỗi POLLING_INTERVAL_SECONDS giây.
+   * Đây là cơ chế dự phòng khi broadcast bị miss (mạng chập chờn, race condition, ...).
+   * Timeline tự động dừng khi tab bị ẩn (onBeforeHide).
+   */
+  private void startPollingTimer() {
+    if (pollingTimeline != null) {
+      pollingTimeline.stop();
+    }
+    pollingTimeline = new Timeline(
+      new KeyFrame(Duration.seconds(POLLING_INTERVAL_SECONDS), event -> {
+        // Chỉ refresh nếu bảng đã được load lần đầu (tránh refresh khi chưa có dữ liệu)
+        if (!auctionResults.isEmpty() || totalSessionsValue.getText().equals("0")) {
+          System.out.println("[AuctionResultsController] Polling: tự động làm mới dữ liệu...");
+          loadAuctionResults();
+        }
+      })
+    );
+    pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+    pollingTimeline.play();
+    System.out.println("[AuctionResultsController] Đã khởi động polling timer (" + POLLING_INTERVAL_SECONDS + "s)");
   }
 
   // ===== UI Helpers =====
@@ -433,8 +463,16 @@ public class AuctionResultsController implements LifecycleAwareController {
     }
   }
 
+  // ===== Lifecycle =====
   @Override
   public void onBeforeHide() {
+    // Dừng polling timer để tránh gửi request ngầm khi tab không hiển thị
+    if (pollingTimeline != null) {
+      pollingTimeline.stop();
+      pollingTimeline = null;
+      System.out.println("[AuctionResultsController] Đã dừng polling timer (tab bị ẩn)");
+    }
+    // Hủy đăng ký listener để tránh xử lý response khi không còn active
     SocketClient.getInstance().removeListener(responseListener);
   }
 
@@ -444,6 +482,8 @@ public class AuctionResultsController implements LifecycleAwareController {
       refreshButton.setText("⏳ Đang tải...");
       refreshButton.setDisable(true);
     }
+    // Reset throttle để đảm bảo refresh khi người dùng bấm nút
+    lastRefreshRequestTime.set(0);
     loadAuctionResults();
   }
 }

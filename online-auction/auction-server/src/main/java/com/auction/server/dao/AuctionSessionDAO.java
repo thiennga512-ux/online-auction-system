@@ -179,6 +179,33 @@ public class AuctionSessionDAO {
   }
 
   /**
+   * Lấy tất cả phiên đã kết thúc hoặc bị hủy (Kết quả đấu giá).
+   * Bao gồm FINISHED, CANCELLED — sắp xếp theo thời gian kết thúc giảm dần.
+   *
+   * @return danh sách phiên đã kết thúc hoặc bị hủy
+   */
+  public List<AuctionSession> findFinishedOrCancelledAuctions() throws SQLException {
+    List<SessionRow> rows = new ArrayList<>();
+    String sql = """
+        SELECT * FROM auction_sessions
+        WHERE status IN ('FINISHED', 'CANCELLED')
+        ORDER BY actual_end_time DESC
+        """;
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          rows.add(extractRow(rs));
+        }
+      }
+    }
+    List<AuctionSession> sessions = new ArrayList<>();
+    for (SessionRow row : rows) {
+      sessions.add(buildSession(row));
+    }
+    return sessions;
+  }
+
+  /**
    * Lấy tất cả phiên đang OPEN hoặc RUNNING (hiển thị cho Bidder duyệt).
    *
    * @return danh sách phiên đang hoạt động
@@ -221,6 +248,31 @@ public class AuctionSessionDAO {
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, newStatus.name());
       ps.setString(2, sessionId);
+      ps.executeUpdate();
+    }
+  }
+
+  /**
+   * Cập nhật trạng thái phiên đấu giá kèm admin_note và actual_end_time.
+   * Gọi khi Admin từ chối (PENDING→CANCELLED) hoặc Admin/Seller huỷ phiên (RUNNING→CANCELLED).
+   *
+   * @param sessionId    ID phiên
+   * @param newStatus    trạng thái mới (thường là CANCELLED)
+   * @param adminNote    lý do từ chối/huỷ (có thể null)
+   * @param actualEndTime thời điểm kết thúc thực tế (thường là now)
+   */
+  public void updateStatusWithNote(String sessionId, AuctionStatus newStatus,
+      String adminNote, LocalDateTime actualEndTime) throws SQLException {
+    String sql = """
+        UPDATE auction_sessions
+        SET status = ?, admin_note = ?, actual_end_time = ?
+        WHERE id = ?
+        """;
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      ps.setString(1, newStatus.name());
+      ps.setString(2, adminNote);
+      ps.setString(3, actualEndTime != null ? actualEndTime.toString() : null);
+      ps.setString(4, sessionId);
       ps.executeUpdate();
     }
   }

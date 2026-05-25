@@ -84,6 +84,8 @@ public class RequestDispatcher {
         case DEPOSIT_BALANCE -> handleDepositBalance(request, client);
         case SELF_DEPOSIT -> handleSelfDeposit(request, client);
         case REGISTER_AUTO_BID -> handleRegisterAutoBid(request, client);
+      case GET_AUCTION_RESULTS -> handleGetAuctionResults();
+      case RECEIVE_AUCTION_RESULTS -> handleGetAuctionResults(); // Fallback an toàn
         case REGISTER_NOTIFICATION -> handleRegisterNotification(request, client);
         case PING -> Response.success(ActionType.PING, "PONG");
         default -> Response.error(request.getAction(), "Hành động chưa được hỗ trợ: " + request.getAction());
@@ -118,9 +120,29 @@ public class RequestDispatcher {
     client.setLoggedInUserId(user.getId());
     com.auction.server.network.UserConnectionManager.getInstance().registerUser(user.getId(), client);
 
-    double balance = (user instanceof Seller s) ? s.getBalance()
-                   : (user instanceof Bidder b) ? b.getDepositBalance()
-                   : 0.0;
+    double balance;
+    if (user instanceof Seller s) {
+      balance = s.getBalance();
+      // === FIX: Nếu Seller balance = 0 (do nâng cấp từ Bidder trước đây chưa copy sang),
+      // kiểm tra deposit_balance trong bidder_details để khôi phục số dư ===
+      if (balance == 0.0) {
+        try {
+          double depositBalance = userService.getBidderDepositBalance(user.getId());
+          if (depositBalance > 0.0) {
+            balance = depositBalance;
+            // Cập nhật luôn seller_details.balance để lần sau login không cần check lại
+            userService.updateSellerBalance(user.getId(), depositBalance);
+          }
+        } catch (Exception e) {
+          // Silent fallback: giữ balance = 0 nếu có lỗi
+          System.err.println("[RequestDispatcher] Không thể khôi phục số dư cho Seller " + user.getId() + ": " + e.getMessage());
+        }
+      }
+    } else if (user instanceof Bidder b) {
+      balance = b.getDepositBalance();
+    } else {
+      balance = 0.0;
+    }
 
     Dto.UserProfileResponse profile = new Dto.UserProfileResponse(
         user.getId(), user.getFullName(), user.getRole().name(), balance);
@@ -236,6 +258,7 @@ public class RequestDispatcher {
         s.getCurrentPrice(),
         s.getCurrentWinnerId(),
         s.getCurrentWinnerName(),
+        s.getSellerId(),
         s.getSellerName(),
         s.getStatus().name(),
         s.getStartTime().toString(),
@@ -255,6 +278,40 @@ public class RequestDispatcher {
         .map(this::mapSessionToDto)
         .toList();
     return Response.success(ActionType.GET_ACTIVE_AUCTIONS, dtos);
+  }
+
+  /**
+   * Xử lý yêu cầu lấy danh sách kết quả đấu giá (GET_AUCTION_RESULTS).
+   * Truy vấn tất cả phiên đã kết thúc (FINISHED, CANCELLED) từ database,
+   * chuyển đổi thành Dto.AuctionResultDto và trả về cho Client.
+   */
+  private Response handleGetAuctionResults() {
+    List<AuctionSession> sessions = auctionService.getFinishedOrCancelledAuctions();
+    List<Dto.AuctionResultDto> results = sessions.stream()
+        .map(s -> {
+          String status = s.getStatus().name(); // FINISHED, CANCELLED
+          String reason = "";
+          // Xác định lý do dựa trên trạng thái
+          if (s.getStatus() == AuctionStatus.FINISHED) {
+            if (s.getCurrentWinnerId() == null) {
+              status = "FAILED";
+              reason = "Không có người đặt giá";
+            } else {
+              status = "SUCCESS";
+            }
+          } else if (s.getStatus() == AuctionStatus.CANCELLED) {
+            reason = (s.getAdminNote() != null && !s.getAdminNote().isBlank())
+                ? s.getAdminNote() : "Phiên bị hủy bởi Admin";
+          }
+          return new Dto.AuctionResultDto(
+              s.getActualEndTime().toString(),
+              s.getItem().getName(),
+              status,
+              reason
+          );
+        })
+        .toList();
+    return Response.success(ActionType.GET_AUCTION_RESULTS, results);
   }
 
   private Response handleGetAuctionBids(Request request) {
@@ -307,6 +364,7 @@ public class RequestDispatcher {
     
     for (ClientHandler h : com.auction.server.network.UserConnectionManager.getInstance().getActiveHandlers()) {
         h.sendResponse(Response.success(ActionType.NEW_AUCTION_BROADCAST, "Phiên đấu giá đã bị từ chối", null));
+        h.sendResponse(Response.success(ActionType.AUCTION_RESULTS_UPDATE_BROADCAST, "Phiên đấu giá đã bị từ chối. Vui lòng cập nhật kết quả.", null));
     }
     
     return Response.success(ActionType.REJECT_AUCTION, "Đã từ chối phiên đấu giá", null);
@@ -328,6 +386,8 @@ public class RequestDispatcher {
     
     for (ClientHandler h : com.auction.server.network.UserConnectionManager.getInstance().getActiveHandlers()) {
         h.sendResponse(Response.success(ActionType.NEW_AUCTION_BROADCAST, "Phiên đấu giá đã bị huỷ", null));
+        // Thông báo cho các Client đang ở tab Kết quả đấu giá tự động refresh
+        h.sendResponse(Response.success(ActionType.AUCTION_RESULTS_UPDATE_BROADCAST, "Phiên đấu giá đã bị huỷ. Vui lòng cập nhật kết quả.", null));
     }
     
     return Response.success(ActionType.CANCEL_AUCTION, "Đã huỷ phiên đấu giá thành công", null);
@@ -375,8 +435,29 @@ public class RequestDispatcher {
     User user = userService.findById(client.getLoggedInUserId())
         .orElseThrow(() -> new IllegalStateException("Tài khoản không tồn tại"));
 
+    // ===== KIỂM TRA BẢO MẬT PHÂN QUYỀN ĐẶT GIÁ =====
+    // 1. Chặn tuyệt đối tài khoản Admin tham gia đấu giá để đảm bảo tính minh bạch
+    if (user instanceof com.auction.common.model.user.Admin) {
+      return Response.error(request.getAction(),
+          "Tài khoản quản trị không được phép tham gia đấu giá!");
+    }
+
+    // 2. Kiểm tra user phải là Bidder (Seller kế thừa Bidder nên cũng được phép đặt giá)
     if (!(user instanceof Bidder bidder)) {
       throw new IllegalStateException("Chỉ Bidder mới có thể đặt giá");
+    }
+
+    // 3. Kiểm tra chủ sở hữu không được tự đấu giá sản phẩm của chính mình
+    //    Lấy phiên đấu giá để kiểm tra sellerId
+    try {
+      com.auction.common.model.auction.AuctionSession session =
+          auctionService.getSessionById(payload.sessionId());
+      if (session.getSellerId().equals(user.getId())) {
+        return Response.error(request.getAction(),
+            "Bạn không thể tự đấu giá sản phẩm do chính mình đăng bán!");
+      }
+    } catch (Exception e) {
+      // Nếu lấy session thất bại, AuctionService.placeBid sẽ tự xử lý
     }
 
     // Gọi AuctionService (hàm này đã có synchronized an toàn luồng)

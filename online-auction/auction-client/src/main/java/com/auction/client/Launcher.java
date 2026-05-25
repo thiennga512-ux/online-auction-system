@@ -2,7 +2,7 @@ package com.auction.client;
 
 /**
  * ============================================================
- * Lớp Launcher (Mẹo để chạy JavaFX trong IDE)
+ * Lớp Launcher (Mẹo để chạy JavaFX trong IDE)12345678
  * ============================================================
  * 
  * Tại sao cần class này?

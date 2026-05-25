@@ -357,19 +357,32 @@ public class UserDAO {
    * Giữ nguyên bidder_details (vì Seller kế thừa Bidder).
    */
   public void upgradeToSeller(String userId, String shopName, String citizenId) throws SQLException {
-    // 1. Update Role in users table
+    // 1. Lấy số dư deposit từ bidder_details trước khi nâng cấp
+    double depositBalance = 0.0;
+    String sqlBidderBalance = "SELECT deposit_balance FROM bidder_details WHERE user_id = ?";
+    try (PreparedStatement ps = getConnection().prepareStatement(sqlBidderBalance)) {
+      ps.setString(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          depositBalance = rs.getDouble("deposit_balance");
+        }
+      }
+    }
+
+    // 2. Update Role in users table
     String sqlUser = "UPDATE users SET role = 'SELLER' WHERE id = ?";
     try (PreparedStatement ps = getConnection().prepareStatement(sqlUser)) {
       ps.setString(1, userId);
       ps.executeUpdate();
     }
 
-    // 2. Insert into seller_details
-    String sqlSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id, rating, rating_count, balance) VALUES (?, ?, ?, 0.0, 0, 0.0)";
+    // 3. Insert into seller_details (copy deposit_balance từ bidder_details vào balance)
+    String sqlSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id, rating, rating_count, balance) VALUES (?, ?, ?, 0.0, 0, ?)";
     try (PreparedStatement ps = getConnection().prepareStatement(sqlSeller)) {
       ps.setString(1, userId);
       ps.setString(2, shopName);
       ps.setString(3, citizenId);
+      ps.setDouble(4, depositBalance);
       ps.executeUpdate();
     }
   }
@@ -460,6 +473,33 @@ public class UserDAO {
       }
     }
     return new SellerExtra("Default Shop", "000000000000", 0.0, 0, 0.0);
+  }
+
+  /**
+   * Lấy deposit_balance từ bidder_details cho một user.
+   * Dùng để khôi phục số dư cho Seller nâng cấp từ Bidder.
+   */
+  public double getBidderDepositBalance(String userId) throws SQLException {
+    String sql = "SELECT deposit_balance FROM bidder_details WHERE user_id = ?";
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      ps.setString(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        return rs.next() ? rs.getDouble("deposit_balance") : 0.0;
+      }
+    }
+  }
+
+  /**
+   * Cập nhật seller_details.balance.
+   * Dùng để đồng bộ số dư sau khi khôi phục cho Seller nâng cấp từ Bidder.
+   */
+  public void updateSellerBalance(String userId, double balance) throws SQLException {
+    String sql = "UPDATE seller_details SET balance = ? WHERE user_id = ?";
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      ps.setDouble(1, balance);
+      ps.setString(2, userId);
+      ps.executeUpdate();
+    }
   }
 
   /** Record tạm để truyền extra data của Bidder */

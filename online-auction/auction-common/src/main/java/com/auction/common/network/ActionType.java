@@ -42,6 +42,8 @@ public enum ActionType {
   AUCTION_STARTED_BROADCAST,    // Server thông báo phiên bắt đầu
   AUCTION_ENDED_BROADCAST,  // Server thông báo phiên kết thúc
   NEW_AUCTION_BROADCAST,    // Server thông báo có phiên mới được duyệt
+  AUCTION_RESULTS_UPDATE_BROADCAST, // Server báo Client đang ở tab Kết quả đấu giá refresh lại
+  SERVER_BROADCAST_REFRESH_RESULTS, // Server ép buộc tất cả Client refresh lại danh sách kết quả
   GLOBAL_NOTIFICATION_BROADCAST, // Thông báo chuông toàn cục
 
 
@@ -58,7 +60,8 @@ public enum ActionType {
   REGISTER_AUTO_BID,    // Đăng ký đấu giá tự động
 
   // --- Kết quả đấu giá ---
-  GET_AUCTION_RESULTS,
+  GET_AUCTION_RESULTS,      // Client yêu cầu danh sách kết quả
+  RECEIVE_AUCTION_RESULTS,  // Server phản hồi danh sách kết quả cho Client
 
   // --- Ping / Pong ---
   PING
