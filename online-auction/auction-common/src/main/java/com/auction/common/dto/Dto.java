@@ -159,6 +159,10 @@ public class Dto {
       String actualEndTime,
       int antiSnipingSeconds,
       String itemCategory,
-      String imageUrl
+      String imageUrl,
+      // Các trường bổ sung cho Tab 2 - Thông tin chi tiết
+      String conditionStr,
+      String material,
+      int warrantyMonths
   ) {}
 }

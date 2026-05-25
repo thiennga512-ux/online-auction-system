@@ -1,6 +1,7 @@
-# Task Progress
+# Task Progress: Sửa Layout Auction Detail
 
-- [ ] Analyze server-side login handling (RequestDispatcher, UserService, UserDAO)
-- [ ] Fix LOGIN action to reject Admin accounts
-- [ ] Fix ADMIN_LOGIN action to reject non-Admin accounts
-- [ ] Verify the fix
+- [x] Analyze current code (FXML, Controller, CSS, DTO)
+- [x] Add missing fields (condition, material, warranty) to AuctionCardDto + RequestDispatcher mapping
+- [x] Fix FXML Tab 1: TableView with AnchorPane constraints + CONSTRAINED_RESIZE_POLICY + column widths
+- [x] Fix FXML Tab 2: Full restructure with GridPane 2 columns + hgap=30 vgap=15 + icon labels + 9 new fields
+- [x] Update Controller buildSpecsGrid for new DTO fields (condition, material, warranty) + icons

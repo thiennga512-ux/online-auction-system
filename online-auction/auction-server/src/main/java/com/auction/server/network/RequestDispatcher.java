@@ -198,27 +198,61 @@ public class RequestDispatcher {
     return Response.success(ActionType.UPGRADE_TO_SELLER, "Nâng cấp thành công. Vui lòng đăng nhập lại.", null);
   }
 
+  private String extractConditionStr(Item item) {
+    if (item instanceof com.auction.common.model.item.Electronics elec) {
+      return elec.getCondition() != null ? elec.getCondition().getDisplayName() : "N/A";
+    }
+    // Art and Vehicle use string-based condition
+    return "Mới";
+  }
+
+  private String extractMaterial(Item item) {
+    return switch (item.getCategory()) {
+      case ELECTRONICS -> ((com.auction.common.model.item.Electronics) item).getBrand();
+      case ART -> ((com.auction.common.model.item.Art) item).getMedium();
+      case VEHICLE -> ((com.auction.common.model.item.Vehicle) item).getFuelType().getDisplayName();
+      default -> "N/A";
+    };
+  }
+
+  private int extractWarrantyMonths(Item item) {
+    return switch (item.getCategory()) {
+      case ELECTRONICS -> ((com.auction.common.model.item.Electronics) item).getWarrantyMonths();
+      case ART -> 0;
+      case VEHICLE -> ((com.auction.common.model.item.Vehicle) item).getYear();
+      default -> 0;
+    };
+  }
+
+  private Dto.AuctionCardDto mapSessionToDto(AuctionSession s) {
+    Item item = s.getItem();
+    return new Dto.AuctionCardDto(
+        s.getId(),
+        item.getId(),
+        item.getName(),
+        item.getDescription(),
+        item.getBasePrice(),
+        item.getMinIncrement(),
+        s.getCurrentPrice(),
+        s.getCurrentWinnerId(),
+        s.getCurrentWinnerName(),
+        s.getSellerName(),
+        s.getStatus().name(),
+        s.getStartTime().toString(),
+        s.getActualEndTime().toString(),
+        s.getAntiSnipingSeconds(),
+        item.getCategory().name(),
+        item.getImageUrl(),
+        extractConditionStr(item),
+        extractMaterial(item),
+        extractWarrantyMonths(item)
+    );
+  }
+
   private Response handleGetActiveAuctions() {
     List<AuctionSession> sessions = auctionService.getActiveAuctions();
     List<Dto.AuctionCardDto> dtos = sessions.stream()
-        .map(s -> new Dto.AuctionCardDto(
-            s.getId(),
-            s.getItem().getId(),
-            s.getItem().getName(),
-            s.getItem().getDescription(),
-            s.getItem().getBasePrice(),
-            s.getItem().getMinIncrement(),
-            s.getCurrentPrice(),
-            s.getCurrentWinnerId(),
-            s.getCurrentWinnerName(),
-            s.getSellerName(),
-            s.getStatus().name(),
-            s.getStartTime().toString(),
-            s.getActualEndTime().toString(),
-            s.getAntiSnipingSeconds(),
-            s.getItem().getCategory().name(),
-            s.getItem().getImageUrl()
-        ))
+        .map(this::mapSessionToDto)
         .toList();
     return Response.success(ActionType.GET_ACTIVE_AUCTIONS, dtos);
   }
@@ -236,24 +270,7 @@ public class RequestDispatcher {
     User admin = getAdminUserOrThrow(client);
     List<AuctionSession> sessions = auctionService.getAuctionsByStatus(AuctionStatus.PENDING);
     List<Dto.AuctionCardDto> dtos = sessions.stream()
-        .map(s -> new Dto.AuctionCardDto(
-            s.getId(),
-            s.getItem().getId(),
-            s.getItem().getName(),
-            s.getItem().getDescription(),
-            s.getItem().getBasePrice(),
-            s.getItem().getMinIncrement(),
-            s.getCurrentPrice(),
-            s.getCurrentWinnerId(),
-            s.getCurrentWinnerName(),
-            s.getSellerName(),
-            s.getStatus().name(),
-            s.getStartTime().toString(),
-            s.getActualEndTime().toString(),
-            s.getAntiSnipingSeconds(),
-            s.getItem().getCategory().name(),
-            s.getItem().getImageUrl()
-        ))
+        .map(this::mapSessionToDto)
         .toList();
     return Response.success(ActionType.GET_PENDING_AUCTIONS,
         "Lấy danh sách phiên chờ duyệt thành công cho " + admin.getFullName(), dtos);

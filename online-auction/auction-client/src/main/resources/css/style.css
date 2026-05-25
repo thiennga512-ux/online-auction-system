@@ -3074,3 +3074,521 @@
     -fx-pref-height: 0;
     -fx-opacity: 0;
 }
+
+/* ================================================================
+ *  AUCTION TABPANE — Premium 4-Tab Design cho Phòng Đấu Giá
+ * ================================================================
+ *  Thiết kế tối giản, nền tối, tab active xanh dương sáng,
+ *  tab inactive xám nhạt. Content area trong suốt đồng bộ.
+ * ================================================================ */
+
+/* ===== Container bottom section ===== */
+.auction-bottom-tab-section {
+    -fx-background-color: #111827;
+    -fx-background-radius: 12;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+}
+
+/* ===== TabPane tổng thể ===== */
+.auction-tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 44;
+    -fx-tab-max-height: 44;
+    -fx-tab-min-width: 120;
+    -fx-tab-max-width: 200;
+    -fx-padding: 0;
+}
+
+/* Ẩn viền mặc định của TabPane */
+.auction-tab-pane > .tab-header-area {
+    -fx-padding: 8 20 0 20;
+    -fx-background-color: transparent;
+}
+
+.auction-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 8 18 10 18;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #6b7280;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.08);
+    -fx-text-fill: #d1d5db;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.12);
+    -fx-border-color: transparent transparent #3b82f6 transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-alignment: CENTER;
+    -fx-padding: 0;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab:hover .tab-label {
+    -fx-text-fill: #d1d5db;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: #60a5fa;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.auction-tab-pane > .tab-header-area > .headers-region > .tab:focus {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.auction-tab-pane > .tab-header-area > .control-buttons-tab {
+    -fx-background-color: transparent;
+}
+
+.auction-tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0 0 0;
+}
+
+/* ===== Tab Content General ===== */
+.auction-tab-content {
+    -fx-background-color: transparent;
+    -fx-spacing: 8;
+    -fx-padding: 8;
+}
+
+/* ===== ScrollPane inside tab ===== */
+.auction-tab-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.auction-tab-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ================================================================
+ *  TAB 1: LỊCH SỬ ĐẶT GIÁ (TableView)
+ * ================================================================ */
+
+.auction-bid-table {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 8;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-fixed-cell-size: 40;
+}
+
+.auction-bid-table .column-header-background {
+    -fx-background-color: #1e293b;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 0;
+}
+
+.auction-bid-table .column-header {
+    -fx-background-color: #1e293b;
+    -fx-border-color: transparent transparent #334155 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 4;
+    -fx-size: 40;
+}
+
+.auction-bid-table .column-header .label {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-alignment: CENTER;
+    -fx-padding: 0 4;
+}
+
+.auction-bid-table .table-cell {
+    -fx-alignment: CENTER;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1e293b transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 6;
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 13px;
+}
+
+.auction-bid-table .table-row-cell {
+    -fx-background-color: #0f172a;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cell-size: 40;
+}
+
+.auction-bid-table .table-row-cell:odd {
+    -fx-background-color: #131b2c;
+}
+
+.auction-bid-table .table-row-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.10);
+}
+
+.auction-bid-table .table-row-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.20);
+}
+
+.auction-bid-table .table-row-cell:selected .table-cell {
+    -fx-text-fill: #f8fafc;
+    -fx-font-weight: 600;
+}
+
+/* Leader row — highest bid highlighted gold */
+.auction-bid-table .table-row-cell.bid-leader-row {
+    -fx-background-color: linear-gradient(to right, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.06));
+}
+
+.auction-bid-table .table-row-cell.bid-leader-row .table-cell {
+    -fx-text-fill: #fde68a;
+    -fx-font-weight: bold;
+}
+
+.auction-bid-table .placeholder .label {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.auction-bid-table:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.auction-table-status-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6b7280;
+    -fx-padding: 4 4 0 4;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+}
+
+/* ================================================================
+ *  TAB 2: THÔNG TIN CHI TIẾT (Specs Grid)
+ * ================================================================ */
+
+.auction-specs-section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #60a5fa;
+    -fx-letter-spacing: 1px;
+    -fx-padding: 0 0 4 0;
+}
+
+.auction-specs-grid {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 10;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 16 20;
+    -fx-vgap: 10;
+    -fx-hgap: 16;
+}
+
+.auction-specs-grid .spec-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94a3b8;
+    -fx-font-weight: 500;
+    -fx-alignment: CENTER_RIGHT;
+    -fx-padding: 6 0;
+}
+
+.auction-specs-grid .spec-value {
+    -fx-font-size: 14px;
+    -fx-text-fill: #f1f5f9;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 6 0;
+    -fx-wrap-text: true;
+}
+
+.auction-specs-grid .spec-value-emerald {
+    -fx-text-fill: #34d399;
+    -fx-font-weight: bold;
+}
+
+.auction-specs-grid .spec-value-amber {
+    -fx-text-fill: #fbbf24;
+    -fx-font-weight: bold;
+}
+
+/* Tên sản phẩm — chữ đậm màu trắng */
+.spec-value-bold-white {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+/* Mô tả (hàng cuối, columnSpan=2) — chữ xám sáng, căn đều */
+.spec-value-desc {
+    -fx-font-size: 14px;
+    -fx-text-fill: #cbd5e1;
+    -fx-line-spacing: 4px;
+}
+
+/* AnchorPane dùng trong Tab 1 */
+.auction-tab-content {
+    -fx-background-color: transparent;
+    -fx-spacing: 8;
+    -fx-padding: 8;
+}
+
+/* AnchorPane root style cho Tab 1 */
+.auction-tab-content > .anchor-pane {
+    -fx-background-color: transparent;
+}
+
+/* ================================================================
+ *  TAB 3: BIỂU ĐỒ ĐẤU GIÁ (AreaChart)
+ * ================================================================ */
+
+.auction-chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e2e8f0;
+    -fx-padding: 4 0;
+}
+
+.auction-chart-placeholder {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+    -fx-font-style: italic;
+    -fx-padding: 4 0;
+}
+
+.auction-price-chart {
+    -fx-background-color: #0f172a;
+    -fx-background-radius: 10;
+    -fx-border-color: #1e293b;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 10;
+}
+
+/* Chart plot background */
+.auction-price-chart .chart-plot-background {
+    -fx-background-color: #0a0e17;
+}
+
+/* Horizontal grid lines (mờ) */
+.auction-price-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(51, 65, 85, 0.5);
+    -fx-stroke-dash-array: 4 4;
+}
+
+/* Vertical grid lines (tắt) */
+.auction-price-chart .chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+
+/* Axes styling */
+.auction-chart-axis {
+    -fx-tick-label-fill: #94a3b8;
+    -fx-font-size: 11px;
+    -fx-tick-length: 0;
+}
+
+.auction-chart-axis .axis-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.auction-chart-axis .axis-tick-mark {
+    -fx-stroke: transparent;
+}
+
+/* Series line — Neon blue */
+.auction-price-chart .chart-series-line {
+    -fx-stroke: #3b82f6;
+    -fx-stroke-width: 2.5;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 8, 0, 0, 0);
+}
+
+/* Area fill — gradient mờ dần */
+.auction-price-chart .chart-series-area-fill {
+    -fx-fill: linear-gradient(to top, rgba(59, 130, 246, 0.35), rgba(59, 130, 246, 0.02));
+}
+
+/* Area line (viền trên) */
+.auction-price-chart .chart-series-area-line {
+    -fx-stroke: transparent;
+}
+
+/* Data symbols (chấm tròn) */
+.auction-price-chart .chart-line-symbol {
+    -fx-background-color: #3b82f6, #0f172a;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.5), 4, 0, 0, 0);
+}
+
+.auction-price-chart .chart-line-symbol:hover {
+    -fx-background-color: #60a5fa, #1e293b;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px;
+    -fx-effect: dropshadow(gaussian, rgba(96, 165, 250, 0.8), 12, 0, 0, 0);
+}
+
+/* Alternative row fill */
+.auction-price-chart .chart-alternative-row-fill {
+    -fx-fill: transparent;
+}
+
+/* Legend (hidden by legendVisible=false but keep styling) */
+.auction-price-chart .chart-legend {
+    -fx-background-color: transparent;
+}
+
+/* ================================================================
+ *  TAB 4: AUTOBID FORM
+ * ================================================================ */
+
+.autobid-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1f5f9;
+}
+
+.autobid-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+    -fx-line-spacing: 4px;
+}
+
+.autobid-separator {
+    -fx-background-color: #1e293b;
+    -fx-pref-height: 1;
+    -fx-max-width: Infinity;
+}
+
+.autobid-field-group {
+    -fx-spacing: 6;
+}
+
+.autobid-field-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #e2e8f0;
+}
+
+.autobid-field-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #64748b;
+    -fx-font-style: italic;
+}
+
+.autobid-field {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #f8fafc;
+    -fx-prompt-text-fill: #475569;
+    -fx-font-size: 15px;
+    -fx-font-family: "Segoe UI", "Roboto", "Inter", monospace;
+    -fx-background-radius: 8;
+    -fx-padding: 12 16;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-pref-height: 46;
+}
+
+.autobid-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #0d1321;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.30), 10, 0, 0, 0);
+}
+
+.autobid-activate-btn {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", "Roboto", "Inter", sans-serif;
+    -fx-background-radius: 10;
+    -fx-padding: 16 32;
+    -fx-cursor: hand;
+    -fx-min-height: 54;
+    -fx-letter-spacing: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.45), 16, 0.2, 0, 2);
+}
+
+.autobid-activate-btn:hover {
+    -fx-background-color: #34d399;
+    -fx-effect: dropshadow(gaussian, rgba(52, 211, 153, 0.7), 24, 0.35, 0, 4);
+    -fx-scale-x: 1.01;
+    -fx-scale-y: 1.01;
+}
+
+.autobid-activate-btn:pressed {
+    -fx-background-color: #059669;
+    -fx-effect: dropshadow(gaussian, rgba(5, 150, 105, 0.25), 4, 0, 0, 1);
+    -fx-translate-y: 1;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.autobid-activate-btn:disabled {
+    -fx-background-color: #374151;
+    -fx-text-fill: #6b7280;
+    -fx-effect: none;
+    -fx-cursor: default;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-opacity: 0.75;
+}
+
+.autobid-note-box {
+    -fx-background-color: rgba(245, 158, 11, 0.06);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(245, 158, 11, 0.2);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 14 16;
+}
+
+.autobid-note-heading {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f59e0b;
+}
+
+.autobid-note-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #d4a04a;
+    -fx-line-spacing: 3px;
+}
+
+.autobid-status-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #34d399;
+    -fx-font-weight: 600;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+    -fx-padding: 8 0 0 0;
+}
+
+.autobid-status-label-error {
+    -fx-text-fill: #ef4444;
+}

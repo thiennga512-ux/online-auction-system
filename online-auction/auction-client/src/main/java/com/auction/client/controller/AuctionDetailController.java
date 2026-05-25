@@ -13,17 +13,34 @@ import com.auction.common.network.Response;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
@@ -39,18 +56,20 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * AuctionDetailController — Màn hình Phòng Đấu Giá Trực Tiếp.
+ * AuctionDetailController — Màn hình Phòng Đấu Giá Trực Tiếp (TabPane Version).
  *
- * - OPEN    : đếm ngược đến giờ mở phiên
- * - RUNNING : đếm ngược đến giờ kết thúc + khu vực đặt giá
- * - FINISHED: hiển thị kết quả, ẩn bid panel
+ * Gồm 4 Tab ở khu vực dưới:
+ *   1. Lịch sử đặt giá (TableView)
+ *   2. Thông tin chi tiết (GridPane)
+ *   3. Biểu đồ đấu giá (AreaChart) — lazy-load khi chọn tab
+ *   4. AutoBid (Form kích hoạt tự động)
  */
 public class AuctionDetailController implements LifecycleAwareController {
 
   private static final String EMPTY_BID_MSG = "Chưa có lượt đặt giá nào.";
   private static final double BID_ROW_HEIGHT = 52;
 
-  // ===== FXML =====
+  // ===== FXML (Kế thừa từ phiên bản cũ) =====
   @FXML private Label     titleLabel;
   @FXML private Label     descriptionLabel;
   @FXML private Label     priceLabel;
@@ -62,7 +81,7 @@ public class AuctionDetailController implements LifecycleAwareController {
   @FXML private Label     countdownLabel;
   @FXML private Label     viewerCountLabel;
   @FXML private ImageView productImageView;
-  @FXML private ListView<String> bidHistoryList;
+  @FXML private ListView<String> bidHistoryList; // Vẫn giữ cho tương thích, dùng bidHistoryTable là chính
   @FXML private Button    notifyButton;
   @FXML private ProgressBar timeProgressBar;
   @FXML private Region    livePulseDot;
@@ -79,6 +98,27 @@ public class AuctionDetailController implements LifecycleAwareController {
   @FXML private Button    preset4Btn;
   @FXML private Button    preset5Btn;
 
+  // ===== FXML — TabPane & Components Mới =====
+  @FXML private TabPane           auctionTabPane;
+  @FXML private TableView<BidRow> bidHistoryTable;
+  @FXML private TableColumn<BidRow, String> timeColumn;
+  @FXML private TableColumn<BidRow, String> bidderColumn;
+  @FXML private TableColumn<BidRow, String> amountColumn;
+  @FXML private TableColumn<BidRow, String> typeColumn;
+  @FXML private Label            bidTableStatusLabel;
+
+  @FXML private GridPane         specsGrid;
+
+  @FXML private AreaChart<String, Number> priceChart;
+  @FXML private CategoryAxis     chartXAxis;
+  @FXML private NumberAxis       chartYAxis;
+  @FXML private Label            chartPlaceholder;
+
+  @FXML private TextField autobidCeilingField;
+  @FXML private TextField autobidIncrementField;
+  @FXML private Button    activateAutobidBtn;
+  @FXML private Label     autobidStatusLabel;
+
   // ===== State =====
   private String        sessionId;
   private String        currentStatus;
@@ -89,12 +129,27 @@ public class AuctionDetailController implements LifecycleAwareController {
   private boolean       isNotificationRegistered = false;
   private int           watcherEstimate = 24;
 
+  // Dữ liệu phiên đầy đủ (cached từ response)
+  private Dto.AuctionCardDto currentSessionData;
+
+  // Danh sách bid (cached để vẽ biểu đồ)
+  private final ObservableList<Bid> allBids = FXCollections.observableArrayList();
+  private final ObservableList<BidRow> bidTableData = FXCollections.observableArrayList();
+
+  // AutoBid state
+  private boolean autobidActive = false;
+
   private Timeline countdownTimeline;
   private Timeline pulseTimeline;
   private static final DateTimeFormatter DT_FMT =
       DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+  private static final DateTimeFormatter CHART_TIME_FMT =
+      DateTimeFormatter.ofPattern("HH:mm:ss");
 
   private final Consumer<Response> listener = this::handleResponse;
+
+  // Listener cho TabPane selectedItem — chỉ vẽ chart khi tab 3 được chọn
+  private ChangeListener<Tab> tabChangeListener;
 
   // -------------------------------------------------------
   // INIT
@@ -109,7 +164,16 @@ public class AuctionDetailController implements LifecycleAwareController {
       return;
     }
 
-    setupBidHistoryList();
+    // --- Khởi tạo TableView cho Tab 1 ---
+    setupBidHistoryTable();
+
+    // --- Khởi tạo GridPane specs cho Tab 2 (sẽ populate sau khi có dữ liệu) ---
+    // specsGrid được populate động trong buildSpecsGrid()
+
+    // --- Setup Tab change listener (Tab 3 lazy-load chart) ---
+    setupTabChangeListener();
+
+    // --- Các logic cũ ---
     watcherEstimate = 40 + Math.abs(sessionId.hashCode() % 180);
     updateViewerCountLabel();
 
@@ -122,36 +186,358 @@ public class AuctionDetailController implements LifecycleAwareController {
     SocketClient.getInstance().sendRequest(new Request(ActionType.GET_AUCTION_BIDS, sub));
 
     startCountdownTimer();
+
+    // Mặc định mở tab đầu tiên
+    if (auctionTabPane != null && !auctionTabPane.getTabs().isEmpty()) {
+      auctionTabPane.getSelectionModel().select(0);
+    }
   }
 
-  private void setupBidHistoryList() {
-    if (bidHistoryList == null) return;
+  // -------------------------------------------------------
+  // SETUP TAB 1: BID HISTORY TABLE
+  // -------------------------------------------------------
 
-    bidHistoryList.setCellFactory(lv -> new ListCell<>() {
+  /**
+   * Thiết lập TableView hiển thị lịch sử đặt giá.
+   * Sử dụng BidRow POJO để dễ binding với TableColumn.
+   */
+  private void setupBidHistoryTable() {
+    if (bidHistoryTable == null) return;
+
+    // Áp dụng CONSTRAINED_RESIZE_POLICY programmatically thay vì trong FXML
+    // để tránh lỗi "Unable to coerce TableView.CONSTRAINED_RESIZE_POLICY to interface Callback"
+    bidHistoryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+    // Khởi tạo các cột
+    timeColumn.setCellValueFactory(new PropertyValueFactory<>("time"));
+    bidderColumn.setCellValueFactory(new PropertyValueFactory<>("bidderName"));
+    amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+    typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+
+    // Binding dữ liệu
+    bidHistoryTable.setItems(bidTableData);
+
+    // Style cho hàng dẫn đầu (giá cao nhất) - dùng rowFactory
+    bidHistoryTable.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
       @Override
-      protected void updateItem(String item, boolean empty) {
+      protected void updateItem(BidRow item, boolean empty) {
         super.updateItem(item, empty);
-        getStyleClass().remove("bid-history-leader");
         if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
+          getStyleClass().remove("bid-leader-row");
           return;
         }
-        setText(item);
-        if (getIndex() == 0 && !EMPTY_BID_MSG.equals(item)) {
-          getStyleClass().add("bid-history-leader");
+        // Hàng đầu tiên (giá cao nhất) được highlight vàng
+        if (getIndex() == 0 && !bidTableData.isEmpty()) {
+          if (!getStyleClass().contains("bid-leader-row")) {
+            getStyleClass().add("bid-leader-row");
+          }
+        } else {
+          getStyleClass().remove("bid-leader-row");
         }
       }
     });
 
-    bidHistoryList.getItems().addListener((ListChangeListener<String>) c -> updateBidListHeight());
-    updateBidListHeight();
+    bidTableStatusLabel.setText("");
   }
 
-  private void updateBidListHeight() {
-    if (bidHistoryList == null) return;
-    int count = bidHistoryList.getItems().size();
-    bidHistoryList.setPrefHeight(Math.max(120, count * BID_ROW_HEIGHT + 12));
+  // =======================================================
+  //  DATA CLASS BIDROW dùng cho TableView
+  //  (POJO với PropertyValueFactory-compatible getters)
+  // =======================================================
+
+  /**
+   * POJO đơn giản để hiển thị trên TableView.
+   * PropertyValueFactory dùng Java Bean convention:
+   * "time" → getTime(), "bidderName" → getBidderName(), v.v.
+   */
+  public static class BidRow {
+    private final String time;
+    private final String bidderName;
+    private final String amount;
+    private final String type;
+    private final double rawAmount;
+
+    public BidRow(String time, String bidderName, double amount, String type) {
+      this.time = time;
+      this.bidderName = bidderName;
+      this.rawAmount = amount;
+      this.amount = String.format("%,.0f", amount);
+      this.type = type;
+    }
+
+    public String getTime() { return time; }
+    public String getBidderName() { return bidderName; }
+    public String getAmount() { return amount; }
+    public String getType() { return type; }
+    public double getRawAmount() { return rawAmount; }
+  }
+
+  // -------------------------------------------------------
+  // SETUP TAB 2: PRODUCT SPECS
+  // -------------------------------------------------------
+
+  /**
+   * Xây dựng GridPane hiển thị thông tin chi tiết sản phẩm (Tab 2).
+   * Sử dụng GridPane 2 cột với hgap=30, vgap=15.
+   * Cột 1: Icon + Nhãn (căn phải)
+   * Cột 2: Giá trị (căn trái) — tự động xuống dòng nếu dài
+   * Bổ sung: Tình trạng, Chất liệu, Bảo hành (từ DTO mới)
+   * Hàng cuối cùng: Mô tả (columnSpan=2)
+   */
+  private void buildSpecsGrid(Dto.AuctionCardDto session) {
+    if (specsGrid == null || session == null) return;
+
+    specsGrid.getChildren().clear();
+    specsGrid.getRowConstraints().clear();
+
+    // --- Định nghĩa danh sách specs với Icon + Label + Value + Style ---
+    // Mỗi mảng: {iconLabel, valueText, valueStyleClass (null = default)}
+    String[][] specData = {
+        {"📦 Tên sản phẩm",        session.itemName() != null ? session.itemName() : "N/A",
+         "spec-value spec-value-bold-white"},
+        {"📂 Danh mục",            session.itemCategory() != null ? session.itemCategory() : "N/A",
+         null},
+        {"👤 Người bán",           session.sellerName() != null ? session.sellerName() : "N/A",
+         null},
+        {"🔧 Tình trạng",          session.conditionStr() != null ? session.conditionStr() : "N/A",
+         null},
+        {"🧱 Chất liệu",           session.material() != null ? session.material() : "N/A",
+         null},
+        {"🛡️ Bảo hành",           session.warrantyMonths() > 0
+                                     ? session.warrantyMonths() + " tháng"
+                                     : "Không bảo hành",
+         null},
+        {"💰 Giá khởi điểm",       formatMoney(session.basePrice()) + " VND",
+         null},
+        {"📊 Bước giá tối thiểu",  formatMoney(session.minIncrement()) + " VND",
+         null},
+        {"💎 Giá hiện tại",        formatMoney(session.currentPrice()) + " VND",
+         "spec-value spec-value-emerald"},
+    };
+
+    // --- Populate GridPane từ specData ---
+    int dataRowCount = specData.length;
+
+    for (int i = 0; i < dataRowCount; i++) {
+      int row = i;
+
+      // Không cần RowConstraints cố định, dùng vgap=15 trong FXML
+
+      // ===== CỘT 1: Icon + Label =====
+      Label labelNode = new Label(specData[i][0]); // "🔧 Tình trạng"
+      labelNode.getStyleClass().add("spec-label");
+      labelNode.setMaxWidth(Double.MAX_VALUE);
+      GridPane.setConstraints(labelNode, 0, row);
+
+      // ===== CỘT 2: Giá trị =====
+      Label valueNode = new Label(specData[i][1]);
+      String styleClassStr = specData[i][2];
+      if (styleClassStr != null) {
+        valueNode.getStyleClass().setAll(styleClassStr.split(" "));
+      } else {
+        valueNode.getStyleClass().add("spec-value");
+      }
+      valueNode.setMaxWidth(Double.MAX_VALUE);
+      valueNode.setWrapText(true);
+      GridPane.setConstraints(valueNode, 1, row);
+      GridPane.setFillWidth(valueNode, true);
+
+      specsGrid.getChildren().addAll(labelNode, valueNode);
+    }
+
+    // ===== HÀNG CUỐI: Mô tả (columnSpan = 2) =====
+    int descRow = dataRowCount;
+    String description = session.itemDescription() != null && !session.itemDescription().isBlank()
+        ? session.itemDescription() : "Không có mô tả";
+
+    Label descLabel = new Label("📝 Mô tả sản phẩm");
+    descLabel.getStyleClass().add("spec-label");
+    descLabel.setMaxWidth(Double.MAX_VALUE);
+    GridPane.setConstraints(descLabel, 0, descRow);
+
+    Label descValue = new Label(description);
+    descValue.getStyleClass().addAll("spec-value", "spec-value-desc");
+    descValue.setMaxWidth(Double.MAX_VALUE);
+    descValue.setWrapText(true);
+    GridPane.setConstraints(descValue, 1, descRow);
+    GridPane.setFillWidth(descValue, true);
+    GridPane.setColumnSpan(descValue, 2);
+    GridPane.setFillWidth(descValue, true);
+
+    specsGrid.getChildren().addAll(descLabel, descValue);
+  }
+
+  // -------------------------------------------------------
+  // SETUP TAB 3: CHART — LAZY LOAD
+  // -------------------------------------------------------
+
+  /**
+   * Thiết lập listener cho TabPane.
+   * Chỉ vẽ/cập nhật biểu đồ Tab 3 khi người dùng click vào tab đó.
+   */
+  private void setupTabChangeListener() {
+    if (auctionTabPane == null) return;
+
+    tabChangeListener = (observable, oldTab, newTab) -> {
+      if (newTab == null) return;
+      int newIndex = auctionTabPane.getTabs().indexOf(newTab);
+      if (newIndex == 2) {
+        // Tab 3 (index 2) — Biểu đồ đấu giá được chọn
+        Platform.runLater(this::updateChartData);
+      }
+    };
+    auctionTabPane.getSelectionModel().selectedItemProperty().addListener(tabChangeListener);
+  }
+
+  /**
+   * Cập nhật dữ liệu biểu đồ từ danh sách bids.
+   * Gọi khi tab 3 được chọn (lazy loading).
+   */
+  private void updateChartData() {
+    if (priceChart == null || chartPlaceholder == null) return;
+
+    // Ẩn placeholder
+    chartPlaceholder.setVisible(false);
+    chartPlaceholder.setManaged(false);
+
+    // Xoá dữ liệu cũ
+    priceChart.getData().clear();
+
+    if (allBids.isEmpty()) {
+      chartPlaceholder.setText("Chưa có dữ liệu đấu giá để hiển thị biểu đồ.");
+      chartPlaceholder.setVisible(true);
+      chartPlaceholder.setManaged(true);
+      return;
+    }
+
+    // Tạo series dữ liệu
+    XYChart.Series<String, Number> series = new XYChart.Series<>();
+    series.setName("Giá đấu");
+
+    // Sắp xếp bids theo thời gian tăng dần (từ cũ đến mới)
+    List<Bid> sortedBids = allBids.stream()
+        .sorted(Comparator.comparing(Bid::getTimestamp))
+        .toList();
+
+    for (Bid bid : sortedBids) {
+      String label = bid.getTimestamp().format(CHART_TIME_FMT);
+      // Thêm index để tránh trùng label trên trục X
+      String xValue = label + " (#" + (sortedBids.indexOf(bid) + 1) + ")";
+      series.getData().add(new XYChart.Data<>(xValue, bid.getAmount()));
+    }
+
+    priceChart.getData().add(series);
+
+    // Tự động điều chỉnh Y-axis range
+    if (!sortedBids.isEmpty()) {
+      double minVal = sortedBids.stream().mapToDouble(Bid::getAmount).min().orElse(0);
+      double maxVal = sortedBids.stream().mapToDouble(Bid::getAmount).max().orElse(0);
+      double padding = Math.max(100000, (maxVal - minVal) * 0.1);
+      chartYAxis.setAutoRanging(false);
+      chartYAxis.setLowerBound(Math.max(0, minVal - padding));
+      chartYAxis.setUpperBound(maxVal + padding);
+      chartYAxis.setTickUnit(Math.max(100000, (maxVal - minVal) / 5));
+    }
+  }
+
+  // -------------------------------------------------------
+  // TAB 4: AUTOBID LOGIC
+  // -------------------------------------------------------
+
+  @FXML
+  private void handleActivateAutobid() {
+    if (autobidActive) {
+      // Hủy kích hoạt
+      deactivateAutobid();
+      return;
+    }
+
+    // Validate input
+    String ceilingRaw = autobidCeilingField != null ? autobidCeilingField.getText().replace(",", "").trim() : "";
+    String incrementRaw = autobidIncrementField != null ? autobidIncrementField.getText().replace(",", "").trim() : "";
+
+    if (ceilingRaw.isEmpty()) {
+      setAutobidStatus("Vui lòng nhập mức giá tối đa.", true);
+      return;
+    }
+    if (incrementRaw.isEmpty()) {
+      setAutobidStatus("Vui lòng nhập bước giá tự động tăng.", true);
+      return;
+    }
+
+    double ceiling;
+    double increment;
+    try {
+      ceiling = Double.parseDouble(ceilingRaw);
+      increment = Double.parseDouble(incrementRaw);
+    } catch (NumberFormatException e) {
+      setAutobidStatus("Vui lòng nhập số hợp lệ (VD: 5000000 cho 5 triệu).", true);
+      return;
+    }
+
+    if (ceiling <= currentPrice) {
+      setAutobidStatus("Mức giá tối đa phải lớn hơn giá hiện tại (" + formatMoney(currentPrice) + " VND).", true);
+      return;
+    }
+    if (increment < 10000) {
+      setAutobidStatus("Bước giá tối thiểu là 10,000 VND.", true);
+      return;
+    }
+    if (ceiling < currentPrice + increment) {
+      setAutobidStatus("Mức giá tối đa phải cao hơn giá hiện tại + bước giá.", true);
+      return;
+    }
+
+    // Kích hoạt AutoBid — gửi request lên server
+    activateAutobid(ceiling, increment);
+  }
+
+  private void activateAutobid(double ceiling, double increment) {
+    Dto.AutoBidConfigRequest config = new Dto.AutoBidConfigRequest(
+        sessionId, ceiling, "AGGRESSIVE"
+    );
+    SocketClient.getInstance().sendRequest(new Request(ActionType.REGISTER_AUTO_BID, config));
+
+    // UI feedback
+    Platform.runLater(() -> {
+      autobidActive = true;
+      if (activateAutobidBtn != null) {
+        activateAutobidBtn.setText("⏹ HỦY AUTOBID");
+        activateAutobidBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 16 32; -fx-cursor: hand; -fx-min-height: 54;");
+      }
+      if (autobidCeilingField != null) autobidCeilingField.setDisable(true);
+      if (autobidIncrementField != null) autobidIncrementField.setDisable(true);
+      setAutobidStatus("✅ AutoBid đã kích hoạt! Hệ thống sẽ tự động đặt giá thay bạn.", false);
+    });
+  }
+
+  private void deactivateAutobid() {
+    // Gửi request hủy
+    Dto.AutoBidConfigRequest config = new Dto.AutoBidConfigRequest(
+        sessionId, 0, "CONSERVATIVE"
+    );
+    SocketClient.getInstance().sendRequest(new Request(ActionType.REGISTER_AUTO_BID, config));
+
+    Platform.runLater(() -> {
+      autobidActive = false;
+      if (activateAutobidBtn != null) {
+        activateAutobidBtn.setText("KÍCH HOẠT AUTOBID");
+        activateAutobidBtn.setStyle(null); // Reset về CSS
+        activateAutobidBtn.getStyleClass().add("autobid-activate-btn");
+      }
+      if (autobidCeilingField != null) autobidCeilingField.setDisable(false);
+      if (autobidIncrementField != null) autobidIncrementField.setDisable(false);
+      setAutobidStatus("⏸ AutoBid đã hủy kích hoạt.", false);
+    });
+  }
+
+  private void setAutobidStatus(String msg, boolean isError) {
+    if (autobidStatusLabel == null) return;
+    autobidStatusLabel.setText(msg);
+    autobidStatusLabel.getStyleClass().remove("autobid-status-label-error");
+    if (isError) {
+      autobidStatusLabel.getStyleClass().add("autobid-status-label-error");
+    }
   }
 
   // -------------------------------------------------------
@@ -168,6 +554,7 @@ public class AuctionDetailController implements LifecycleAwareController {
       case AUCTION_ENDED_BROADCAST   -> handleAuctionEnded(response);
       case PLACE_BID                 -> handlePlaceBidResponse(response);
       case REGISTER_NOTIFICATION     -> handleRegisterNotificationResponse(response);
+      case REGISTER_AUTO_BID         -> handleAutoBidResponse(response);
       default -> { }
     }
   }
@@ -187,6 +574,9 @@ public class AuctionDetailController implements LifecycleAwareController {
       });
       return;
     }
+
+    // Cache dữ liệu phiên
+    currentSessionData = selected;
 
     Platform.runLater(() -> {
       currentStatus    = selected.status();
@@ -221,6 +611,9 @@ public class AuctionDetailController implements LifecycleAwareController {
       refreshCountdown();
       updateBidPanel();
       loadImage(selected.imageUrl());
+
+      // Cập nhật Tab 2: Thông tin chi tiết sản phẩm
+      buildSpecsGrid(selected);
     });
   }
 
@@ -233,14 +626,37 @@ public class AuctionDetailController implements LifecycleAwareController {
         .filter(b -> sessionId.equals(b.getAuctionSessionId()))
         .sorted(Comparator.comparing(Bid::getTimestamp).reversed())
         .toList();
+
     Platform.runLater(() -> {
-      bidHistoryList.getItems().clear();
+      // Cập nhật cache allBids (cho biểu đồ)
+      allBids.clear();
+      allBids.addAll(bids);
+
+      // Cập nhật TableView (Tab 1)
+      bidTableData.clear();
       if (bids.isEmpty()) {
-        bidHistoryList.getItems().add(EMPTY_BID_MSG);
+        if (bidTableStatusLabel != null) {
+          bidTableStatusLabel.setText("Chưa có lượt đặt giá nào.");
+        }
       } else {
-        bids.forEach(bid -> bidHistoryList.getItems().add(formatBidEntry(bid)));
+        if (bidTableStatusLabel != null) {
+          bidTableStatusLabel.setText("Tổng số: " + bids.size() + " lượt đặt giá");
+        }
+        bids.forEach(bid -> bidTableData.add(new BidRow(
+            bid.getTimestamp().format(DT_FMT),
+            bid.getBidderName() != null ? bid.getBidderName() : "Hệ thống",
+            bid.getAmount(),
+            bid.getBidType() != null ? bid.getBidType().getDisplayName() : "N/A"
+        )));
       }
-      updateBidListHeight();
+
+      // Nếu Tab 3 đang được chọn, cập nhật biểu đồ
+      int selectedIndex = auctionTabPane != null && auctionTabPane.getSelectionModel().getSelectedItem() != null
+          ? auctionTabPane.getTabs().indexOf(auctionTabPane.getSelectionModel().getSelectedItem()) : -1;
+      if (selectedIndex == 2) {
+        updateChartData();
+      }
+
       updateViewerCount(bids);
     });
   }
@@ -249,18 +665,44 @@ public class AuctionDetailController implements LifecycleAwareController {
     if (!response.isSuccess()) return;
     Dto.NewBidEvent event = response.getDataAs(Dto.NewBidEvent.class);
     if (event == null || !sessionId.equals(event.sessionId())) return;
+
     Platform.runLater(() -> {
       currentPrice = event.amount();
       updatePriceDisplay(currentPrice);
       leaderLabel.setText("👑 Đang dẫn đầu: " + event.bidderName());
       leaderLabel.getStyleClass().remove("auction-leader-label-muted");
 
-      if (bidHistoryList.getItems().size() == 1
-          && EMPTY_BID_MSG.equals(bidHistoryList.getItems().get(0))) {
-        bidHistoryList.getItems().clear();
+      // Cập nhật bid history
+      LocalDateTime ts;
+      try {
+        ts = (event.timestamp() != null && !event.timestamp().isBlank())
+            ? LocalDateTime.parse(event.timestamp()) : LocalDateTime.now();
+      } catch (Exception e) {
+        ts = LocalDateTime.now();
       }
-      bidHistoryList.getItems().add(0, formatBidEntry(event));
-      updateBidListHeight();
+
+      // Thêm vào TableView (Tab 1)
+      bidTableData.add(0, new BidRow(
+          ts.format(DT_FMT),
+          event.bidderName(),
+          event.amount(),
+          "Đặt thủ công"
+      ));
+      if (bidTableStatusLabel != null) {
+        bidTableStatusLabel.setText("Tổng số: " + bidTableData.size() + " lượt đặt giá");
+      }
+
+      // Thêm vào cache allBids cho biểu đồ
+      Bid newBid = Bid.createManual(event.sessionId(), event.bidderId(), event.bidderName(), event.amount());
+      allBids.add(newBid);
+
+      // Nếu Tab 3 đang chọn, cập nhật biểu đồ
+      int selectedIndex = auctionTabPane != null && auctionTabPane.getSelectionModel().getSelectedItem() != null
+          ? auctionTabPane.getTabs().indexOf(auctionTabPane.getSelectionModel().getSelectedItem()) : -1;
+      if (selectedIndex == 2) {
+        updateChartData();
+      }
+
       watcherEstimate = Math.min(999, watcherEstimate + 3);
       updateViewerCountLabel();
       updateBidPanel();
@@ -310,6 +752,24 @@ public class AuctionDetailController implements LifecycleAwareController {
         if (bidAmountField != null) bidAmountField.clear();
       } else {
         setBidStatus(false, "Lỗi: " + response.getMessage());
+      }
+    });
+  }
+
+  private void handleAutoBidResponse(Response response) {
+    Platform.runLater(() -> {
+      if (response.isSuccess()) {
+        if (!autobidActive) {
+          setAutobidStatus("✅ AutoBid đã kích hoạt thành công!", false);
+        } else {
+          setAutobidStatus("✅ Cấu hình AutoBid đã được cập nhật.", false);
+        }
+      } else {
+        setAutobidStatus("❌ Lỗi AutoBid: " + response.getMessage(), true);
+        // Rollback UI nếu có lỗi
+        if (autobidActive) {
+          deactivateAutobid();
+        }
       }
     });
   }
@@ -647,17 +1107,13 @@ public class AuctionDetailController implements LifecycleAwareController {
 
     String urlString = imageUrl.trim();
 
-    // 2. Detect if it's a local file path (no protocol OR file:// protocol)
-    //    Seller stores image as file.toURI().toString() → "file:///C:/path/to/img.jpg"
-    //    Only http:// and https:// are treated as remote URLs.
+    // 2. Detect if it's a local file path
     boolean isLocalPath = !urlString.startsWith("http://") && !urlString.startsWith("https://");
 
     if (isLocalPath) {
-      // Local file: load synchronously on JavaFX thread (Image constructor supports file://)
       try {
         java.io.File file;
         if (urlString.startsWith("file:/")) {
-          // Already a file:// URI — use directly
           javafx.scene.image.Image localImg = new javafx.scene.image.Image(urlString);
           if (!localImg.isError() && localImg.getWidth() > 0) {
             final javafx.scene.image.Image finalImg = localImg;
@@ -665,7 +1121,6 @@ public class AuctionDetailController implements LifecycleAwareController {
             return;
           }
         } else {
-          // Plain file path (e.g. C:\path\to\img.jpg or /home/user/img.jpg)
           file = new java.io.File(urlString);
           if (file.exists()) {
             javafx.scene.image.Image localImg = new javafx.scene.image.Image(file.toURI().toString());
@@ -679,7 +1134,6 @@ public class AuctionDetailController implements LifecycleAwareController {
       } catch (Exception e) {
         // Fall through to fallback
       }
-      // If we reach here, local loading failed
       Platform.runLater(() -> setFallbackImage("Không+cos+ảnh"));
       return;
     }
@@ -726,7 +1180,6 @@ public class AuctionDetailController implements LifecycleAwareController {
 
   /** Fallback: sử dụng placeholder mặc định từ resources để tránh ảnh đen */
   private void setFallbackImage(String fallbackText) {
-    // Try loading from classpath resource first
     try {
       InputStream resourceStream = getClass().getResourceAsStream("/images/no-image.png");
       if (resourceStream != null) {
@@ -737,9 +1190,7 @@ public class AuctionDetailController implements LifecycleAwareController {
         }
       }
     } catch (Exception ignored) {
-      // Fall through to online fallback
     }
-    // Online fallback (vẫn an toàn, không bị đen)
     String placeholderUrl = "https://placehold.co/400x280/1a1f2b/9ca3af/png?text=" + fallbackText;
     productImageView.setImage(new javafx.scene.image.Image(placeholderUrl, true));
   }
@@ -760,7 +1211,6 @@ public class AuctionDetailController implements LifecycleAwareController {
     String formattedTime;
     try {
       if (event.timestamp() != null && !event.timestamp().isBlank()) {
-        // Parse ISO string (e.g. "2026-05-24T15:00:17.954891100") to LocalDateTime
         LocalDateTime ts = LocalDateTime.parse(event.timestamp());
         formattedTime = ts.format(DT_FMT);
       } else {
@@ -803,6 +1253,12 @@ public class AuctionDetailController implements LifecycleAwareController {
   public void onBeforeHide() {
     stopCountdownTimer();
     stopLivePulse();
+
+    // Remove tab change listener
+    if (auctionTabPane != null && tabChangeListener != null) {
+      auctionTabPane.getSelectionModel().selectedItemProperty().removeListener(tabChangeListener);
+    }
+
     SocketClient.getInstance().removeListener(listener);
     unsubscribeCurrentSession();
   }
