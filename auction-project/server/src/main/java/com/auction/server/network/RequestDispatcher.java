@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.auction.dto.Dto;
-import com.auction.dto.Dto.DepositRequest;
 import com.auction.enums.ActionType;
 import com.auction.factory.ItemFactory;
 import com.auction.model.Admin;
@@ -16,6 +15,8 @@ import com.auction.network.Request;
 import com.auction.network.Response;
 import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuthService;
+import com.auction.server.service.AutoBidService;
+import com.auction.server.service.DepositRequestService;
 import com.auction.server.service.ItemService;
 import com.auction.server.service.RegistrationService;
 import com.auction.server.service.UserService;
@@ -33,15 +34,20 @@ public class RequestDispatcher {
   private final RegistrationService registrationService;
   private final AuctionService auctionService;
   private final ItemService itemService;
+  private final AutoBidService autoBidService;
+  private final DepositRequestService depositRequestService;
 
   public RequestDispatcher(UserService userService, AuthService authService,
       RegistrationService registrationService,
-      AuctionService auctionService, ItemService itemService) {
+      AuctionService auctionService, ItemService itemService, AutoBidService autoBidService,
+      DepositRequestService depositRequestService) {
     this.userService = userService;
     this.authService = authService;
     this.registrationService = registrationService;
     this.auctionService = auctionService;
     this.itemService = itemService;
+    this.autoBidService = autoBidService;
+    this.depositRequestService = depositRequestService;
   }
 
   /**
@@ -73,6 +79,9 @@ public class RequestDispatcher {
         case REGISTER_AUTO_BID -> handleRegisterAutoBid(request, client);
         case REGISTER_NOTIFICATION -> handleRegisterNotification(request, client);
         case PING -> Response.success(ActionType.PING, "PONG");
+        case GET_PENDING_DEPOSITS -> handleGetPendingDeposits(client);
+        case APPROVE_DEPOSIT -> handleApproveDeposit(request, client);
+        case REJECT_DEPOSIT -> handleRejectDeposit(request, client);
         default -> Response.error(request.getAction(), "Hành động chưa được hỗ trợ: " + request.getAction());
       };
     } catch (IllegalArgumentException | IllegalStateException e) {
@@ -164,7 +173,8 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
-            s.getItem().getImageUrl()))
+            s.getItem().getImageUrl(),
+            s.getItem().getCategory() != null ? s.getItem().getCategory().name() : null))
         .toList();
     return Response.success(ActionType.GET_ACTIVE_AUCTIONS, dtos);
   }
@@ -197,7 +207,8 @@ public class RequestDispatcher {
             s.getStartTime().toString(),
             s.getActualEndTime().toString(),
             s.getAntiSnipingSeconds(),
-            s.getItem().getImageUrl()))
+            s.getItem().getImageUrl(),
+            s.getItem().getCategory() != null ? s.getItem().getCategory().name() : null))
         .toList();
     return Response.success(ActionType.GET_PENDING_AUCTIONS,
         "Lấy danh sách phiên chờ duyệt thành công cho " + admin.getFullName(), dtos);
@@ -290,7 +301,7 @@ public class RequestDispatcher {
     }
 
     // Gọi AuctionService (hàm này đã có synchronized an toàn luồng)
-    Bid bid = auctionService.placeBid(bidder, payload.sessionId(), payload.amount());
+    Bid bid = auctionService.placeBid(bidder, payload.sessionId(), payload.amount(), Bid.BidType.MANUAL);
 
     return Response.success(ActionType.PLACE_BID, "Đặt giá thành công!", bid);
   }
@@ -337,7 +348,7 @@ public class RequestDispatcher {
 
     Item item = ItemFactory.createNewItem(
         com.auction.enums.ItemCategory.valueOf(payload.category()),
-        payload.name(), payload.description(), payload.basePrice(), payload.minIncrement(),
+        payload.name(), payload.description(), payload.startingPrice(), payload.minIncrement(),
         payload.imageUrl(), seller.getId(), extraData);
 
     itemService.listItem(item);
@@ -429,35 +440,38 @@ public class RequestDispatcher {
   }
 
   private Response handleSelfDeposit(Request request, ClientHandler client) {
+    // 1. Kiểm tra đăng nhập
     if (client.getLoggedInUserId() == null) {
       throw new IllegalStateException("Bạn cần đăng nhập để nạp tiền");
     }
 
-    DepositRequest payload = request.getPayloadAs(DepositRequest.class);
-    if (payload == null) {
-      throw new IllegalArgumentException("Dữ liệu nạp tiền bị thiếu");
-    }
-    if (payload.amount() <= 0) {
-      throw new IllegalArgumentException("Số tiền phải lớn hơn 0");
+    // 2. Lấy dữ liệu (Dùng Dto.DepositRequest cho đồng bộ)
+    Dto.DepositRequest payload = request.getPayloadAs(Dto.DepositRequest.class);
+    if (payload == null || payload.amount() <= 0) {
+      throw new IllegalArgumentException("Dữ liệu nạp tiền không hợp lệ");
     }
 
-    // Kiểm tra user là Bidder
+    // 3. Kiểm tra User có phải Bidder không
     User user = userService.findById(client.getLoggedInUserId())
         .orElseThrow(() -> new IllegalStateException("Tài khoản không tồn tại"));
+
     if (!(user instanceof Bidder bidder)) {
-      throw new IllegalStateException("Chỉ Bidder mới có thể nạp tiền");
+      throw new IllegalStateException("Chỉ Bidder mới có thể gửi yêu cầu nạp tiền");
     }
 
-    userService.depositForBidder(bidder.getId(), payload.amount());
+    // 4. CHỖ QUAN TRỌNG: Đưa vào danh sách chờ duyệt thay vì nạp thẳng
+    // Sử dụng biến depositRequestService đã khai báo ở Constructor của Dispatcher
+    depositRequestService.requestDeposit(bidder.getId(), payload.amount());
 
-    // Tải lại bidder để lấy số dư mới
-    Bidder updated = (Bidder) userService.findById(bidder.getId()).get();
-    Dto.DepositResultResponse result = new Dto.DepositResultResponse(updated.getBalance());
+    // 5. THÔNG BÁO CHO ADMIN (Để Admin thấy đơn mới hiện lên ngay)
+    com.auction.server.network.UserConnectionManager.getInstance().broadcastToAdmins(
+        Response.success(ActionType.DEPOSIT_REQUEST_BROADCAST, "Có yêu cầu nạp tiền mới từ: " + bidder.getFullName(),
+            null));
 
+    // 6. Trả về thông báo cho Bidder là "Đang chờ"
     return Response.success(ActionType.SELF_DEPOSIT,
-        String.format("Đã nạp %.0f VND thành công! Số dư hiện tại: %.0f VND",
-            payload.amount(), updated.getBalance()),
-        result);
+        String.format("Yêu cầu nạp %.0f VND đã được gửi. Vui lòng đợi Admin phê duyệt!", payload.amount()),
+        null);
   }
 
   private Response handleRegisterNotification(Request request, ClientHandler client) {
@@ -488,8 +502,15 @@ public class RequestDispatcher {
     System.out.println("[RequestDispatcher] User " + client.getLoggedInUserId() + " registered auto bid for session "
         + payload.sessionId() + " with max budget " + payload.maxBudget());
 
+    com.auction.service.auction.AutoBidConfig config = new com.auction.service.auction.AutoBidConfig(
+        payload.sessionId(),
+        client.getLoggedInUserId(),
+        payload.maxBudget(),
+        payload.strategyType() != null ? payload.strategyType() : "CONSERVATIVE");
+    autoBidService.registerAutoBid(config);
+
     return Response.success(ActionType.REGISTER_AUTO_BID,
-        "Đăng ký đấu giá tự động thành công (tính năng đang phát triển)!", null);
+        "Đăng ký đấu giá tự động thành công!", null);
   }
 
   private User getAdminUserOrThrow(ClientHandler client) {
@@ -504,6 +525,69 @@ public class RequestDispatcher {
       throw new IllegalStateException("Chỉ Admin mới có quyền thực hiện thao tác này");
     }
     return user;
+  }
+
+  // 1. Lấy danh sách yêu cầu nạp tiền đang chờ duyệt
+  private Response handleGetPendingDeposits(ClientHandler client) {
+    getAdminUserOrThrow(client);
+    // Lấy list từ service đã được tiêm vào qua Constructor
+    var pendingRequests = depositRequestService.getPendingDeposits();
+    return Response.success(ActionType.GET_PENDING_DEPOSITS, "Tải danh sách thành công", pendingRequests);
+  }
+
+  // 2. Admin phê duyệt nạp tiền
+  @SuppressWarnings("unchecked")
+  private Response handleApproveDeposit(Request request, ClientHandler client) {
+    getAdminUserOrThrow(client);
+
+    // SỬA TẠI ĐÂY: Thử đọc payload dưới dạng Map để lấy requestId
+    java.util.Map<String, Object> payload = request.getPayloadAs(java.util.Map.class);
+    String requestId = (String) payload.get("requestId");
+
+    if (requestId == null || requestId.isBlank()) {
+      throw new IllegalArgumentException("Thiếu ID yêu cầu phê duyệt");
+    }
+
+    // Lấy thông tin request trước khi xử lý duyệt (để biết số tiền và bidderId)
+    var pendingReq = depositRequestService.getPendingRequest(requestId);
+    if (pendingReq == null) {
+      throw new IllegalArgumentException("Không tìm thấy yêu cầu nạp tiền (đã xử lý hoặc không tồn tại).");
+    }
+    String bidderId = pendingReq.bidderId();
+    double amount = pendingReq.amount();
+
+    // Gọi service để xử lý (Cộng tiền và xóa request)
+    double newBalance = depositRequestService.approveDeposit(requestId);
+
+    // Gửi phản hồi thời gian thực qua socket cho Bidder (nếu đang online) để cập nhật số dư hiển thị
+    ClientHandler bidderHandler = com.auction.server.network.UserConnectionManager.getInstance().getHandler(bidderId);
+    if (bidderHandler != null) {
+      Dto.DepositResultResponse result = new Dto.DepositResultResponse(newBalance);
+      bidderHandler.sendResponse(Response.success(
+          ActionType.DEPOSIT_BALANCE,
+          String.format("Yêu cầu nạp tiền của bạn đã được phê duyệt! Số dư mới: %,.0f VND", newBalance),
+          result
+      ));
+    }
+
+    // Thêm thông báo vào chuông cho Bidder (không cần hiển thị thông báo toàn cửa sổ)
+    com.auction.server.service.NotificationService.getInstance().notifyDepositApproved(bidderId, amount);
+
+    return Response.success(ActionType.APPROVE_DEPOSIT, "Phê duyệt nạp tiền thành công!", null);
+  }
+
+  // 3. Admin từ chối nạp tiền
+  private Response handleRejectDeposit(Request request, ClientHandler client) {
+    getAdminUserOrThrow(client);
+
+    // Payload từ Admin gửi lên có thể là requestId (String)
+    String requestId = request.getPayloadAs(String.class);
+    if (requestId == null || requestId.isBlank()) {
+      throw new IllegalArgumentException("Thiếu ID yêu cầu để từ chối");
+    }
+
+    depositRequestService.rejectDeposit(requestId, "Bị từ chối bởi Admin");
+    return Response.success(ActionType.REJECT_DEPOSIT, "Đã từ chối yêu cầu nạp tiền.", null);
   }
 }
 

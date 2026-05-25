@@ -180,4 +180,3 @@ public class Dto {
     public record RejectDepositRequest(String requestId, String reason) {
     }
 }
-
