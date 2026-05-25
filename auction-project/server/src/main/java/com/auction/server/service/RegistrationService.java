@@ -21,6 +21,10 @@ import java.util.Optional;
  * Class này CHỈ chịu trách nhiệm đăng ký và nâng cấp tài khoản.
  * Không xử lý đăng nhập, không quản lý user sau đăng ký.
  *
+ * 📬 Email chỉ được dùng ở đây cho mục đích đăng ký (email chào mừng).
+ * Thông báo nghiệp vụ (bán sản phẩm, bid mới...) được xử lý qua
+ * chuông socket trong NotificationService, KHÔNG dùng email.
+ *
  * 📋 CÁC NGHIỆP VỤ THUỘC PHẠM VI NÀY:
  * - Đăng ký tài khoản mới (mặc định Bidder)
  * - Tạo tài khoản Admin (nội bộ)
@@ -28,7 +32,7 @@ import java.util.Optional;
  * - Validate input đăng ký
  * - Gửi email chào mừng sau đăng ký
  *
- * 🔒 QUY TẮC NGHIỆP VỤ:
+ * 🔒 QUY TẮc NGHIỆP VỤ:
  * - Mọi user mới đăng ký đều là Bidder
  * - Chỉ Bidder mới có thể nâng cấp lên Seller
  * - Email phải unique trong toàn hệ thống
@@ -58,12 +62,10 @@ public class RegistrationService {
    * Mọi người dùng mới đều bắt đầu với vai trò Bidder.
    * Muốn trở thành Seller phải gọi {@link #upgradeToSeller}.
    *
-   * @param fullName    họ và tên đầy đủ
-   * @param username    tên đăng nhập (unique)
-   * @param email       email đăng nhập (phải unique)
-   * @param password    mật khẩu gốc (chưa hash, tối thiểu 6 ký tự)
-   * @param gender      giới tính
-   * @param dateOfBirth ngày sinh định dạng yyyy-MM-dd
+   * @param fullName họ và tên đầy đủ
+   * @param username tên đăng nhập (unique)
+   * @param email    email đăng nhập (phải unique)
+   * @param password mật khẩu gốc (chưa hash, tối thiểu 6 ký tự)
    * @return {@link Bidder} vừa được tạo
    * @throws IllegalArgumentException nếu email đã tồn tại hoặc dữ liệu không hợp
    *                                  lệ
@@ -83,18 +85,6 @@ public class RegistrationService {
     return registerUser(fullName, email.split("@")[0], email, password);
   }
 
-  /**
-   * Tạo tài khoản Admin — CHỈ dùng nội bộ, không expose ra API công khai.
-   * Admin thường được tạo lúc khởi động server lần đầu (seed data).
-   *
-   * @param fullName    họ và tên
-   * @param username    tên đăng nhập
-   * @param email       email
-   * @param password    mật khẩu gốc
-   * @param gender      giới tính
-   * @param dateOfBirth ngày sinh yyyy-MM-dd
-   * @return {@link Admin} vừa được tạo
-   */
   public Admin createAdmin(String fullName, String username, String email,
       String password) {
     validateRegistrationInput(fullName, username, email, password);
@@ -189,18 +179,6 @@ public class RegistrationService {
     String passwordHash = PasswordHasher.hash(password);
     User user = UserFactory.create(role, username, passwordHash, email, fullName);
     saveUser(user);
-
-    // Gửi email chào mừng (bất đồng bộ — không block luồng đăng ký)
-    String subject = "Chào mừng bạn đến với Hệ thống Đấu giá Trực tuyến!";
-    String body = "Xin chào " + fullName + ",\n\n"
-        + "Cảm ơn bạn đã đăng ký tài khoản tại hệ thống của chúng tôi.\n"
-        + "Tài khoản của bạn: " + email + "\n"
-        + "Vai trò của bạn: " + role.name() + "\n\n"
-        + "Chúc bạn có những trải nghiệm tuyệt vời!\n\n"
-        + "Trân trọng,\n"
-        + "Ban quản trị hệ thống";
-    EmailService.sendEmailAsync(email, subject, body);
-
     return user;
   }
 
@@ -239,7 +217,7 @@ public class RegistrationService {
       if (userDAO.emailExists(email.toLowerCase().trim())) {
         throw BusinessException.emailAlreadyRegistered(email);
       }
-      if(userDAO.usernameExists(username.toLowerCase().trim())){
+      if (userDAO.usernameExists(username.toLowerCase().trim())) {
         throw BusinessException.usernameAlreadyTaken(username);
       }
     } catch (Exception e) {
