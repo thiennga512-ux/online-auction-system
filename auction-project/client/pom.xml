@@ -12,15 +12,30 @@
     <artifactId>client</artifactId>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <!-- Khai báo version cho JavaFX để dễ quản lý -->
+        <javafx.version>21.0.2</javafx.version>
     </properties>
 
     <dependencies>
+        <!-- Thư viện nội bộ của dự án -->
         <dependency>
             <groupId>com.auction</groupId>
             <artifactId>shared</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Thư viện JavaFX để xử lý giao diện và Platform -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
         </dependency>
     </dependencies>
 

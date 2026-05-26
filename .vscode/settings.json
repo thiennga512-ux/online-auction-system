@@ -2,5 +2,6 @@
     "java.project.sourcePaths": [
         "auction-project/server/src/main/java/com/auction/server/service",
         "auction-project/server/src/main/java/com/auction/server"
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
