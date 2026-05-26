@@ -1,53 +1,44 @@
 package com.auction.service.auction;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * Cấu hình Auto-Bidding cho một bidder trong phiên đấu giá.
- * Chức năng nâng cao: tự động trả giá khi có bid mới.
+ * ============================================================
+ * Class AutoBidConfig — Cấu hình Auto-bidding của một User
+ * ============================================================
+ * Lưu trữ thiết lập tự động đấu giá của một Bidder cho một phiên cụ thể.
+ * Được truyền qua mạng nên cần implements Serializable.
+ * ============================================================
  */
 public class AutoBidConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private final String sessionId;
     private final String bidderId;
-    private final String bidderName;
     private final double maxBid;
-    private final double increment;
-    private final LocalDateTime registeredAt;
+    private final String strategyType; // "AGGRESSIVE", "CONSERVATIVE"
 
-    public AutoBidConfig(String bidderId, String bidderName, double maxBid, double increment) {
+    public AutoBidConfig(String sessionId, String bidderId, double maxBid, String strategyType) {
+        this.sessionId = sessionId;
         this.bidderId = bidderId;
-        this.bidderName = bidderName;
         this.maxBid = maxBid;
-        this.increment = increment;
-        this.registeredAt = LocalDateTime.now();
+        this.strategyType = strategyType;
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 
     public String getBidderId() {
         return bidderId;
     }
 
-    public String getBidderName() {
-        return bidderName;
-    }
-
     public double getMaxBid() {
         return maxBid;
     }
 
-    public double getIncrement() {
-        return increment;
-    }
-
-    public LocalDateTime getRegisteredAt() {
-        return registeredAt;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("AutoBid[bidder=%s, maxBid=%.2f, increment=%.2f]",
-                bidderName, maxBid, increment);
+    public String getStrategyType() {
+        return strategyType;
     }
 }
