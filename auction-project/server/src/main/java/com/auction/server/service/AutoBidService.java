@@ -193,7 +193,6 @@ public class AutoBidService implements ClientObserver {
         double calculatedPrice = currentPrice;
 
         if (secondHighestConfig != null) {
-          // Compare the top 2 autobids
           if (highestConfig.getMaxBid() == secondHighestConfig.getMaxBid()) {
             calculatedPrice = highestConfig.getMaxBid();
           } else {
@@ -201,7 +200,6 @@ public class AutoBidService implements ClientObserver {
             calculatedPrice = Math.min(calculatedPrice, highestConfig.getMaxBid());
           }
         } else {
-          // Only 1 autobid vs manual bid
           if (!highestConfig.getBidderId().equals(currentWinnerId)) {
             calculatedPrice = currentPrice + highestConfig.getCustomIncrement();
             if (calculatedPrice < currentPrice + minSystemIncrement) {
@@ -209,19 +207,18 @@ public class AutoBidService implements ClientObserver {
             }
             calculatedPrice = Math.min(calculatedPrice, highestConfig.getMaxBid());
           } else {
-            return; // Already winning and no other autobids
+            return; 
           }
         }
 
-        // Ensure calculated price meets the minimum increment requirement
         if (calculatedPrice < currentPrice + minSystemIncrement) {
           if (!highestConfig.getBidderId().equals(currentWinnerId)) {
             calculatedPrice = currentPrice + minSystemIncrement;
             if (calculatedPrice > highestConfig.getMaxBid()) {
-              return; // Cannot bid, max bid exceeded
+              return; 
             }
           } else {
-            // Already winning, no need to push price up if it doesn't meet increment
+    
             return;
           }
         }
@@ -230,7 +227,7 @@ public class AutoBidService implements ClientObserver {
           Object userLock = userAutoBidLocks.computeIfAbsent(highestConfig.getBidderId(), k -> new Object());
           synchronized (userLock) {
             try {
-              // Delay giả lập người thật
+            
               Thread.sleep(1000 + (long) (Math.random() * 1500));
 
               Optional<User> optionalUser = userService.findById(highestConfig.getBidderId());
