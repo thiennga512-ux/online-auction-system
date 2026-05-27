@@ -1,10 +1,5 @@
 package com.auction.server.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.*;
-
 import com.auction.dto.Dto;
 import com.auction.enums.ActionType;
 import com.auction.model.Bidder;
@@ -14,13 +9,26 @@ import com.auction.server.observer.AuctionBroadcaster;
 import com.auction.server.observer.ClientObserver;
 import com.auction.service.auction.AutoBidConfig;
 import com.auction.service.auction.Bid;
-import com.auction.service.strategy.AggressiveBidStrategy;
-import com.auction.service.strategy.AutoBidStrategy;
-import com.auction.service.strategy.ConservativeBidStrategy;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 public class AutoBidService implements ClientObserver {
 
-  private final Map<String, List<AutoBidConfig>> autoBidConfigs = new ConcurrentHashMap<>();
+  private final Map<String, PriorityBlockingQueue<AutoBidConfig>> autoBidConfigs = new ConcurrentHashMap<>();
+
+  // Lock theo session để các luồng xử lý autobid của cùng 1 phiên không dẫm chân
+  // lên nhau,
+  // ngăn chặn spam đệ quy khi event NEW_BID liên tục bắn ra.
+  private final Map<String, Object> sessionAutoBidLocks = new ConcurrentHashMap<>();
+
+  // Lock theo user để đảm bảo nếu user tham gia nhiều autobid ở các phiên khác
+  // nhau,
+  // luồng sẽ không trừ tiền quá tay gây vượt số dư thực tế của user.
+  private final Map<String, Object> userAutoBidLocks = new ConcurrentHashMap<>();
 
   private final ExecutorService executor = Executors.newFixedThreadPool(4, r -> {
     Thread t = new Thread(r, "AutoBid-Worker");
@@ -41,22 +49,44 @@ public class AutoBidService implements ClientObserver {
 
   public void registerAutoBid(AutoBidConfig config) {
 
-    autoBidConfigs
+    PriorityBlockingQueue<AutoBidConfig> configs = autoBidConfigs
         .computeIfAbsent(
             config.getSessionId(),
-            k -> new CopyOnWriteArrayList<>())
-        .add(config);
+            k -> new PriorityBlockingQueue<>(11, (c1, c2) -> {
+              int priceCompare = Double.compare(c2.getMaxBid(), c1.getMaxBid());
+              if (priceCompare != 0) {
+                return priceCompare;
+              }
+              // Cùng maxBid: Ai đăng ký trước (createdAt nhỏ hơn) sẽ được ưu tiên xử lý trước
+              return Long.compare(c1.getCreatedAt(), c2.getCreatedAt());
+            }));
+
+    // Remove old config for this bidder if any
+    configs.removeIf(c -> c.getBidderId().equals(config.getBidderId()));
+
+    if (config.getMaxBid() <= 0) {
+      System.out.printf(
+          "[AutoBidService] User %s huỷ AutoBid cho phiên %s%n",
+          shortId(config.getBidderId()),
+          shortId(config.getSessionId()));
+      return;
+    }
+
+    configs.add(config);
 
     AuctionBroadcaster
         .getInstance()
         .subscribe(config.getSessionId(), this);
 
     System.out.printf(
-        "[AutoBidService] User %s đăng ký AutoBid (%s) cho phiên %s | Max: %,.0f%n",
+        "[AutoBidService] User %s đăng ký AutoBid cho phiên %s | Max: %,.0f | Increment: %,.0f%n",
         shortId(config.getBidderId()),
-        config.getStrategyType(),
         shortId(config.getSessionId()),
-        config.getMaxBid());
+        config.getMaxBid(),
+        config.getCustomIncrement());
+
+    // Trigger immediate evaluation for the newly registered config
+    evaluateAutoBids(config.getSessionId());
   }
 
   @Override
@@ -71,21 +101,14 @@ public class AutoBidService implements ClientObserver {
     }
 
     try {
-
       Dto.NewBidEvent event = response.getDataAs(Dto.NewBidEvent.class);
-
       if (event == null) {
         System.out.println(
             "[AUTOBID] Parse NewBidEvent failed");
         return;
       }
-
-      System.out.printf(
-          "[AUTOBID] Session=%s | Bidder=%s | Price=%,.0f | Type=%s%n",
-          shortId(event.sessionId()),
-          shortId(event.bidderId()),
-          event.amount(),
-          event.bidType());
+      System.out.printf("[AUTOBID] Session=%s | Bidder=%s | Price=%,.0f | Type=%s%n", shortId(event.sessionId()),
+          shortId(event.bidderId()), event.amount(), event.bidType());
 
       handleNewBid(event);
 
@@ -100,134 +123,141 @@ public class AutoBidService implements ClientObserver {
   }
 
   private void handleNewBid(Dto.NewBidEvent event) {
+    evaluateAutoBids(event.sessionId());
+  }
 
-    String sessionId = event.sessionId();
-    String leaderId = event.bidderId();
-
-    List<AutoBidConfig> configs = autoBidConfigs.get(sessionId);
-
+  private void evaluateAutoBids(String sessionId) {
+    PriorityBlockingQueue<AutoBidConfig> configs = autoBidConfigs.get(sessionId);
     if (configs == null || configs.isEmpty()) {
-
-      System.out.println(
-          "[AUTOBID] Không có config");
-
       return;
     }
 
-    System.out.println(
-        "[AUTOBID] Tìm thấy "
-            + configs.size()
-            + " config");
-
-    double minIncrement = getMinIncrement(sessionId);
-
     executor.submit(() -> {
+      Object sessionLock = sessionAutoBidLocks.computeIfAbsent(sessionId, k -> new Object());
+      synchronized (sessionLock) {
 
-      for (AutoBidConfig config : configs) {
+        var sessionOpt = auctionService.getSessionById(sessionId);
+        if (sessionOpt.isEmpty())
+          return;
+        var session = sessionOpt.get();
 
-        // Không tự bid chính mình
-        if (config.getBidderId().equals(leaderId)) {
-          continue;
+        double currentPrice = session.getCurrentPrice();
+        String currentWinnerId = session.getCurrentWinnerId();
+        double minSystemIncrement = getMinIncrement(sessionId);
+
+        // Copy queue to a list to iterate in priority order
+        List<AutoBidConfig> sortedConfigs = new ArrayList<>();
+        PriorityBlockingQueue<AutoBidConfig> queueCopy = new PriorityBlockingQueue<>(configs);
+        while (!queueCopy.isEmpty()) {
+          sortedConfigs.add(queueCopy.poll());
         }
 
-        try {
+        List<AutoBidConfig> activeConfigs = new ArrayList<>();
+        for (AutoBidConfig config : sortedConfigs) {
+          // If the config belongs to the current winner, always consider it active
+          if (config.getBidderId().equals(currentWinnerId)) {
+            activeConfigs.add(config);
+            continue;
+          }
 
-          // Delay giả người thật
-          Thread.sleep(
-              1000 + (long) (Math.random() * 1500));
+          // If their max bid is lower than the minimum required bid, they are out
+          if (config.getMaxBid() < currentPrice + minSystemIncrement) {
+            System.out.printf("[AUTOBID] Loại bỏ config của %s do maxBid < %,.0f%n", shortId(config.getBidderId()),
+                currentPrice + minSystemIncrement);
+            configs.remove(config);
+            continue;
+          }
 
-          processSingleAutoBid(
-              config,
-              minIncrement);
+          // Validate user exists and is a bidder
+          Optional<User> optionalUser = userService.findById(config.getBidderId());
+          if (optionalUser.isPresent() && optionalUser.get() instanceof Bidder bidder) {
+            // Need at least enough balance to place one minimum bid
+            if (bidder.getBalance() >= currentPrice + minSystemIncrement) {
+              activeConfigs.add(config);
+            } else {
+              System.out.printf("[AUTOBID] Loại bỏ config của %s do không đủ số dư%n", shortId(config.getBidderId()));
+              configs.remove(config);
+            }
+          } else {
+            configs.remove(config);
+          }
+        }
 
-        } catch (InterruptedException e) {
+        if (activeConfigs.isEmpty()) {
+          return;
+        }
 
-          Thread.currentThread().interrupt();
+        AutoBidConfig highestConfig = activeConfigs.get(0);
+        AutoBidConfig secondHighestConfig = activeConfigs.size() > 1 ? activeConfigs.get(1) : null;
 
-        } catch (Exception e) {
+        double calculatedPrice = currentPrice;
 
-          System.err.println(
-              "[AUTOBID] process error: "
-                  + e.getMessage());
+        if (secondHighestConfig != null) {
+          // Compare the top 2 autobids
+          if (highestConfig.getMaxBid() == secondHighestConfig.getMaxBid()) {
+            calculatedPrice = highestConfig.getMaxBid();
+          } else {
+            calculatedPrice = secondHighestConfig.getMaxBid() + highestConfig.getCustomIncrement();
+            calculatedPrice = Math.min(calculatedPrice, highestConfig.getMaxBid());
+          }
+        } else {
+          // Only 1 autobid vs manual bid
+          if (!highestConfig.getBidderId().equals(currentWinnerId)) {
+            calculatedPrice = currentPrice + highestConfig.getCustomIncrement();
+            if (calculatedPrice < currentPrice + minSystemIncrement) {
+              calculatedPrice = currentPrice + minSystemIncrement;
+            }
+            calculatedPrice = Math.min(calculatedPrice, highestConfig.getMaxBid());
+          } else {
+            return; // Already winning and no other autobids
+          }
+        }
 
-          e.printStackTrace();
+        // Ensure calculated price meets the minimum increment requirement
+        if (calculatedPrice < currentPrice + minSystemIncrement) {
+          if (!highestConfig.getBidderId().equals(currentWinnerId)) {
+            calculatedPrice = currentPrice + minSystemIncrement;
+            if (calculatedPrice > highestConfig.getMaxBid()) {
+              return; // Cannot bid, max bid exceeded
+            }
+          } else {
+            // Already winning, no need to push price up if it doesn't meet increment
+            return;
+          }
+        }
+
+        if (calculatedPrice > currentPrice && calculatedPrice <= highestConfig.getMaxBid()) {
+          Object userLock = userAutoBidLocks.computeIfAbsent(highestConfig.getBidderId(), k -> new Object());
+          synchronized (userLock) {
+            try {
+              // Delay giả lập người thật
+              Thread.sleep(1000 + (long) (Math.random() * 1500));
+
+              Optional<User> optionalUser = userService.findById(highestConfig.getBidderId());
+              if (optionalUser.isPresent() && optionalUser.get() instanceof Bidder bidder) {
+                System.out.printf("[AUTOBID] Đặt giá %,.0f cho user %s tại phiên %s%n",
+                    calculatedPrice, shortId(highestConfig.getBidderId()), shortId(sessionId));
+                auctionService.placeBid(bidder, sessionId, calculatedPrice, Bid.BidType.AUTO);
+                System.out.printf("[AUTOBID] Đặt giá thành công: %,.0f%n", calculatedPrice);
+              }
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            } catch (Exception e) {
+              System.err.println("Đặt giá thất bại: " + e.getMessage());
+
+              configs.remove(highestConfig);
+              evaluateAutoBids(sessionId);
+            }
+          }
         }
       }
     });
   }
 
-  private void processSingleAutoBid(
-      AutoBidConfig config,
-      double minIncrement) {
-
-    // 1. Sửa đoạn này để lấy cả Session ra check
-    var sessionOpt = auctionService.getSessionById(config.getSessionId());
-
-    if (sessionOpt.isEmpty())
-      return;
-    var session = sessionOpt.get();
-
-    // 2. CHECK QUAN TRỌNG: Nếu mình đang dẫn đầu thì dừng luôn
-    // Lưu ý: Kiểm tra hàm lấy ID người thắng trong session của bạn tên là gì (ví dụ
-    // getCurrentWinnerId)
-    if (config.getBidderId().equals(session.getCurrentWinnerId())) {
-      System.out.println("[AUTOBID] Bạn đang dẫn đầu phiên, không đặt thêm.");
-      return;
-    }
-
-    double latestPrice = session.getCurrentPrice();
-
-    System.out.printf(
-        "[AUTOBID] Latest price: %,.0f%n",
-        latestPrice);
-
-    // --- Giữ nguyên đoạn dưới của bạn ---
-    AutoBidStrategy strategy = switch (String.valueOf(config.getStrategyType())
-        .toUpperCase()) {
-      case "AGGRESSIVE" -> new AggressiveBidStrategy();
-      default -> new ConservativeBidStrategy();
-    };
-
-    double nextBid = strategy.calculateNextBid(
-        latestPrice,
-        config.getMaxBid(),
-        minIncrement);
-
-    if (nextBid == -1) {
-      System.out.println("[AUTOBID] Vượt max budget");
-      removeConfig(config);
-      return;
-    }
-
-    Optional<User> optionalUser = userService.findById(config.getBidderId());
-    if (optionalUser.isEmpty()) {
-      removeConfig(config);
-      return;
-    }
-
-    User user = optionalUser.get();
-    if (!(user instanceof Bidder bidder)) {
-      removeConfig(config);
-      return;
-    }
-
-    if (bidder.getBalance() < nextBid) {
-      System.out.printf("[AUTOBID] %s không đủ tiền%n", bidder.getFullName());
-      removeConfig(config);
-      return;
-    }
-
-    // Thực hiện đặt giá...
-    try {
-      auctionService.placeBid(bidder, config.getSessionId(), nextBid, Bid.BidType.AUTO);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
+  @SuppressWarnings("unused")
   private void removeConfig(AutoBidConfig config) {
 
-    List<AutoBidConfig> configs = autoBidConfigs.get(config.getSessionId());
+    PriorityBlockingQueue<AutoBidConfig> configs = autoBidConfigs.get(config.getSessionId());
 
     if (configs == null) {
       return;
@@ -236,12 +266,8 @@ public class AutoBidService implements ClientObserver {
     boolean removed = configs.remove(config);
 
     if (removed) {
-
-      System.out.printf(
-          "[AUTOBID] ❌ Remove config user %s%n",
-          shortId(config.getBidderId()));
+      System.out.printf("[AUTOBID] Remove config user %s%n", shortId(config.getBidderId()));
     }
-
     if (configs.isEmpty()) {
 
       autoBidConfigs.remove(
@@ -270,7 +296,6 @@ public class AutoBidService implements ClientObserver {
 
   @Override
   public String getUserId() {
-
     return "AUTO_BID_SYSTEM";
   }
 }
