@@ -203,18 +203,26 @@ public class AuctionSessionDAO {
     return sessions;
   }
 
-  // -------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------
-
-  /**
-   * Cập nhật trạng thái phiên đấu giá.
-   * Gọi khi Admin duyệt (PENDING→OPEN), Timer start (OPEN→RUNNING),
-   * Timer kết thúc (RUNNING→FINISHED).
-   *
-   * @param sessionId ID phiên
-   * @param newStatus trạng thái mới
-   */
+  public List<AuctionSession> findFinishedAuctions() throws SQLException {
+    List<SessionRow> rows = new ArrayList<>();
+    String sql = """
+        SELECT * FROM auction_sessions
+        WHERE status IN ('FINISHED', 'CANCELLED', 'REJECTED')
+        ORDER BY actual_end_time DESC
+        """;
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          rows.add(extractRow(rs));
+        }
+      }
+    }
+    List<AuctionSession> sessions = new ArrayList<>();
+    for (SessionRow row : rows) {
+      sessions.add(buildSession(row));
+    }
+    return sessions;
+  }
   public void updateStatus(String sessionId, AuctionStatus newStatus) throws SQLException {
     String sql = "UPDATE auction_sessions SET status = ? WHERE id = ?";
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

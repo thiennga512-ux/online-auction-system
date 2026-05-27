@@ -29,6 +29,13 @@ public class ItemService {
             throw DatabaseException.queryFailed("đánh dấu sản phẩm đã bán", e);
         }
     }
+    public void markItemAsAvailable(String itemId) {
+        try {
+            itemDAO.updateStatus(itemId, true);
+        } catch (SQLException e) {
+            throw DatabaseException.queryFailed("đánh dấu sản phẩm còn hàng", e);
+        }
+    }
 
     public List<Item> getItemsBySeller(String sellerId) {
         try {
