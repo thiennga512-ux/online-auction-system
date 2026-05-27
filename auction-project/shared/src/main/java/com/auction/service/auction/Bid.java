@@ -1,4 +1,5 @@
 package com.auction.service.auction;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,14 +15,7 @@ public class Bid {
 
   /** ID của Bidder đặt giá */
   private final String bidderId;
-
-  /** Tên hiển thị của Bidder (lưu cache để tránh query lại) */
   private final String bidderName;
-
-  /**
-   * Số tiền đặt giá (VND).
-   * Đây là giá ĐỀ XUẤT — chỉ hợp lệ khi > currentPrice + minIncrement.
-   */
   private final double amount;
 
   /**
@@ -37,27 +31,23 @@ public class Bid {
    */
   private final LocalDateTime timestamp;
 
-  /**
-   * Loại bid:
-   * - MANUAL  : do người dùng tự bấm
-   * - AUTO    : do hệ thống auto-bid tự đặt
-   * - INITIAL : giá khởi điểm (do system tạo khi bắt đầu phiên)
-   */
   public enum BidType {
     MANUAL("Đặt thủ công"),
     AUTO("Auto-Bidding"),
     INITIAL("Giá khởi điểm");
 
     private final String displayName;
-    BidType(String displayName) { this.displayName = displayName; }
-    public String getDisplayName() { return displayName; }
+
+    BidType(String displayName) {
+      this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+      return displayName;
+    }
   }
 
   private final BidType bidType;
-
-  // -------------------------------------------------------
-  // CONSTRUCTORS
-  // -------------------------------------------------------
 
   /**
    * Constructor đầy đủ — dùng khi tải từ database.
@@ -89,10 +79,9 @@ public class Bid {
         bidderId,
         bidderName,
         amount,
-        null,           // Không có maxAutoBid khi đặt thủ công
+        null, // Không có maxAutoBid khi đặt thủ công
         LocalDateTime.now(),
-        BidType.MANUAL
-    );
+        BidType.MANUAL);
   }
 
   /**
@@ -110,8 +99,7 @@ public class Bid {
         amount,
         maxAutoBid,
         LocalDateTime.now(),
-        BidType.AUTO
-    );
+        BidType.AUTO);
   }
 
   /**
@@ -126,13 +114,8 @@ public class Bid {
         basePrice,
         null,
         LocalDateTime.now(),
-        BidType.INITIAL
-    );
+        BidType.INITIAL);
   }
-
-  // -------------------------------------------------------
-  // VALIDATION HELPER
-  // -------------------------------------------------------
 
   private void validateAmount(double amount) {
     if (amount <= 0) {
@@ -140,19 +123,9 @@ public class Bid {
     }
   }
 
-  // -------------------------------------------------------
-  // BUSINESS LOGIC
-  // -------------------------------------------------------
-
-  /**
-   * So sánh 2 bid để xác định bid nào "thắng".
-   * Bid thắng = giá cao hơn; nếu bằng nhau → bid đặt SỚM hơn thắng.
-   *
-   * @param other bid cần so sánh
-   * @return true nếu bid NÀY thắng bid other
-   */
   public boolean winsOver(Bid other) {
-    if (this.amount > other.amount) return true;
+    if (this.amount > other.amount)
+      return true;
     if (this.amount == other.amount) {
       // Tie-break: timestamp sớm hơn thắng
       return this.timestamp.isBefore(other.timestamp);
@@ -160,19 +133,41 @@ public class Bid {
     return false;
   }
 
-  // -------------------------------------------------------
-  // GETTERS ONLY (Immutable — không có setters)
-  // -------------------------------------------------------
+  public String getId() {
+    return id;
+  }
 
-  public String getId() { return id; }
-  public String getAuctionSessionId() { return auctionSessionId; }
-  public String getBidderId() { return bidderId; }
-  public String getBidderName() { return bidderName; }
-  public double getAmount() { return amount; }
-  public Double getMaxAutoBid() { return maxAutoBid; }
-  public LocalDateTime getTimestamp() { return timestamp; }
-  public BidType getBidType() { return bidType; }
-  public boolean isAutoBid() { return bidType == BidType.AUTO; }
+  public String getAuctionSessionId() {
+    return auctionSessionId;
+  }
+
+  public String getBidderId() {
+    return bidderId;
+  }
+
+  public String getBidderName() {
+    return bidderName;
+  }
+
+  public double getAmount() {
+    return amount;
+  }
+
+  public Double getMaxAutoBid() {
+    return maxAutoBid;
+  }
+
+  public LocalDateTime getTimestamp() {
+    return timestamp;
+  }
+
+  public BidType getBidType() {
+    return bidType;
+  }
+
+  public boolean isAutoBid() {
+    return bidType == BidType.AUTO;
+  }
 
   @Override
   public String toString() {
@@ -182,8 +177,10 @@ public class Bid {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (!(obj instanceof Bid other)) return false;
+    if (this == obj)
+      return true;
+    if (!(obj instanceof Bid other))
+      return false;
     return this.id.equals(other.id);
   }
 

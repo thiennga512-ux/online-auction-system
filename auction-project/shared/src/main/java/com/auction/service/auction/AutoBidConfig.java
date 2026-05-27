@@ -17,13 +17,15 @@ public class AutoBidConfig implements Serializable {
     private final String sessionId;
     private final String bidderId;
     private final double maxBid;
-    private final String strategyType; // "AGGRESSIVE", "CONSERVATIVE"
+    private final double customIncrement;
+    private final long createdAt; // Thời gian đăng ký autobid
 
-    public AutoBidConfig(String sessionId, String bidderId, double maxBid, String strategyType) {
+    public AutoBidConfig(String sessionId, String bidderId, double maxBid, double customIncrement) {
         this.sessionId = sessionId;
         this.bidderId = bidderId;
         this.maxBid = maxBid;
-        this.strategyType = strategyType;
+        this.customIncrement = customIncrement;
+        this.createdAt = System.nanoTime(); // Sử dụng System.nanoTime() để có độ chính xác cao nhất
     }
 
     public String getSessionId() {
@@ -38,7 +40,11 @@ public class AutoBidConfig implements Serializable {
         return maxBid;
     }
 
-    public String getStrategyType() {
-        return strategyType;
+    public double getCustomIncrement() {
+        return customIncrement;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
     }
 }
