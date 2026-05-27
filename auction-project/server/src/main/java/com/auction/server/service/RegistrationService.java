@@ -13,31 +13,22 @@ import com.auction.server.dao.UserDAO;
 import java.util.Optional;
 
 /**
- * ============================================================
  * Class RegistrationService — Xử lý logic Đăng Ký tài khoản
- * ============================================================
- *
- * 🎯 SOLID — Single Responsibility Principle (SRP):
+ * SOLID — Single Responsibility Principle (SRP):
  * Class này CHỈ chịu trách nhiệm đăng ký và nâng cấp tài khoản.
  * Không xử lý đăng nhập, không quản lý user sau đăng ký.
- *
- * 📬 Email chỉ được dùng ở đây cho mục đích đăng ký (email chào mừng).
- * Thông báo nghiệp vụ (bán sản phẩm, bid mới...) được xử lý qua
- * chuông socket trong NotificationService, KHÔNG dùng email.
- *
- * 📋 CÁC NGHIỆP VỤ THUỘC PHẠM VI NÀY:
+ * CÁC NGHIỆP VỤ THUỘC PHẠM VI NÀY:
  * - Đăng ký tài khoản mới (mặc định Bidder)
  * - Tạo tài khoản Admin (nội bộ)
  * - Nâng cấp Bidder → Seller
  * - Validate input đăng ký
  * - Gửi email chào mừng sau đăng ký
  *
- * 🔒 QUY TẮc NGHIỆP VỤ:
+ * QUY TẮc NGHIỆP VỤ:
  * - Mọi user mới đăng ký đều là Bidder
  * - Chỉ Bidder mới có thể nâng cấp lên Seller
  * - Email phải unique trong toàn hệ thống
  * - Số CCCD phải unique và đúng định dạng 9-12 chữ số
- * ============================================================
  */
 public class RegistrationService {
 
@@ -72,9 +63,9 @@ public class RegistrationService {
    * @throws RuntimeException         nếu có lỗi database
    */
   public Bidder registerUser(String fullName, String username, String email,
-      String password) {
+      String password, String gender, String dateOfBirth) {
     validateRegistrationInput(fullName, username, email, password);
-    return (Bidder) registerInternal(fullName, username, email, password, UserRole.BIDDER);
+    return (Bidder) registerInternal(fullName, username, email, password, UserRole.BIDDER, gender, dateOfBirth);
   }
 
   /**
@@ -82,42 +73,20 @@ public class RegistrationService {
    * Tự động sinh username từ email.
    */
   public Bidder registerBidder(String fullName, String email, String password) {
-    return registerUser(fullName, email.split("@")[0], email, password);
+    return registerUser(fullName, email.split("@")[0], email, password, "N/A", "1990-01-01");
   }
 
   public Admin createAdmin(String fullName, String username, String email,
-      String password) {
+      String password, String gender, String dateOfBirth) {
     validateRegistrationInput(fullName, username, email, password);
-    return (Admin) registerInternal(fullName, username, email, password, UserRole.ADMIN);
+    return (Admin) registerInternal(fullName, username, email, password, UserRole.ADMIN, gender, dateOfBirth);
   }
 
   /** Tạo Admin nhanh — dùng trong demo/test. */
   public Admin createAdmin(String fullName, String email, String password) {
-    return createAdmin(fullName, email.split("@")[0], email, password);
+    return createAdmin(fullName, email.split("@")[0], email, password, "N/A", "1990-01-01");
   }
 
-  // -------------------------------------------------------
-  // NÂNG CẤP TÀI KHOẢN
-  // -------------------------------------------------------
-
-  /**
-   * Nâng cấp tài khoản Bidder → Seller sau khi xác minh thông tin.
-   *
-   * <p>
-   * Quy tắc nghiệp vụ:
-   * <ul>
-   * <li>Tài khoản phải đang là Bidder (không nâng cấp chồng lên Seller)</li>
-   * <li>Tên cửa hàng ít nhất 3 ký tự</li>
-   * <li>Số CCCD phải là 9–12 chữ số và chưa được dùng bởi Seller khác</li>
-   * </ul>
-   *
-   * @param userId    ID của Bidder muốn nâng cấp
-   * @param shopName  tên cửa hàng
-   * @param citizenId số CCCD (9–12 chữ số)
-   * @return {@link Seller} vừa được nâng cấp
-   * @throws IllegalArgumentException nếu vi phạm quy tắc nghiệp vụ
-   * @throws RuntimeException         nếu có lỗi database
-   */
   public Seller upgradeToSeller(String userId, String shopName, String citizenId) {
     String normalizedShopName = shopName == null ? "" : shopName.trim();
     String normalizedCitizenId = citizenId == null ? "" : citizenId.trim();
@@ -156,10 +125,6 @@ public class RegistrationService {
     }
   }
 
-  /**
-   * Đăng ký Seller nhanh — dùng trong demo/test.
-   * Tạo Bidder trước rồi nâng cấp ngay lên Seller.
-   */
   public Seller registerSeller(String fullName, String email, String password, String shopName) {
     Bidder bidder = registerBidder(fullName, email, password);
     // Sinh số CCCD giả định không trùng lặp dựa trên email
@@ -167,17 +132,10 @@ public class RegistrationService {
     return upgradeToSeller(bidder.getId(), shopName, citizenId);
   }
 
-  // -------------------------------------------------------
-  // PRIVATE HELPERS
-  // -------------------------------------------------------
-
-  /**
-   * Method nội bộ — tạo user theo role bất kỳ, hash password và lưu vào DB.
-   */
   private User registerInternal(String fullName, String username, String email,
-      String password, UserRole role) {
+      String password, UserRole role, String gender, String dateOfBirth) {
     String passwordHash = PasswordHasher.hash(password);
-    User user = UserFactory.create(role, username, passwordHash, email, fullName);
+    User user = UserFactory.create(role, username, passwordHash, email, fullName, gender, dateOfBirth);
     saveUser(user);
     return user;
   }
