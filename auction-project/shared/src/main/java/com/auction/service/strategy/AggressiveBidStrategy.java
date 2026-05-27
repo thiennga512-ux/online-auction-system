@@ -1,4 +1,4 @@
-package com.auction.service.strategy;
+/*package com.auction.service.strategy;
 
 public class AggressiveBidStrategy implements AutoBidStrategy {
 
@@ -14,5 +14,5 @@ public class AggressiveBidStrategy implements AutoBidStrategy {
 
     return nextBid;
   }
-}
+}*/
 
