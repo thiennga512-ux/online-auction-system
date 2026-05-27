@@ -28,7 +28,7 @@ import com.auction.server.service.DepositRequestService;
 public class ServerMain {
 
   public static void main(String[] args) {
-    System.out.println("🌟 Đang khởi động Hệ thống Đấu giá Trực tuyến...");
+    System.out.println("Đang khởi động Hệ thống Đấu giá Trực tuyến...");
 
     try {
       DatabaseManager db = DatabaseManager.getInstance();
@@ -61,10 +61,10 @@ public class ServerMain {
 
       // 5. Seed Data (Dữ liệu mẫu)
       if (userDAO.count() == 0) {
-        System.out.println("📦 Database trống. Đang khởi tạo dữ liệu mẫu...");
+        System.out.println("Database trống. Đang khởi tạo dữ liệu mẫu...");
         initializeDemoData(registrationService, userService, itemService, auctionService);
       } else {
-        System.out.println("📂 Database đã có dữ liệu. Bỏ qua bước tạo mẫu.");
+        System.out.println("Database đã có dữ liệu. Bỏ qua bước tạo mẫu.");
       }
 
       // 6. Khởi động Socket Server
@@ -72,7 +72,7 @@ public class ServerMain {
           userService, authService, registrationService, auctionService, itemService, autoBidService,
           depositRequestService);
 
-      System.out.println("🚀 Server đã sẵn sàng nhận kết nối từ Client!");
+      System.out.println("Server đã sẵn sàng nhận kết nối từ Client!");
       SocketServer socketServer = new SocketServer(dispatcher);
       socketServer.start();
 
@@ -122,9 +122,9 @@ public class ServerMain {
     // Duyệt luôn
     auctionService.approveAuction(admin.getId(), session.getId());
 
-    System.out.println("✅ Seed data hoàn tất.");
-    System.out.println("👉 Admin: admin@auction.vn / admin@123");
-    System.out.println("👉 Seller: seller@auction.vn / seller@123");
-    System.out.println("👉 Bidder: bidder1@auction.vn / bidder@123");
+    System.out.println("Seed data hoàn tất.");
+    System.out.println("Admin: admin@auction.vn / admin@123");
+    System.out.println("Seller: seller@auction.vn / seller@123");
+    System.out.println("Bidder: bidder1@auction.vn / bidder@123");
   }
 }

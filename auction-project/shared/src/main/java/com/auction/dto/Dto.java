@@ -189,3 +189,4 @@ public class Dto {
                         String status, // SUCCESS / FAILED
                         String reason) {
         }
+}

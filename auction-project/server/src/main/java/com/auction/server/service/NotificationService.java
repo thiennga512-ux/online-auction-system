@@ -47,7 +47,7 @@ public class NotificationService {
      */
     public void registerNotification(String sessionId, String userId) {
         registrations.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet()).add(userId);
-        System.out.printf("[NotificationService] ✅ User %s đăng ký chuông cho phiên %s%n",
+        System.out.printf("[NotificationService] User %s đăng ký chuông cho phiên %s%n",
                 userId.substring(0, 8), sessionId.substring(0, 8));
     }
 
@@ -67,15 +67,15 @@ public class NotificationService {
      * Gửi thông báo chuông cho Seller khi phiên đấu giá bắt đầu.
      */
     public void notifyAuctionStarted(AuctionSession session) {
-        String message = "🔔 Phiên đấu giá sản phẩm '" + session.getItem().getName()
+        String message = "Phiên đấu giá sản phẩm '" + session.getItem().getName()
                 + "' của bạn đã bắt đầu!";
         pushBellNotification(session.getSellerId(), session.getId(), message);
 
         // Thông báo cho Bidder đã đăng ký
-        String bidderMsg = "🚀 Phiên đấu giá '" + session.getItem().getName() + "' đã bắt đầu! Hãy vào đặt giá ngay.";
+        String bidderMsg = "Phiên đấu giá " + session.getItem().getName() + "' đã bắt đầu! Hãy vào đặt giá ngay.";
         pushToRegistered(session.getId(), bidderMsg, session.getSellerId(), null);
 
-        System.out.printf("[NotificationService] 🔔 Gửi chuông cho Seller + Bidder đã đk — Phiên %s bắt đầu%n",
+        System.out.printf("[NotificationService]Gửi chuông cho Seller + Bidder đã đk — Phiên %s bắt đầu%n",
                 session.getId().substring(0, 8));
     }
 
@@ -96,31 +96,31 @@ public class NotificationService {
             double finalPrice = session.getCurrentPrice();
             double commission = finalPrice * 0.05;
             double sellerReceives = finalPrice - commission;
-            sellerMessage = "🏆 Sản phẩm '" + session.getItem().getName() + "' đã được bán thành công!"
+            sellerMessage = "Sản phẩm '" + session.getItem().getName() + "' đã được bán thành công!"
                     + " Người mua: " + session.getCurrentWinnerName()
                     + " | Giá: " + String.format("%,.0f", finalPrice) + " VND"
                     + " | Bạn nhận: " + String.format("%,.0f", sellerReceives) + " VND (sau 5% hoa hồng)";
-            bidderMessage = "🏁 Phiên đấu giá '" + session.getItem().getName() + "' đã kết thúc."
+            bidderMessage = "Phiên đấu giá '" + session.getItem().getName() + "' đã kết thúc."
                     + " Người thắng: " + session.getCurrentWinnerName()
                     + " | Giá: " + String.format("%,.0f", finalPrice) + " VND";
         } else {
-            sellerMessage = "⌛ Phiên đấu giá sản phẩm '" + session.getItem().getName()
+            sellerMessage = " Phiên đấu giá sản phẩm '" + session.getItem().getName()
                     + "' đã kết thúc mà không có người đặt giá.";
-            bidderMessage = "⌛ Phiên đấu giá '" + session.getItem().getName()
+            bidderMessage = "Phiên đấu giá '" + session.getItem().getName()
                     + "' đã kết thúc mà không có người đặt giá.";
         }
 
         pushBellNotification(session.getSellerId(), session.getId(), sellerMessage);
         // Thông báo cho winner nếu có
         if (session.getCurrentWinnerId() != null) {
-            String winnerMsg = "🎉 Chúc mừng! Bạn đã thắng phiên đấu giá '" + session.getItem().getName()
+            String winnerMsg = "Chúc mừng! Bạn đã thắng phiên đấu giá '" + session.getItem().getName()
                     + "' với giá " + String.format("%,.0f", session.getCurrentPrice()) + " VND!";
             pushBellNotification(session.getCurrentWinnerId(), session.getId(), winnerMsg);
         }
         // Thông báo cho Bidder khác đã đăng ký
         pushToRegistered(session.getId(), bidderMessage, session.getSellerId(), session.getCurrentWinnerId());
 
-        System.out.printf("[NotificationService] 🔔 Gửi chuông cho Seller + Bidder đã đk — Phiên %s kết thúc%n",
+        System.out.printf("[NotificationService] Gửi chuông cho Seller + Bidder đã đk — Phiên %s kết thúc%n",
                 session.getId().substring(0, 8));
 
         // Dọn sạch danh sách đăng ký
@@ -137,13 +137,13 @@ public class NotificationService {
      */
     public void notifyNewBidPlaced(AuctionSession session, Bid bid) {
         // Seller nhận thông báo (chỉ khi Seller không phải là người bid - an toàn)
-        String sellerMsg = "💰 Có bid mới trong phiên '" + session.getItem().getName() + "'!"
+        String sellerMsg = "Có bid mới trong phiên '" + session.getItem().getName() + "'!"
                 + " Giá hiện tại: " + String.format("%,.0f", bid.getAmount()) + " VND"
                 + " bởi " + bid.getBidderName() + ".";
         pushBellNotification(session.getSellerId(), session.getId(), sellerMsg);
 
         // Bidder đã đăng ký nhận thông báo (trừ người vừa bid và Seller)
-        String bidderMsg = "📢 Có bid mới trong phiên '" + session.getItem().getName() + "'!"
+        String bidderMsg = "Có bid mới trong phiên '" + session.getItem().getName() + "'!"
                 + " Giá: " + String.format("%,.0f", bid.getAmount()) + " VND bởi " + bid.getBidderName() + ".";
         pushToRegistered(session.getId(), bidderMsg, session.getSellerId(), bid.getBidderId());
     }
@@ -181,10 +181,10 @@ public class NotificationService {
             Response response = Response.success(
                     ActionType.GLOBAL_NOTIFICATION_BROADCAST, message, event);
             handler.sendResponse(response);
-            System.out.printf("[NotificationService] ✅ Đã gửi chuông đến user %s (online)%n",
+            System.out.printf("[NotificationService]Đã gửi chuông đến user %s (online)%n",
                     userId.substring(0, 8));
         } else {
-            System.out.printf("[NotificationService] ⚠️ User %s offline — bỏ qua thông báo chuông%n",
+            System.out.printf("[NotificationService]User %s offline — bỏ qua thông báo chuông%n",
                     userId.substring(0, 8));
         }
     }
@@ -199,7 +199,8 @@ public class NotificationService {
     }
 
     public void notifyDepositApproved(String userId, double amount) {
-        String message = "💰 Yêu cầu nạp tiền " + String.format("%,.0f", amount) + " VND của bạn đã được duyệt thành công!";
+        String message = "Yêu cầu nạp tiền " + String.format("%,.0f", amount)
+                + " VND của bạn đã được duyệt thành công!";
         pushBellNotification(userId, "SYSTEM", message);
     }
 }
