@@ -16,8 +16,14 @@ public class Bidder extends User {
     private List<String> watchlist;
 
     // CONSTRUCTOR 1: Đăng ký mới
-    public Bidder(String username, String passwordHash, String email, String fullName) {
-        super(username, passwordHash, email, fullName, UserRole.BIDDER);
+    public Bidder(String username, String passwordHash, String email, String fullName, String gender,
+            String dateOfBirth) {
+        this(username, passwordHash, email, fullName, UserRole.BIDDER, gender, dateOfBirth);
+    }
+
+    protected Bidder(String username, String passwordHash, String email, String fullName, UserRole role, String gender,
+            String dateOfBirth) {
+        super(username, passwordHash, email, fullName, role, gender, dateOfBirth);
         this.balance = 0.0;
         this.frozenBalance = 0.0;
         this.participatedAuctions = new ArrayList<>();
@@ -26,9 +32,18 @@ public class Bidder extends User {
 
     // CONSTRUCTOR 2: Load từ Database
     public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username,
-            String passwordHash, String email, String fullName, boolean active,
+            String passwordHash, String email, String fullName, boolean active, String gender, String dateOfBirth,
             double balance, double frozenBalance, String shippingAddress) {
-        super(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
+        this(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active, gender,
+                dateOfBirth, balance, frozenBalance, shippingAddress);
+    }
+
+    protected Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username,
+            String passwordHash, String email, String fullName, UserRole role, boolean active, String gender,
+            String dateOfBirth,
+            double balance, double frozenBalance, String shippingAddress) {
+        super(id, createdAt, updatedAt, username, passwordHash, email, fullName, role, active, gender,
+                dateOfBirth);
         this.balance = balance;
         this.frozenBalance = frozenBalance;
         this.shippingAddress = shippingAddress;
@@ -74,10 +89,6 @@ public class Bidder extends User {
 
     public List<String> getWatchlist() {
         return watchlist;
-    }
-
-    public void setWatchlist1(List<String> watchlist) {
-        this.watchlist = watchlist;
     }
 
     public void setWatchlist(List<String> watchlist) {

@@ -44,8 +44,8 @@ public class UserDAO {
   public void save(User user) {
     String sql = """
         INSERT INTO users (id, full_name, username, email, password_hash,
-                           phone_number, created_at, active, role)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                           phone_number, gender, date_of_birth, created_at, active, role)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -55,9 +55,11 @@ public class UserDAO {
       ps.setString(4, user.getEmail());
       ps.setString(5, user.getPasswordHash());
       ps.setString(6, user.getPhoneNumber());
-      ps.setString(7, user.getCreatedAt() != null ? user.getCreatedAt().toString() : LocalDateTime.now().toString());
-      ps.setBoolean(8, user.isActive());
-      ps.setString(9, user.getRole().name());
+      ps.setString(7, user.getGender());
+      ps.setString(8, user.getDateOfBirth());
+      ps.setString(9, user.getCreatedAt() != null ? user.getCreatedAt().toString() : LocalDateTime.now().toString());
+      ps.setBoolean(10, user.isActive());
+      ps.setString(11, user.getRole().name());
       ps.executeUpdate();
     } catch (SQLException e) {
       throw DatabaseException.queryFailed("lưu user", e);
@@ -83,16 +85,14 @@ public class UserDAO {
 
   private void saveSellerDetails(Seller seller) {
     String sql = """
-        INSERT INTO seller_details (user_id, shop_name, citizen_id, rating, rating_count, balance)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO seller_details (user_id, shop_name, citizen_id, balance)
+        VALUES (?, ?, ?, ?)
         """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, seller.getId());
       ps.setString(2, ""); 
       ps.setString(3, ""); 
-      ps.setDouble(4, seller.getRating());
-      ps.setInt(5, 0); 
-      ps.setDouble(6, seller.getBalance());
+      ps.setDouble(4, seller.getBalance());
       ps.executeUpdate();
     } catch (SQLException e) {
       throw DatabaseException.queryFailed("lưu chi tiết seller", e);
@@ -223,7 +223,7 @@ public class UserDAO {
   public void update(User user) {
     String sql = """
         UPDATE users
-        SET full_name = ?, username = ?, email = ?, phone_number = ?, active = ?
+        SET full_name = ?, username = ?, email = ?, phone_number = ?, gender = ?, date_of_birth = ?, active = ?
         WHERE id = ?
         """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -231,8 +231,10 @@ public class UserDAO {
       ps.setString(2, user.getUsername());
       ps.setString(3, user.getEmail());
       ps.setString(4, user.getPhoneNumber());
-      ps.setBoolean(5, user.isActive());
-      ps.setString(6, user.getId());
+      ps.setString(5, user.getGender());
+      ps.setString(6, user.getDateOfBirth());
+      ps.setBoolean(7, user.isActive());
+      ps.setString(8, user.getId());
       ps.executeUpdate();
     } catch (SQLException e) {
       throw DatabaseException.queryFailed("cập nhật user", e);
@@ -249,14 +251,12 @@ public class UserDAO {
     // Chỉ cập nhật các field mà Seller object thực sự quản lý
     String sql = """
         UPDATE seller_details
-        SET rating = ?, rating_count = ?, balance = ?
+        SET balance = ?
         WHERE user_id = ?
         """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-      ps.setDouble(1, seller.getRating());
-      ps.setInt(2, seller.getRatingCount());
-      ps.setDouble(3, seller.getBalance());
-      ps.setString(4, seller.getId());
+      ps.setDouble(1, seller.getBalance());
+      ps.setString(2, seller.getId());
       ps.executeUpdate();
     } catch (SQLException e) {
       throw DatabaseException.queryFailed("cập nhật chi tiết seller", e);
@@ -264,6 +264,23 @@ public class UserDAO {
   }
 
   public void updateBidderDetails(Bidder bidder) {
+    if (bidder instanceof Seller seller) {
+      updateSellerDetails(seller);
+      String sql = """
+          UPDATE bidder_details
+          SET frozen_balance = ?, shipping_address = ?
+          WHERE user_id = ?
+          """;
+      try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        ps.setDouble(1, bidder.getFrozenBalance());
+        ps.setString(2, bidder.getShippingAddress() != null ? bidder.getShippingAddress() : "");
+        ps.setString(3, bidder.getId());
+        ps.executeUpdate();
+      } catch (SQLException e) {
+        throw DatabaseException.queryFailed("cập nhật chi tiết bidder cho seller", e);
+      }
+      return;
+    }
     // Chỉ cập nhật các field mà Bidder object thực sự quản lý
     String sql = """
         UPDATE bidder_details
@@ -301,7 +318,7 @@ public class UserDAO {
       throw DatabaseException.queryFailed("nâng cấp role thành SELLER", e);
     }
 
-    String sqlSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id, rating, rating_count, balance) VALUES (?, ?, ?, 0.0, 0, 0.0)";
+    String sqlSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id, balance) VALUES (?, ?, ?, 0.0)";
     try (PreparedStatement ps = getConnection().prepareStatement(sqlSeller)) {
       ps.setString(1, userId);
       ps.setString(2, shopName);
@@ -323,6 +340,8 @@ public class UserDAO {
     String email = rs.getString("email");
     String passwordHash = rs.getString("password_hash");
     String phoneNumber = rs.getString("phone_number");
+    String gender = rs.getString("gender");
+    String dateOfBirth = rs.getString("date_of_birth");
     
     String createdAtStr = rs.getString("created_at");
     LocalDateTime createdAt = createdAtStr != null ? LocalDateTime.parse(createdAtStr) : LocalDateTime.now();
@@ -331,29 +350,34 @@ public class UserDAO {
 
     return switch (UserRole.fromString(role)) {
       case ADMIN -> {
-        Admin admin = UserFactory.rebuildAdmin(id, createdAt, createdAt, username, passwordHash, email, fullName, active);
+        Admin admin = UserFactory.rebuildAdmin(id, createdAt, createdAt, username, passwordHash, email, fullName, active, gender, dateOfBirth);
         admin.setPhoneNumber(phoneNumber);
         yield admin;
       }
       case SELLER -> {
         SellerExtra extra = findSellerExtra(id);
-        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.balance, extra.rating, extra.ratingCount, extra.shopName, extra.citizenId);
+        Seller seller = UserFactory.rebuildSeller(id, createdAt, createdAt, username, passwordHash, email, fullName, active, gender, dateOfBirth, extra.balance, extra.frozenBalance, extra.shippingAddress, extra.shopName, extra.citizenId);
         seller.setPhoneNumber(phoneNumber);
         yield seller;
       }
       case BIDDER -> {
         BidderExtra extra = findBidderExtra(id);
-        Bidder bidder = UserFactory.rebuildBidder(id, createdAt, createdAt, username, passwordHash, email, fullName, active, extra.depositBalance, extra.frozenBalance, extra.shippingAddress);
+        Bidder bidder = UserFactory.rebuildBidder(id, createdAt, createdAt, username, passwordHash, email, fullName, active, gender, dateOfBirth, extra.depositBalance, extra.frozenBalance, extra.shippingAddress);
         bidder.setPhoneNumber(phoneNumber);
         yield bidder;
       }
     };
   }
 
-  private record SellerExtra(String shopName, String citizenId, double rating, int ratingCount, double balance) {}
+  private record SellerExtra(String shopName, String citizenId, double balance, double frozenBalance, String shippingAddress) {}
 
   private SellerExtra findSellerExtra(String userId) throws SQLException {
-    String sql = "SELECT * FROM seller_details WHERE user_id = ?";
+    String sql = """
+        SELECT sd.*, bd.frozen_balance, bd.shipping_address
+        FROM seller_details sd
+        LEFT JOIN bidder_details bd ON sd.user_id = bd.user_id
+        WHERE sd.user_id = ?
+        """;
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
       ps.setString(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
@@ -361,14 +385,14 @@ public class UserDAO {
           return new SellerExtra(
               rs.getString("shop_name"),
               rs.getString("citizen_id"),
-              rs.getDouble("rating"),
-              rs.getInt("rating_count"),
-              rs.getDouble("balance")
+              rs.getDouble("balance"),
+              rs.getDouble("frozen_balance"),
+              rs.getString("shipping_address")
           );
         }
       }
     }
-    return new SellerExtra("Default Shop", "000000000000", 0.0, 0, 0.0);
+    return new SellerExtra("Default Shop", "000000000000", 0.0, 0.0, null);
   }
 
   private record BidderExtra(double depositBalance, double frozenBalance, String shippingAddress, int totalBids) {}

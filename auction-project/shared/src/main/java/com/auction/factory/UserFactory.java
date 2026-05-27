@@ -15,59 +15,66 @@ public class UserFactory {
         throw new UnsupportedOperationException("UserFactory là Utility Class");
     }
 
-    // ============================================================
-    // 1. LUỒNG TẠO MỚI (Dùng cho Đăng ký / Socket Client)
-    // ============================================================
-
     /**
      * Tạo User mới dựa trên UserRole. Dùng cho luồng đăng ký.
      */
-    public static User create(UserRole role, String username, String passwordHash, String email, String fullName) {
+    public static User create(UserRole role, String username, String passwordHash, String email, String fullName,
+            String gender, String dateOfBirth) {
         return switch (role) {
-            case ADMIN -> new Admin(username, passwordHash, email, fullName);
-            case SELLER -> new Seller(username, passwordHash, email, fullName, 0.0,0, "",""); // Mặc định rating 0.0
-            case BIDDER -> new Bidder(username, passwordHash, email, fullName);
+            case ADMIN -> new Admin(username, passwordHash, email, fullName, gender, dateOfBirth);
+            case SELLER -> new Seller(username, passwordHash, email, fullName, gender, dateOfBirth, "", "");
+            case BIDDER -> new Bidder(username, passwordHash, email, fullName, gender, dateOfBirth);
         };
+    }
+
+    public static User create(UserRole role, String username, String passwordHash, String email, String fullName) {
+        return create(role, username, passwordHash, email, fullName, "N/A", "N/A");
     }
 
     /**
      * Overload nhận String role (tiện khi nhận dữ liệu thô từ JSON).
      */
+    public static User create(String roleStr, String username, String passwordHash, String email, String fullName,
+            String gender, String dateOfBirth) {
+        UserRole role = UserRole.fromString(roleStr);
+        return create(role, username, passwordHash, email, fullName, gender, dateOfBirth);
+    }
+
     public static User create(String roleStr, String username, String passwordHash, String email, String fullName) {
         UserRole role = UserRole.fromString(roleStr);
         return create(role, username, passwordHash, email, fullName);
     }
-
-    // ============================================================
-    // 2. LUỒNG TÁI TẠO TỪ DATABASE (Dùng cho UserDAO)
-    // ============================================================
 
     /**
      * Tái tạo đối tượng Bidder với đầy đủ thông tin tài chính từ DB.
      */
     public static Bidder rebuildBidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt,
             String username, String passwordHash, String email, String fullName,
-            boolean active, double balance, double frozenBalance, String address) {
-        return new Bidder(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance,
+            boolean active, String gender, String dateOfBirth, double balance, double frozenBalance, String address) {
+        return new Bidder(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                dateOfBirth, balance,
                 frozenBalance, address);
     }
 
     /**
-     * Tái tạo đối tượng Seller với thông tin doanh thu và rating từ DB.
+     * Tái tạo đối tượng Seller với thông tin doanh thu từ DB.
      */
     public static Seller rebuildSeller(String id, LocalDateTime createdAt, LocalDateTime updatedAt,
             String username, String passwordHash, String email, String fullName,
-            boolean active, double balance, double rating, int ratingCount, String shopName, String citizenId) {
-        return new Seller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, balance, rating,
-                ratingCount, shopName, citizenId);
+            boolean active, String gender, String dateOfBirth, double balance, double frozenBalance, String shippingAddress,
+            String shopName, String citizenId) {
+        return new Seller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                dateOfBirth, balance, frozenBalance, shippingAddress, shopName, citizenId);
     }
 
     /**
      * Tái tạo đối tượng Admin từ DB.
      */
     public static Admin rebuildAdmin(String id, LocalDateTime createdAt, LocalDateTime updatedAt,
-            String username, String passwordHash, String email, String fullName, boolean active) {
-        return new Admin(id, createdAt, updatedAt, username, passwordHash, email, fullName, active);
+            String username, String passwordHash, String email, String fullName, boolean active, String gender,
+            String dateOfBirth) {
+        return new Admin(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                dateOfBirth);
     }
 
     /**
@@ -77,19 +84,22 @@ public class UserFactory {
      */
     public static User reconstruct(String roleStr, String id, LocalDateTime createdAt, LocalDateTime updatedAt,
             String username, String passwordHash, String email, String fullName,
-            boolean active, double balance, double frozenBalance, String address, 
-            double rating, int ratingCount, String shopName, String citizenId) {
+            boolean active, String gender, String dateOfBirth, double balance, double frozenBalance, String address,
+            String shopName, String citizenId) {
 
         UserRole role = UserRole.fromString(roleStr);
 
         switch (role) {
             case ADMIN:
-                return rebuildAdmin(id, createdAt, updatedAt, username, passwordHash, email, fullName, active);
+                return rebuildAdmin(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                        dateOfBirth);
             case SELLER:
-                return rebuildSeller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active,
-                        balance, rating, ratingCount, shopName, citizenId);
+                return rebuildSeller(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                        dateOfBirth,
+                        balance, frozenBalance, address, shopName, citizenId);
             case BIDDER:
-                return rebuildBidder(id, createdAt, updatedAt, username, passwordHash, email, fullName, active,
+                return rebuildBidder(id, createdAt, updatedAt, username, passwordHash, email, fullName, active, gender,
+                        dateOfBirth,
                         balance, frozenBalance, address);
             default:
                 throw new IllegalArgumentException("Unknown role: " + roleStr);
