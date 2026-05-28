@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "phu" ]
+    branches: [ "hieu" ]
   pull_request:
-    branches: [ "phu" ]
+    branches: [ "hieu" ]
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
