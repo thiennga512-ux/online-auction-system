@@ -1,16 +1,16 @@
 package com.auction.server.database;
 
+import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DatabaseManager {
   private static final String DB_HOST = System.getenv().getOrDefault("AUCTION_DB_HOST", "localhost");
   private static final String DB_PORT = System.getenv().getOrDefault("AUCTION_DB_PORT", "3306");
-  private static final String DB_NAME = System.getenv().getOrDefault("AUCTION_DB_NAME", "auction_3");
+  private static final String DB_NAME = System.getenv().getOrDefault("AUCTION_DB_NAME", "auction_2");
   private static final String DB_USER = System.getenv().getOrDefault("AUCTION_DB_USER", "root");
   private static final String DB_PASSWORD = System.getenv().getOrDefault("AUCTION_DB_PASSWORD", "210607");
   private static final String JDBC_PARAMS = "useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";

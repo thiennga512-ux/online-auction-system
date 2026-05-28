@@ -11,6 +11,7 @@ public class Item extends BaseEntity {
     private String imageUrl;      // Đường dẫn ảnh sản phẩm
     private String sellerId;      // ID của người đăng bán (Seller)
     private ItemCategory category;    // Loại sản phẩm từ Enum Category
+    private boolean available;    // Trạng thái còn hàng hay không
 
     // Constructor cho tạo mới sản phẩm (BaseEntity tự sinh UUID)
     public Item(String name, String description, double startingPrice, 
@@ -23,6 +24,7 @@ public class Item extends BaseEntity {
         this.imageUrl = imageUrl;
         this.sellerId = sellerId;
         this.category = category;
+        this.available = true;
     }
 
     // Constructor dùng để nạp dữ liệu từ MySQL
@@ -37,6 +39,7 @@ public class Item extends BaseEntity {
         this.imageUrl = imageUrl;
         this.sellerId = sellerId;
         this.category = category;
+        this.available = true;
     }
 
     @Override
@@ -66,4 +69,7 @@ public class Item extends BaseEntity {
 
     public ItemCategory getCategory() { return category; }
     public void setCategory(ItemCategory category) { this.category = category; }
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
 }

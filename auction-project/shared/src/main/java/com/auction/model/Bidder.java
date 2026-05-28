@@ -12,23 +12,38 @@ public class Bidder extends User {
     private String shippingAddress;
 
     // Lưu danh sách các phiên để truy xuất trạng thái thắng/thua
-    private List<AuctionSession> participatedAuctions; 
+    private List<AuctionSession> participatedAuctions;
     private List<String> watchlist;
 
     // CONSTRUCTOR 1: Đăng ký mới
-    public Bidder(String username, String passwordHash, String email, String fullName) {
-        super(username, passwordHash, email, fullName, UserRole.BIDDER);
+    public Bidder(String username, String passwordHash, String email, String fullName, String gender,
+            String dateOfBirth) {
+        this(username, passwordHash, email, fullName, UserRole.BIDDER, gender, dateOfBirth);
+    }
+
+    protected Bidder(String username, String passwordHash, String email, String fullName, UserRole role, String gender,
+            String dateOfBirth) {
+        super(username, passwordHash, email, fullName, role, gender, dateOfBirth);
         this.balance = 0.0;
         this.frozenBalance = 0.0;
         this.participatedAuctions = new ArrayList<>();
         this.watchlist = new ArrayList<>();
     }
 
-    // CONSTRUCTOR 2: Load từ Database 
-    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, 
-                  double balance, double frozenBalance, String shippingAddress) {
-        super(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active);
+    // CONSTRUCTOR 2: Load từ Database
+    public Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username,
+            String passwordHash, String email, String fullName, boolean active, String gender, String dateOfBirth,
+            double balance, double frozenBalance, String shippingAddress) {
+        this(id, createdAt, updatedAt, username, passwordHash, email, fullName, UserRole.BIDDER, active, gender,
+                dateOfBirth, balance, frozenBalance, shippingAddress);
+    }
+
+    protected Bidder(String id, LocalDateTime createdAt, LocalDateTime updatedAt, String username,
+            String passwordHash, String email, String fullName, UserRole role, boolean active, String gender,
+            String dateOfBirth,
+            double balance, double frozenBalance, String shippingAddress) {
+        super(id, createdAt, updatedAt, username, passwordHash, email, fullName, role, active, gender,
+                dateOfBirth);
         this.balance = balance;
         this.frozenBalance = frozenBalance;
         this.shippingAddress = shippingAddress;
@@ -80,42 +95,6 @@ public class Bidder extends User {
         this.watchlist = watchlist;
     }
 
-    // ============================================================
-    // LOGIC NGHIỆP VỤ (Business Logic)
-    // ============================================================
-
-    public void addBalance(double amount) {
-        if (amount > 0) {
-            this.balance += amount;
-        }
-    }
-
-    public boolean canAfford(double amount) {
-        return this.balance >= amount;
-    }
-
-    public List<AuctionSession> getAuctionHistory() {
-        List<AuctionSession> history = new ArrayList<>();
-        for (AuctionSession session : participatedAuctions) {
-            if (session.getStatus() != AuctionStatus.OPEN && session.getStatus() != AuctionStatus.RUNNING) {
-                history.add(session);
-            }
-        }
-        return history;
-    }
-
-    public void addParticipatedAuction(AuctionSession session) {
-        if (!participatedAuctions.contains(session)) {
-            participatedAuctions.add(session);
-        }
-    }
-
-    public void addToWatchlist(String itemId) {
-        if (!watchlist.contains(itemId)) {
-            watchlist.add(itemId);
-        }
-    }
-
     @Override
     public UserRole getRole() {
         return UserRole.BIDDER;
@@ -125,4 +104,5 @@ public class Bidder extends User {
     public String getDashboardView() {
         return "/views/bidder_dashboard.fxml";
     }
+
 }

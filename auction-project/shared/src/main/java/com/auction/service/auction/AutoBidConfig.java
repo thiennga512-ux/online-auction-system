@@ -1,53 +1,50 @@
 package com.auction.service.auction;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * Cấu hình Auto-Bidding cho một bidder trong phiên đấu giá.
- * Chức năng nâng cao: tự động trả giá khi có bid mới.
+ * ============================================================
+ * Class AutoBidConfig — Cấu hình Auto-bidding của một User
+ * ============================================================
+ * Lưu trữ thiết lập tự động đấu giá của một Bidder cho một phiên cụ thể.
+ * Được truyền qua mạng nên cần implements Serializable.
+ * ============================================================
  */
 public class AutoBidConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private final String sessionId;
     private final String bidderId;
-    private final String bidderName;
     private final double maxBid;
-    private final double increment;
-    private final LocalDateTime registeredAt;
+    private final double customIncrement;
+    private final long createdAt; // Thời gian đăng ký autobid
 
-    public AutoBidConfig(String bidderId, String bidderName, double maxBid, double increment) {
+    public AutoBidConfig(String sessionId, String bidderId, double maxBid, double customIncrement) {
+        this.sessionId = sessionId;
         this.bidderId = bidderId;
-        this.bidderName = bidderName;
         this.maxBid = maxBid;
-        this.increment = increment;
-        this.registeredAt = LocalDateTime.now();
+        this.customIncrement = customIncrement;
+        this.createdAt = System.nanoTime(); // Sử dụng System.nanoTime() để có độ chính xác cao nhất
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 
     public String getBidderId() {
         return bidderId;
     }
 
-    public String getBidderName() {
-        return bidderName;
-    }
-
     public double getMaxBid() {
         return maxBid;
     }
 
-    public double getIncrement() {
-        return increment;
+    public double getCustomIncrement() {
+        return customIncrement;
     }
 
-    public LocalDateTime getRegisteredAt() {
-        return registeredAt;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("AutoBid[bidder=%s, maxBid=%.2f, increment=%.2f]",
-                bidderName, maxBid, increment);
+    public long getCreatedAt() {
+        return createdAt;
     }
 }

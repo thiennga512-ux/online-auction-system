@@ -1,66 +1,39 @@
 package com.auction.factory;
 
-import com.auction.model.*;
+import com.auction.model.Item;
 import com.auction.enums.ItemCategory;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class ItemFactory {
+    // 1. Quản lý danh sách các Factory con
+    private static final Map<ItemCategory, SubItemFactory> registry = new EnumMap<>(ItemCategory.class);
 
-    /**
-     * HÀM 1: TẠO MỚI SẢN PHẨM (Dùng khi Seller đăng đồ mới)
-     * Tự động dùng Constructor tạo mới (ID tự sinh trong BaseEntity/Item)
-     */
-    public static Item createNewItem(ItemCategory category, String name, String description, 
-                                     double startingPrice, double bidIncrement, String imageUrl, 
-                                     String sellerId, Map<String, Object> extraData) {
-        
-        return switch (category) {
-            case ELECTRONICS -> new Electronics(
-                name, description, startingPrice, bidIncrement, imageUrl, sellerId,
-                (String) extraData.get("brand"),
-                (String) extraData.get("model"),
-                (int) extraData.get("warrantyMonths"),
-                (Electronics.Condition) extraData.get("condition")
-            );
-
-            case ART -> new Art(
-                name, description, startingPrice, bidIncrement, imageUrl, sellerId,
-                (String) extraData.get("artistName"),
-                (int) extraData.get("yearCreated"),
-                (String) extraData.get("medium")
-            );
-
-
-            default -> new Item(name, description, startingPrice, bidIncrement, imageUrl, sellerId, category);
-        };
+    static {
+        // Đăng ký các Factory vào đây
+        registry.put(ItemCategory.ELECTRONICS, new ElectronicsFactory());
+        registry.put(ItemCategory.VEHICLE, new VehicleFactory());
+        registry.put(ItemCategory.ART, new ArtFactory());
     }
 
-    /**
-     * HÀM 2: TÁI TẠO TỪ DATABASE (Dùng khi đọc dữ liệu từ MySQL lên)
-     * Giữ nguyên ID, ngày tạo, ngày cập nhật cũ.
-     */
-    public static Item rebuildFromDb(ItemCategory category, String id, LocalDateTime createdAt, LocalDateTime updatedAt,
-                                     String name, String description, double startingPrice, double bidIncrement, 
-                                     String imageUrl, String sellerId, Map<String, Object> extraData) {
-        
-        return switch (category) {
-            case ELECTRONICS -> new Electronics(
-                id, createdAt, updatedAt, name, description, startingPrice, bidIncrement, imageUrl, sellerId,
-                (String) extraData.get("brand"),
-                (String) extraData.get("model"),
-                (int) extraData.get("warrantyMonths"),
-                (Electronics.Condition) extraData.get("condition")
-            );
+    // 2. Phương thức tạo mới cực kỳ ngắn gọn
+    public static Item createNewItem(ItemCategory category, String name, String description,
+            double price, double inc, String img, String sId, Map<String, Object> data) {
+        SubItemFactory factory = registry.get(category);
+        if (factory == null)
+            return new Item(name, description, price, inc, img, sId, category);
 
-            case ART -> new Art(
-                id, createdAt, updatedAt, name, description, startingPrice, bidIncrement, imageUrl, sellerId,
-                (String) extraData.get("artistName"),
-                (int) extraData.get("yearCreated"),
-                (String) extraData.get("medium")
-            );
+        return factory.create(name, description, price, inc, img, sId, data);
+    }
 
-            default -> new Item(id, createdAt, updatedAt, name, description, startingPrice, bidIncrement, imageUrl, sellerId, category);
-        };
+    // 3. Phương thức tái tạo từ DB
+    public static Item reconstructFromDb(ItemCategory category, String id, LocalDateTime cAt, LocalDateTime uAt,
+            String name, String desc, double price, double inc, String img, String sId, Map<String, Object> data) {
+        SubItemFactory factory = registry.get(category);
+        if (factory == null)
+            return new Item(id, cAt, uAt, name, desc, price, inc, img, sId, category);
+
+        return factory.reconstruct(id, cAt, uAt, name, desc, price, inc, img, sId, data);
     }
 }

@@ -6,32 +6,30 @@ import com.auction.enums.UserRole;
 import com.auction.service.auction.AuctionSession;
 
 
-public class Seller extends User {
-    // 1. Thuộc tính tài chính
-    private double balance; // Doanh thu thực nhận sau khi trừ hoa hồng
-
+public class Seller extends Bidder {
     // 2. Thuộc tính danh sách quản lý bán hàng
     private List<AuctionSession> registrationHistory; 
     private List<AuctionSession> soldHistory;         
-    private double rating;
+    private String shopName;
+    private String citizenId;
     
     // Constructor cho đăng ký mới
-    public Seller(String username, String passwordHash, String email, String fullName,double rating) {
-        super(username, passwordHash, email, fullName, UserRole.SELLER);
-        this.balance = 0.0;
+    public Seller(String username, String passwordHash, String email, String fullName, String gender, String dateOfBirth, String shopName, String citizenId) {
+        super(username, passwordHash, email, fullName, UserRole.SELLER, gender, dateOfBirth);
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
-        this.rating=0.0;
+        this.shopName="";
+        this.citizenId="";
     }
 
     // Constructor nạp dữ liệu từ MySQL
     public Seller(String id, LocalDateTime createdAt, LocalDateTime updateAt, String username, 
-                  String passwordHash, String email, String fullName, boolean active, double balance,double rating) {
-        super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.SELLER, active);
-        this.balance = balance;
+                  String passwordHash, String email, String fullName, boolean active, String gender, String dateOfBirth, double balance, double frozenBalance, String shippingAddress, String shopName, String citizenId) {
+        super(id, createdAt, updateAt, username, passwordHash, email, fullName, UserRole.SELLER, active, gender, dateOfBirth, balance, frozenBalance, shippingAddress);
         this.registrationHistory = new ArrayList<>();
         this.soldHistory = new ArrayList<>();
-        this.rating=rating;
+        this.shopName=shopName;
+        this.citizenId=citizenId;
     }
 
     @Override
@@ -43,14 +41,12 @@ public class Seller extends User {
     public String getDashboardView() {
         return "/views/seller_dashboard.fxml";
     }
-    public double getBalance() { return balance; }
-    public void setBalance(double balance) { this.balance = balance; }
-    public double getRating(){
-        return rating;
-    }
-    public void setRating(double rating){
-        this.rating=rating;
-    }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
+    public String getCitizenId() { return citizenId; }
+    public void setCitizenId(String citizenId) { this.citizenId = citizenId; }
+
     public List<AuctionSession> getRegistrationHistory() { return registrationHistory; }
     public List<AuctionSession> getSoldHistory() { return soldHistory; }
+
 }

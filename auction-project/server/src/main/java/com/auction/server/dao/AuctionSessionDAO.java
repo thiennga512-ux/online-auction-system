@@ -1,8 +1,7 @@
 package com.auction.server.dao;
-
-import com.auction.common.model.auction.AuctionSession;
-import com.auction.common.model.auction.AuctionStatus;
-import com.auction.common.model.item.Item;
+import com.auction.service.auction.AuctionSession;
+import com.auction.enums.AuctionStatus;
+import com.auction.model.Item;
 import com.auction.server.database.DatabaseManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,7 +46,7 @@ public class AuctionSessionDAO {
     this.bidDAO = bidDAO;
   }
 
-  // Raw data holder để tránh conflict 2 ResultSet trên cùng 1 SQLite Connection
+  // Raw data holder để lưu kết quả từ ResultSet trước khi gọi các DAO khác, đảm bảo an toàn cho Connection
   private record SessionRow(
       String id, String itemId, String sellerId, String sellerName,
       double currentPrice, String currentWinnerId, String currentWinnerName,
@@ -55,7 +54,7 @@ public class AuctionSessionDAO {
       String createdAt, int antiSnipingSeconds, String approvedByAdminId, String adminNote
   ) {}
 
-  private Connection getConnection() {
+  private Connection getConnection() throws SQLException {
     return DatabaseManager.getInstance().getConnection();
   }
 
@@ -204,18 +203,26 @@ public class AuctionSessionDAO {
     return sessions;
   }
 
-  // -------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------
-
-  /**
-   * Cập nhật trạng thái phiên đấu giá.
-   * Gọi khi Admin duyệt (PENDING→OPEN), Timer start (OPEN→RUNNING),
-   * Timer kết thúc (RUNNING→FINISHED).
-   *
-   * @param sessionId ID phiên
-   * @param newStatus trạng thái mới
-   */
+  public List<AuctionSession> findFinishedAuctions() throws SQLException {
+    List<SessionRow> rows = new ArrayList<>();
+    String sql = """
+        SELECT * FROM auction_sessions
+        WHERE status IN ('FINISHED', 'CANCELLED', 'REJECTED')
+        ORDER BY actual_end_time DESC
+        """;
+    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          rows.add(extractRow(rs));
+        }
+      }
+    }
+    List<AuctionSession> sessions = new ArrayList<>();
+    for (SessionRow row : rows) {
+      sessions.add(buildSession(row));
+    }
+    return sessions;
+  }
   public void updateStatus(String sessionId, AuctionStatus newStatus) throws SQLException {
     String sql = "UPDATE auction_sessions SET status = ? WHERE id = ?";
     try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -290,8 +297,8 @@ public class AuctionSessionDAO {
 
   /**
    * Đọc toàn bộ dữ liệu thô từ ResultSet vào record tạm.
-   * QUAN TRỌNG: Phải đọc xong rồi mới gọi DAO con,
-   * vì SQLite chỉ cho phép 1 Statement active trên 1 Connection.
+   * QUAN TRỌNG: Phải đọc xong rồi mới gọi DAO con
+   * để tránh conflict tài nguyên trên cùng một Database Connection.
    */
   private SessionRow extractRow(ResultSet rs) throws SQLException {
     return new SessionRow(
