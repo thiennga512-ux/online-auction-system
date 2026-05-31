@@ -69,28 +69,29 @@ class AuctionCreationServiceTest {
   }
 
   @Test
-  @DisplayName("thời gian bắt đầu quá sớm (< 5 phút) bị từ chối")
-  void createAuction_rejectsStartTooSoon() {
-    LocalDateTime start = LocalDateTime.now().plusMinutes(2);
-    LocalDateTime end = start.plusHours(2);
+  @DisplayName("cho phép tạo phiên bắt đầu ngay và kéo dài ngắn")
+  void createAuction_allowsImmediateStartAndShortDuration() throws Exception {
+    LocalDateTime start = LocalDateTime.now().plusMinutes(1);
+    LocalDateTime end = start.plusMinutes(15);
+    when(itemService.findById(ITEM_ID)).thenReturn(Optional.of(item));
 
-    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-        () -> creationService.createAuction(seller, ITEM_ID, start, end, 0));
+    AuctionSession session = creationService.createAuction(seller, ITEM_ID, start, end, 0);
 
-    assertTrue(ex.getMessage().contains("5 phút"));
-    verifyNoInteractions(auctionSessionDAO);
+    assertEquals(AuctionStatus.PENDING, session.getStatus());
+    verify(auctionSessionDAO).save(session);
   }
 
   @Test
-  @DisplayName("phiên ngắn hơn 1 giờ bị từ chối")
-  void createAuction_rejectsDurationTooShort() {
+  @DisplayName("thời gian kết thúc trước hoặc bằng bắt đầu bị từ chối")
+  void createAuction_rejectsEndNotAfterStart() {
     LocalDateTime start = validStart();
-    LocalDateTime end = start.plusMinutes(30);
+    LocalDateTime end = start;
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
         () -> creationService.createAuction(seller, ITEM_ID, start, end, 0));
 
-    assertTrue(ex.getMessage().contains("1 giờ"));
+    assertTrue(ex.getMessage().contains("kết thúc"));
+    verifyNoInteractions(auctionSessionDAO);
   }
 
   @Test

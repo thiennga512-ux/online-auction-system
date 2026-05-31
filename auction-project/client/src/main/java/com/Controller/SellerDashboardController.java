@@ -709,14 +709,9 @@ public class SellerDashboardController implements LifeCycleAwareController {
       setAuctionMessage("❌ Vui lòng chọn ngày kết thúc.", false);
       return;
     }
-    if (!startTime.isAfter(LocalDateTime.now().plusMinutes(5))) {
+    if (!endTime.isAfter(startTime)) {
       setAuctionMessage(
-          "❌ Thời gian bắt đầu phải ít nhất 5 phút từ bây giờ.\nĐang chọn: " + startTime.format(PREVIEW_FMT), false);
-      return;
-    }
-    if (!endTime.isAfter(startTime.plusHours(1))) {
-      setAuctionMessage(
-          "❌ Thời gian kết thúc phải ít nhất 1 tiếng sau bắt đầu.\nBắt đầu: " + startTime.format(PREVIEW_FMT), false);
+          "❌ Thời gian kết thúc phải sau thời gian bắt đầu.\nBắt đầu: " + startTime.format(PREVIEW_FMT), false);
       return;
     }
 
