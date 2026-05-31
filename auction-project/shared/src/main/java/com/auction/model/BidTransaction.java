@@ -2,23 +2,56 @@ package com.auction.model;
 
 import java.time.LocalDateTime;
 
-// Lưu trữ lịch sử một lần đặt giá
-public class BidTransaction {
-    private Bidder bidder;
-    private double amount;
-    private LocalDateTime timestamp;
+//Ghi lai moi lan dat gia
+public class BidTransaction extends BaseEntity {
 
-    public BidTransaction(Bidder bidder, double amount) {
-        this.bidder = bidder;
+    private final long auctionId;
+    private final long bidderId;
+    private final double amount;
+    private LocalDateTime bidTime;
+    private boolean isWinning;
+
+    public BidTransaction(long auctionId, long bidderId, double amount) {
+        super();
+        this.auctionId = auctionId;
+        this.bidderId = bidderId;
         this.amount = amount;
-        this.timestamp = LocalDateTime.now(); // Lấy thời gian hiện tại của hệ thống
+        this.bidTime = LocalDateTime.now();
+        this.isWinning = false;
     }
 
-    public double getAmount() { return amount; }
-    public Bidder getBidder() { return bidder; }
-    
     @Override
-    public String toString() {
-        return bidder.getUsername() + " đã đặt " + amount + " VNĐ lúc " + timestamp;
+    public void printInfo() {
+        System.out.printf("[BidTransaction] ID=%d | Auction=%d | Bidder=%d | Giá=%.2f | Thời gian=%s | %s%n",
+                getId(), auctionId, bidderId, amount, bidTime,
+                isWinning ? " Đang dẫn đầu" : "");
+    }
+
+    public long getAuctionId() {
+        return auctionId;
+    }
+
+    public long getBidderId() {
+        return bidderId;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public LocalDateTime getBidTime() {
+        return bidTime;
+    }
+
+    public void setBidTime(LocalDateTime bidTime) {
+        this.bidTime = bidTime;
+    }
+
+    public boolean isWinning() {
+        return isWinning;
+    }
+
+    public void setWinning(boolean winning) {
+        this.isWinning = winning;
     }
 }

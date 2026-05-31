@@ -1,27 +1,75 @@
 package com.auction.model;
 
-public abstract class Item extends Entity {
+import java.time.LocalDateTime;
+import com.auction.enums.ItemCategory; 
 
-    protected String name;
-    protected String description;//Mô tả
-    protected double startingPrice;//Giá khởi điểm
+public class Item extends BaseEntity {
+    private String name;
+    private String description;
+    private double startingPrice; // Giá khởi điểm
+    private double bidIncrement;  // Bước giá tối thiểu
+    private String imageUrl;      // Đường dẫn ảnh sản phẩm
+    private String sellerId;      // ID của người đăng bán (Seller)
+    private ItemCategory category;    // Loại sản phẩm từ Enum Category
+    private boolean available;    // Trạng thái còn hàng hay không
 
-    public Item(String id, String name, String description, double startingPrice) {
-        super(id);
+    // Constructor cho tạo mới sản phẩm (BaseEntity tự sinh UUID)
+    public Item(String name, String description, double startingPrice, 
+                double bidIncrement, String imageUrl, String sellerId, ItemCategory category) {
+        super();
         this.name = name;
         this.description = description;
         this.startingPrice = startingPrice;
+        this.bidIncrement = bidIncrement;
+        this.imageUrl = imageUrl;
+        this.sellerId = sellerId;
+        this.category = category;
+        this.available = true;
     }
 
-    public String getName() {
-        return name;
+    // Constructor dùng để nạp dữ liệu từ MySQL
+    public Item(String id, LocalDateTime createdAt, LocalDateTime updateAt, 
+                String name, String description, double startingPrice, 
+                double bidIncrement, String imageUrl, String sellerId, ItemCategory category) {
+        super(id, createdAt, updateAt);
+        this.name = name;
+        this.description = description;
+        this.startingPrice = startingPrice;
+        this.bidIncrement = bidIncrement;
+        this.imageUrl = imageUrl;
+        this.sellerId = sellerId;
+        this.category = category;
+        this.available = true;
     }
 
-    public double getStartingPrice() {
-        return startingPrice;
+    @Override
+    public void printInfo() {
+        System.out.printf("[Sản phẩm] ID=%s | Tên: %s | Danh mục: %s | Giá khởi điểm: %.2f | Người bán ID: %s%n",
+                getId(), name, category, startingPrice, sellerId);
     }
 
-    // 🔥 POLYMORPHISM
-    // mỗi loại item tự định nghĩa cách in riêng
-    public abstract void printInfo();
+    // --- Getters & Setters ---
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public double getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(double startingPrice) { this.startingPrice = startingPrice; }
+
+    public double getBidIncrement() { return bidIncrement; }
+    public void setBidIncrement(double bidIncrement) { this.bidIncrement = bidIncrement; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getSellerId() { return sellerId; }
+    public void setSellerId(String sellerId) { this.sellerId = sellerId; }
+
+    public ItemCategory getCategory() { return category; }
+    public void setCategory(ItemCategory category) { this.category = category; }
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
 }

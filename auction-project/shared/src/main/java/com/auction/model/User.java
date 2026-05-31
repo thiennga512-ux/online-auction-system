@@ -1,32 +1,61 @@
 package com.auction.model;
+import java.time.LocalDateTime;
 
-// Lớp trừu tượng User: Dùng làm khuôn mẫu cho các loại người dùng khác.
-// Không ai được phép tạo trực tiếp 1 "User" chung chung (không thể dùng: new User())
-public abstract class User extends Entity {
-    protected String username;// Dùng protected để các lớp con (Bidder, Seller) có thể dùng chung
-    protected String email;
-    protected String password;
-    
+import com.auction.enums.UserRole;
+public abstract class User extends BaseEntity {
+  private String fullName;
+  private String email;
+  private String passwordHash;
+  private String phoneNumber;
+  private boolean active;
+  private UserRole role;
+  private String username;
+  private String gender;
+  private String dateOfBirth;
 
-    // Constructor (Hàm khởi tạo)
-    public User(String id,String username, String email,String password) {
-        super(id);
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
+  protected User(String username,String passwordHash,String email,String fullName,UserRole role,String gender,String dateOfBirth){
+    super();
+    this.username=username;
+    this.passwordHash=passwordHash;
+    this.email=email;
+    this.fullName=fullName;
+    this.role=role;
+    this.active=true;
+    this.gender=gender;
+    this.dateOfBirth=dateOfBirth;
+  }
+  protected User(String id,LocalDateTime createdAt,LocalDateTime updateAt,String username,String passwordHash,String email,String fullName,UserRole role,boolean active,String gender,String dateOfBirth){
+    super(id,createdAt,updateAt);
+    this.username=username;
+    this.passwordHash=passwordHash;
+    this.email=email;
+    this.fullName=fullName;
+    this.role=role;
+    this.active=active;
+    this.gender=gender;
+    this.dateOfBirth=dateOfBirth;
+  }
+  public abstract UserRole getRole();
+  public abstract String getDashboardView();
 
-    // Phương thức chung cho mọi User
-    public void login() {
-        System.out.println(username + " đã đăng nhập vào hệ thống.");
-    }
-
-    public void logout() {
-        System.out.println(username + " đã đăng xuất.");
-    }
-
-    // Getter để lấy tên hiển thị
-    public String getUsername() {
-        return username;
-    }
+  @Override
+  public void printInfo() {
+      System.out.printf("[%s] ID=%s | %s (%s) | Email: %s | Giới tính: %s | Ngày sinh: %s | Trạng thái: %s%n",
+              role, getId(), fullName, username, email, gender, dateOfBirth,
+              active ? "Hoạt động" : "Bị khóa");
+  }
+  
+  public String getFullName() { return fullName; }
+  public String getEmail() { return email; }
+  public String getPasswordHash() { return passwordHash; }
+  public String getPhoneNumber() { return phoneNumber; }
+  public LocalDateTime getCreatedAt() { return createdAt; }
+  public boolean isActive() { return active; }
+  public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+  public void setActive(boolean active) { this.active = active; }
+  public String getUsername() { return username; }
+  public String getGender() { return gender; }
+  public void setGender(String gender) { this.gender = gender; }
+  public String getDateOfBirth() { return dateOfBirth; }
+  public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 }
