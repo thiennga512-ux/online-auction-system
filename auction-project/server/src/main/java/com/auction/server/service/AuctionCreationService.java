@@ -83,13 +83,8 @@ public class AuctionCreationService {
 
   /** Validate thời gian phiên đấu giá */
   private void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
-    LocalDateTime now = LocalDateTime.now();
-
-    if (startTime.isBefore(now.plusMinutes(5))) {
-      throw new IllegalArgumentException("Thời gian bắt đầu phải ít nhất 5 phút từ bây giờ");
-    }
-    if (!endTime.isAfter(startTime.plusHours(1))) {
-      throw new IllegalArgumentException("Phiên đấu giá phải kéo dài ít nhất 1 giờ");
+    if (!endTime.isAfter(startTime)) {
+      throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu");
     }
     if (endTime.isAfter(startTime.plusDays(30))) {
       throw new IllegalArgumentException("Phiên đấu giá không được kéo dài quá 30 ngày");
