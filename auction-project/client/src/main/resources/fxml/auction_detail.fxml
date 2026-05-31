@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  ================================================================
+  auction_detail.fxml — Phòng Đấu Giá Trực Tiếp (TabPane Version)
+  ================================================================
+  Changelog:
+    1. Thay thế ListView bid history cũ bằng TabPane 4 tab
+    2. Tab 1: Lịch sử đặt giá (TableView) — AnchorPane co dãn 100%
+    3. Tab 2: Thông tin chi tiết (GridPane 2 cột + Icon + Bổ sung field)
+    4. Tab 3: Biểu đồ đấu giá (AreaChart)
+    5. Tab 4: AutoBid (Form + kích hoạt)
+  ================================================================
+-->
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS"
+            styleClass="auction-room-scroll"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.Controller.AuctionDetailController">
+
+    <VBox spacing="0" styleClass="auction-room-root">
+
+        <padding>
+            <Insets top="16" right="28" bottom="24" left="28"/>
+        </padding>
+
+        <!-- ===== TOOLBAR — Navigation Buttons ===== -->
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="auction-room-toolbar">
+            <Button text="← Quay lại" onAction="#handleBack" styleClass="nav-btn-back"/>
+            <Button text="↻ Làm mới" onAction="#handleRefresh" styleClass="nav-btn-refresh"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="notifyButton" text="🔔 Đăng ký thông báo" onAction="#handleRegisterNotification"
+                    styleClass="nav-btn-notify"/>
+        </HBox>
+
+        <VBox spacing="20" VBox.vgrow="ALWAYS">
+
+            <!-- ===== TOP: 2-COLUMN LAYOUT ===== -->
+            <HBox spacing="28" alignment="TOP_LEFT" styleClass="auction-room-top">
+
+                <!-- ===== LEFT COLUMN: Image + Description (~40%) ===== -->
+                <VBox spacing="16" prefWidth="450" maxWidth="460">
+
+                    <!-- Image frame -->
+                    <StackPane styleClass="auction-image-frame" minWidth="340" prefWidth="420">
+                        <ImageView fx:id="productImageView" fitWidth="400" fitHeight="280"
+                                   preserveRatio="true" styleClass="auction-product-image"/>
+                    </StackPane>
+
+                    <!-- Product Description Card -->
+                    <VBox spacing="10" styleClass="auction-desc-card" VBox.vgrow="ALWAYS">
+                        <Label text="📋 Mô tả chi tiết sản phẩm" styleClass="auction-desc-heading"/>
+                        <Label fx:id="descriptionLabel" text="Đang tải..." styleClass="auction-desc-text" wrapText="true"
+                               VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </VBox>
+
+                <!-- ===== RIGHT COLUMN: Live Panel (~60%) ===== -->
+                <VBox spacing="16" HBox.hgrow="ALWAYS" styleClass="auction-live-panel">
+
+                    <!-- Merged Badge Row: Live dot + Status + Viewers -->
+                    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="auction-badge-row">
+                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="live-viewer-group">
+                            <Region fx:id="livePulseDot" styleClass="live-pulse-dot" managed="false" visible="false"/>
+                            <Label fx:id="statusBadgeLabel" text="" styleClass="auction-status-badge"/>
+                            <Label text="·" style="-fx-text-fill: #4b5563; -fx-font-size: 14px;"/>
+                            <Label fx:id="viewerCountLabel" text="Đang tải..." styleClass="viewer-text"/>
+                        </HBox>
+                    </HBox>
+
+                    <!-- Product Title -->
+                    <Label fx:id="titleLabel" text="Đang tải..." styleClass="auction-product-title" wrapText="true"/>
+
+                    <!-- Price Hero -->
+                    <VBox spacing="4" styleClass="auction-price-hero">
+                        <Label text="Giá hiện tại" styleClass="auction-price-caption"/>
+                        <Label fx:id="priceLabel" text="-" styleClass="auction-current-price"/>
+                        <Label fx:id="leaderLabel" text="👑 Chưa có người đặt giá" styleClass="auction-leader-label"/>
+                    </VBox>
+
+                    <!-- Countdown Card -->
+                    <VBox spacing="8" styleClass="auction-countdown-card">
+                        <Label fx:id="countdownLabel" text="⏳ Đang tải..." styleClass="auction-countdown-text"/>
+                        <HBox maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+                            <ProgressBar fx:id="timeProgressBar" progress="1.0" maxWidth="1.7976931348623157E308"
+                                         HBox.hgrow="ALWAYS" styleClass="auction-time-progress"/>
+                        </HBox>
+                        <HBox spacing="16">
+                            <Label fx:id="startTimeLabel" text="📅 Khai mạc: -" styleClass="auction-meta-label"/>
+                            <Label fx:id="endTimeLabel" text="🏁 Kết thúc: -" styleClass="auction-meta-label"/>
+                        </HBox>
+                        <Label fx:id="sellerLabel" text="👤 Người bán: -" styleClass="auction-meta-label"/>
+                    </VBox>
+
+                    <!-- Bid Panel -->
+                    <VBox fx:id="bidPanel" spacing="12" styleClass="auction-bid-panel">
+
+                        <Label text="Đặt giá ngay" styleClass="auction-bid-panel-title"/>
+
+                        <Label fx:id="minBidHintLabel" text="Giá tối thiểu: -" styleClass="auction-bid-hint"/>
+
+                        <FlowPane hgap="10" vgap="8" styleClass="auction-preset-flow">
+                            <Button fx:id="preset1Btn" text="+100K" onAction="#handlePreset1" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset2Btn" text="+500K" onAction="#handlePreset2" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset3Btn" text="+1M" onAction="#handlePreset3" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset4Btn" text="+5M" onAction="#handlePreset4" styleClass="auction-preset-btn"/>
+                            <Button fx:id="preset5Btn" text="+10M" onAction="#handlePreset5" styleClass="auction-preset-btn"/>
+                        </FlowPane>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <TextField fx:id="bidAmountField" promptText="Nhập số tiền (VND)..."
+                                       styleClass="auction-bid-field" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="submitBidBtn" text="ĐẶT GIÁ" onAction="#handleSubmitBid"
+                                    styleClass="auction-submit-bid-btn" minWidth="160"/>
+                        </HBox>
+
+                        <Label fx:id="bidStatusLabel" text="" styleClass="auction-bid-status" wrapText="true"/>
+                    </VBox>
+                </VBox>
+            </HBox>
+
+            <!-- ===== BOTTOM: TabPane 4 Tab thay thế Bid History cũ ===== -->
+            <VBox spacing="0" VBox.vgrow="ALWAYS" styleClass="auction-bottom-tab-section">
+                <TabPane fx:id="auctionTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="auction-tab-pane" VBox.vgrow="ALWAYS">
+
+                    <!-- ============================================================
+                         TAB 1: LỊCH SỬ ĐẶT GIÁ
+                         AnchorPane bao bọc TableView với 4 neo 0.0
+                         + CONSTRAINED_RESIZE_POLICY + Cột % width
+                         ============================================================ -->
+                    <Tab text="📊 Lịch sử đặt giá" styleClass="auction-tab">
+                        <AnchorPane styleClass="auction-tab-content">
+                            <TableView fx:id="bidHistoryTable"
+                                       styleClass="auction-bid-table"
+                                       AnchorPane.leftAnchor="0.0"
+                                       AnchorPane.rightAnchor="0.0"
+                                       AnchorPane.topAnchor="8.0"
+                                       AnchorPane.bottomAnchor="32.0">
+                                <columns>
+                                    <TableColumn fx:id="timeColumn" text="⏰ Thời gian"
+                                                 styleClass="auction-table-col">
+                                        <minWidth>100.0</minWidth>
+                                    </TableColumn>
+                                    <TableColumn fx:id="bidderColumn" text="👤 Người đặt"
+                                                 styleClass="auction-table-col">
+                                        <minWidth>100.0</minWidth>
+                                    </TableColumn>
+                                    <TableColumn fx:id="amountColumn" text="💰 Số tiền (VND)"
+                                                 styleClass="auction-table-col">
+                                        <minWidth>120.0</minWidth>
+                                    </TableColumn>
+                                    <TableColumn fx:id="typeColumn" text="📌 Loại"
+                                                 styleClass="auction-table-col">
+                                        <minWidth>80.0</minWidth>
+                                    </TableColumn>
+                                </columns>
+                            </TableView>
+                            <Label fx:id="bidTableStatusLabel" text=""
+                                   styleClass="auction-table-status-label"
+                                   AnchorPane.leftAnchor="4.0"
+                                   AnchorPane.rightAnchor="4.0"
+                                   AnchorPane.bottomAnchor="8.0"/>
+                        </AnchorPane>
+                    </Tab>
+
+                    <!-- ============================================================
+                         TAB 2: THÔNG TIN CHI TIẾT
+                         GridPane 2 cột (hgap=30, vgap=15)
+                         Cột 1: Icon + Nhãn (căn phải)
+                         Cột 2: Giá trị (căn trái)
+                         ============================================================ -->
+                    <Tab text="📋 Thông tin chi tiết" styleClass="auction-tab">
+                        <ScrollPane fitToWidth="true" styleClass="auction-tab-scroll">
+                            <VBox spacing="14" styleClass="auction-tab-content" VBox.vgrow="ALWAYS">
+                                <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+                                <Label text="📌 THÔNG SỐ SẢN PHẨM" styleClass="auction-specs-section-title"/>
+
+                                <GridPane fx:id="specsGrid" hgap="30" vgap="15"
+                                          styleClass="auction-specs-grid">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="140" prefWidth="170" maxWidth="220" halignment="RIGHT"/>
+                                        <ColumnConstraints minWidth="160" hgrow="ALWAYS" halignment="LEFT"/>
+                                    </columnConstraints>
+                                </GridPane>
+                            </VBox>
+                        </ScrollPane>
+                    </Tab>
+
+                    <!-- ===== TAB 3: Biểu đồ đấu giá ===== -->
+                    <Tab text="📈 Biểu đồ đấu giá" styleClass="auction-tab">
+                        <VBox spacing="12" styleClass="auction-tab-content" VBox.vgrow="ALWAYS">
+                            <padding><Insets top="16" right="20" bottom="16" left="20"/></padding>
+                            <Label text="Biểu đồ biến động giá" styleClass="auction-chart-title"/>
+                            <Label fx:id="chartPlaceholder" text="Dữ liệu biểu đồ sẽ được tải khi bạn chuyển sang tab này."
+                                   styleClass="auction-chart-placeholder"/>
+                            <AreaChart fx:id="priceChart" VBox.vgrow="ALWAYS"
+                                       styleClass="auction-price-chart"
+                                       animated="false" legendVisible="false"
+                                       alternativeRowFillVisible="false"
+                                       alternativeColumnFillVisible="false"
+                                       horizontalGridLinesVisible="true"
+                                       verticalGridLinesVisible="false"
+                                       createSymbols="true">
+                                <xAxis>
+                                    <CategoryAxis fx:id="chartXAxis" label="Lượt đặt"
+                                                  styleClass="auction-chart-axis"/>
+                                </xAxis>
+                                <yAxis>
+                                    <NumberAxis fx:id="chartYAxis" label="Giá (VND)"
+                                                styleClass="auction-chart-axis"
+                                                forceZeroInRange="false"/>
+                                </yAxis>
+                            </AreaChart>
+                        </VBox>
+                    </Tab>
+
+                    <!-- ===== TAB 4: AutoBid ===== -->
+                    <Tab text="🤖 AutoBid" styleClass="auction-tab">
+                        <ScrollPane fitToWidth="true" styleClass="auction-tab-scroll">
+                            <VBox spacing="18" styleClass="auction-tab-content" VBox.vgrow="ALWAYS">
+                                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+                                <!-- Header -->
+                                <VBox spacing="6">
+                                    <Label text="Đấu giá tự động thông minh" styleClass="autobid-title"/>
+                                    <Label text="Thiết lập ngân sách tối đa, hệ thống sẽ tự động đặt giá thay bạn."
+                                           styleClass="autobid-subtitle" wrapText="true"/>
+                                </VBox>
+
+                                <!-- Separator -->
+                                <Region styleClass="autobid-separator"/>
+
+                                <!-- Ceiling Price Field -->
+                                <VBox spacing="8" styleClass="autobid-field-group">
+                                    <Label text="💰 Mức giá tối đa tôi có thể trả" styleClass="autobid-field-label"/>
+                                    <Label text="(Ceiling Price — Hệ thống sẽ không đặt quá mức này)"
+                                           styleClass="autobid-field-hint"/>
+                                    <TextField fx:id="autobidCeilingField"
+                                               promptText="VD: 10000000 (10 triệu VND)"
+                                               styleClass="autobid-field"/>
+                                </VBox>
+
+                                <!-- Bid Increment Field -->
+                                <VBox spacing="8" styleClass="autobid-field-group">
+                                    <Label text="📈 Bước giá tự động tăng" styleClass="autobid-field-label"/>
+                                    <Label text="(Bid Increment — Mỗi lần bị đè giá, hệ thống tự động tăng thêm)"
+                                           styleClass="autobid-field-hint"/>
+                                    <TextField fx:id="autobidIncrementField"
+                                               promptText="VD: 50000 (50,000 VND)"
+                                               styleClass="autobid-field"/>
+                                </VBox>
+
+                                <!-- Activate Button -->
+                                <Button fx:id="activateAutobidBtn" text="KÍCH HOẠT AUTOBID"
+                                        onAction="#handleActivateAutobid"
+                                        styleClass="autobid-activate-btn" maxWidth="1.7976931348623157E308"/>
+
+                                <!-- Warning note -->
+                                <VBox spacing="6" styleClass="autobid-note-box">
+                                    <Label text="⚠️ Lưu ý quan trọng"
+                                           styleClass="autobid-note-heading"/>
+                                    <Label text="Hệ thống sẽ tự động thay bạn đặt giá thấp nhất có thể để giữ vị trí dẫn đầu, cho đến khi chạm mức tối đa bạn cài đặt. Bạn có thể hủy kích hoạt bất cứ lúc nào."
+                                           styleClass="autobid-note-text" wrapText="true"/>
+                                </VBox>
+
+                                <!-- Status -->
+                                <Label fx:id="autobidStatusLabel" text="" styleClass="autobid-status-label" wrapText="true"/>
+                            </VBox>
+                        </ScrollPane>
+                    </Tab>
+
+                </TabPane>
+            </VBox>
+
+        </VBox>
+    </VBox>
+</ScrollPane>
