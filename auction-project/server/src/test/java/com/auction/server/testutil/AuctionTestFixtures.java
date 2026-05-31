@@ -11,6 +11,7 @@ import com.auction.service.auction.AuctionSession;
 import java.time.LocalDateTime;
 
 /** Dữ liệu mẫu dùng chung cho unit test server. */
+@SuppressWarnings("unused")
 public final class AuctionTestFixtures {
 
   private AuctionTestFixtures() {

@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuctionQueryService — truy vấn phiên đấu giá")
 class AuctionQueryServiceTest {
