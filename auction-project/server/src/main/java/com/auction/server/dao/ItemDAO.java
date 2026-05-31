@@ -10,6 +10,8 @@ import java.util.*;
 
 public class ItemDAO {
 
+    private static final Map<String, Item> itemCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     private Connection getConnection() throws SQLException {
         return DatabaseManager.getInstance().getConnection();
     }
@@ -21,7 +23,7 @@ public class ItemDAO {
                 (id, name, description, base_price, min_increment, seller_id, category, image_url, available, listed_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, item.getId());
             ps.setString(2, item.getName());
             ps.setString(3, item.getDescription());
@@ -41,11 +43,14 @@ public class ItemDAO {
             case VEHICLE -> saveVehicleDetails((Vehicle) item);
             default -> throw new IllegalArgumentException("Unexpected value: " + item.getCategory());
         }
+        
+        // Cache sau khi lưu thành công
+        itemCache.put(item.getId(), item);
     }
 
     private void saveElectronicsDetails(Electronics e) throws SQLException {
         String sql = "INSERT INTO electronics_details (item_id, brand, model, warranty_months, condition_type) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, e.getId());
             ps.setString(2, e.getBrand());
             ps.setString(3, e.getModel());
@@ -57,7 +62,7 @@ public class ItemDAO {
 
     private void saveArtDetails(Art a) throws SQLException {
         String sql = "INSERT INTO art_details (item_id, artist_name, creation_year, medium, authenticated, certificate_id, dimensions) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, a.getId());
             ps.setString(2, a.getArtistName());
             ps.setInt(3, a.getYearCreated());
@@ -71,7 +76,7 @@ public class ItemDAO {
 
     private void saveVehicleDetails(Vehicle v) throws SQLException {
         String sql = "INSERT INTO vehicle_details (item_id, vehicle_type, make, model, year, mileage, fuel_type, transmission, color, license_plate, has_valid_registry) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, v.getId());
             ps.setString(2, v.getVehicleType());
             ps.setString(3, v.getMake());
@@ -89,12 +94,18 @@ public class ItemDAO {
 
     // --- READ ---
     public Optional<Item> findById(String id) throws SQLException {
+        if (itemCache.containsKey(id)) {
+            return Optional.of(itemCache.get(id));
+        }
         String sql = "SELECT * FROM items WHERE id = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
-                    return Optional.of(mapRowToItem(rs));
+                if (rs.next()) {
+                    Item item = mapRowToItem(rs);
+                    itemCache.put(id, item);
+                    return Optional.of(item);
+                }
             }
         }
         return Optional.empty();
@@ -124,7 +135,7 @@ public class ItemDAO {
             default -> throw new IllegalArgumentException("Unexpected value: " + category);
         };
 
-        try (PreparedStatement ps = getConnection().prepareStatement(detailSql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(detailSql)) {
             ps.setString(1, id);
             try (ResultSet rsDetail = ps.executeQuery()) {
                 if (rsDetail.next()) {
@@ -166,21 +177,28 @@ public class ItemDAO {
     // --- UPDATE ---
     public void updateStatus(String itemId, boolean available) throws SQLException {
         String sql = "UPDATE items SET available = ? WHERE id = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, available ? 1 : 0);
             ps.setString(2, itemId);
             ps.executeUpdate();
+        }
+        // Cập nhật trạng thái hiển thị trong cache
+        Item cached = itemCache.get(itemId);
+        if (cached != null) {
+            cached.setAvailable(available);
         }
     }
 
     public List<Item> getItemsBySeller(String sellerId) throws SQLException {
         List<Item> items = new ArrayList<>();
         String sql = "SELECT * FROM items WHERE seller_id = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sellerId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    items.add(mapRowToItem(rs));
+                    Item item = mapRowToItem(rs);
+                    itemCache.put(item.getId(), item);
+                    items.add(item);
                 }
             }
         }

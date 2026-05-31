@@ -48,7 +48,7 @@ public class UserDAO {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, user.getId());
       ps.setString(2, user.getFullName());
       ps.setString(3, user.getUsername());
@@ -74,7 +74,7 @@ public class UserDAO {
 
   private void saveAdminDetails(Admin admin) {
     String sql = "INSERT INTO admin_details (user_id, admin_notes) VALUES (?, ?)";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, admin.getId());
       ps.setString(2, "");
       ps.executeUpdate();
@@ -88,7 +88,7 @@ public class UserDAO {
         INSERT INTO seller_details (user_id, shop_name, citizen_id, balance)
         VALUES (?, ?, ?, ?)
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, seller.getId());
       ps.setString(2, ""); 
       ps.setString(3, ""); 
@@ -104,7 +104,7 @@ public class UserDAO {
         INSERT INTO bidder_details (user_id, deposit_balance, frozen_balance, shipping_address, total_bids_placed)
         VALUES (?, ?, ?, ?, ?)
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, bidder.getId());
       ps.setDouble(2, bidder.getBalance()); // Bidder uses balance for deposit
       ps.setDouble(3, bidder.getFrozenBalance());
@@ -122,7 +122,7 @@ public class UserDAO {
 
   public Optional<User> findById(String id) {
     String sql = "SELECT * FROM users WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, id);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -137,7 +137,7 @@ public class UserDAO {
 
   public Optional<User> findByEmail(String email) {
     String sql = "SELECT * FROM users WHERE email = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, email);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -153,7 +153,7 @@ public class UserDAO {
   public List<User> findAllByRole(UserRole role) {
     List<User> result = new ArrayList<>();
     String sql = "SELECT * FROM users WHERE role = ? AND active = 1";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, role.name());
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -169,7 +169,7 @@ public class UserDAO {
   public List<User> findAll() {
     List<User> result = new ArrayList<>();
     String sql = "SELECT * FROM users ORDER BY created_at DESC";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           result.add(mapRowToUser(rs));
@@ -183,7 +183,7 @@ public class UserDAO {
 
   public int count() {
     String sql = "SELECT COUNT(*) FROM users";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() ? rs.getInt(1) : 0;
       }
@@ -194,7 +194,7 @@ public class UserDAO {
 
   public boolean emailExists(String email) {
     String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, email);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() && rs.getInt(1) > 0;
@@ -206,7 +206,7 @@ public class UserDAO {
 
   public boolean citizenIdExists(String citizenId) {
     String sql = "SELECT COUNT(*) FROM seller_details WHERE citizen_id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, citizenId);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() && rs.getInt(1) > 0;
@@ -226,7 +226,7 @@ public class UserDAO {
         SET full_name = ?, username = ?, email = ?, phone_number = ?, gender = ?, date_of_birth = ?, active = ?
         WHERE id = ?
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, user.getFullName());
       ps.setString(2, user.getUsername());
       ps.setString(3, user.getEmail());
@@ -254,7 +254,7 @@ public class UserDAO {
         SET balance = ?
         WHERE user_id = ?
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setDouble(1, seller.getBalance());
       ps.setString(2, seller.getId());
       ps.executeUpdate();
@@ -271,7 +271,7 @@ public class UserDAO {
           SET frozen_balance = ?, shipping_address = ?
           WHERE user_id = ?
           """;
-      try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+      try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
         ps.setDouble(1, bidder.getFrozenBalance());
         ps.setString(2, bidder.getShippingAddress() != null ? bidder.getShippingAddress() : "");
         ps.setString(3, bidder.getId());
@@ -287,7 +287,7 @@ public class UserDAO {
         SET deposit_balance = ?, frozen_balance = ?, shipping_address = ?
         WHERE user_id = ?
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setDouble(1, bidder.getBalance());
       ps.setDouble(2, bidder.getFrozenBalance());
       ps.setString(3, bidder.getShippingAddress() != null ? bidder.getShippingAddress() : "");
@@ -300,7 +300,7 @@ public class UserDAO {
 
   public void setActive(String userId, boolean active) {
     String sql = "UPDATE users SET active = ? WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setBoolean(1, active);
       ps.setString(2, userId);
       ps.executeUpdate();
@@ -311,7 +311,7 @@ public class UserDAO {
 
   public void upgradeToSeller(String userId, String shopName, String citizenId) {
     String sqlUser = "UPDATE users SET role = 'SELLER' WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sqlUser)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sqlUser)) {
       ps.setString(1, userId);
       ps.executeUpdate();
     } catch (SQLException e) {
@@ -319,7 +319,7 @@ public class UserDAO {
     }
 
     String sqlSeller = "INSERT INTO seller_details (user_id, shop_name, citizen_id, balance) VALUES (?, ?, ?, 0.0)";
-    try (PreparedStatement ps = getConnection().prepareStatement(sqlSeller)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sqlSeller)) {
       ps.setString(1, userId);
       ps.setString(2, shopName);
       ps.setString(3, citizenId);
@@ -378,7 +378,7 @@ public class UserDAO {
         LEFT JOIN bidder_details bd ON sd.user_id = bd.user_id
         WHERE sd.user_id = ?
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -399,7 +399,7 @@ public class UserDAO {
 
   private BidderExtra findBidderExtra(String userId) throws SQLException {
     String sql = "SELECT * FROM bidder_details WHERE user_id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -417,7 +417,7 @@ public class UserDAO {
 
   public boolean usernameExists(String username) {
     String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, username);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() && rs.getInt(1) > 0;

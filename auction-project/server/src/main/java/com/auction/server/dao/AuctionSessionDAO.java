@@ -76,7 +76,7 @@ public class AuctionSessionDAO {
              anti_sniping_seconds, approved_by_admin_id, admin_note)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, session.getId());
       ps.setString(2, session.getItem().getId());
       ps.setString(3, session.getSellerId());
@@ -108,7 +108,7 @@ public class AuctionSessionDAO {
    */
   public Optional<AuctionSession> findById(String id) throws SQLException {
     String sql = "SELECT * FROM auction_sessions WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, id);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -133,7 +133,7 @@ public class AuctionSessionDAO {
     // Bước 1: Thu thập raw data (đóng ResultSet trước)
     List<SessionRow> rows = new ArrayList<>();
     String sql = "SELECT * FROM auction_sessions WHERE status = ? ORDER BY start_time ASC";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, status.name());
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -162,7 +162,7 @@ public class AuctionSessionDAO {
         WHERE seller_id = ?
         ORDER BY created_at DESC
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, sellerId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -189,7 +189,7 @@ public class AuctionSessionDAO {
         WHERE status IN ('OPEN', 'RUNNING')
         ORDER BY end_time ASC
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           rows.add(extractRow(rs));
@@ -213,7 +213,7 @@ public class AuctionSessionDAO {
         WHERE status IN ('FINISHED', 'CANCELLED', 'REJECTED')
         ORDER BY actual_end_time DESC
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           rows.add(extractRow(rs));
@@ -241,7 +241,7 @@ public class AuctionSessionDAO {
    */
   public void updateStatus(String sessionId, AuctionStatus newStatus) throws SQLException {
     String sql = "UPDATE auction_sessions SET status = ? WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, newStatus.name());
       ps.setString(2, sessionId);
       ps.executeUpdate();
@@ -264,7 +264,7 @@ public class AuctionSessionDAO {
         SET current_price = ?, current_winner_id = ?, current_winner_name = ?
         WHERE id = ?
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setDouble(1, newPrice);
       ps.setString(2, winnerId);
       ps.setString(3, winnerName);
@@ -281,7 +281,7 @@ public class AuctionSessionDAO {
    */
   public void updateActualEndTime(String sessionId, LocalDateTime newActualEnd) throws SQLException {
     String sql = "UPDATE auction_sessions SET actual_end_time = ? WHERE id = ?";
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, newActualEnd.toString());
       ps.setString(2, sessionId);
       ps.executeUpdate();
@@ -300,7 +300,7 @@ public class AuctionSessionDAO {
         SET status = 'OPEN', approved_by_admin_id = ?
         WHERE id = ? AND status = 'PENDING'
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, adminId);
       ps.setString(2, sessionId);
       ps.executeUpdate();
