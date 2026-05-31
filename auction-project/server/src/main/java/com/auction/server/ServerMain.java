@@ -61,7 +61,7 @@ public class ServerMain {
 
       // 5. Seed Data (Dữ liệu mẫu)
       if (userDAO.count() == 0) {
-        System.out.println("📦 Database trống. Đang khởi tạo dữ liệu mẫu...");
+        System.out.println(" Database trống. Đang khởi tạo dữ liệu mẫu...");
         initializeDemoData(registrationService, userService, itemService, auctionService);
       } else {
         System.out.println("Database đã có dữ liệu. Bỏ qua bước tạo mẫu.");
@@ -89,7 +89,8 @@ public class ServerMain {
       AuctionService auctionService) throws Exception {
 
     // Tạo Admin
-    Admin admin = registrationService.createAdmin("Admin Hệ Thống", "admin", "admin@auction.vn");
+    // Sửa thành: fullName, email, password
+    Admin admin = registrationService.createAdmin("Admin Hệ Thống", "admin@auction.vn", "admin@123");
 
     // Tạo Seller
     Seller seller = registrationService.registerSeller("Nguyễn Văn Bán", "seller@auction.vn", "seller@123",
@@ -115,7 +116,7 @@ public class ServerMain {
         "images/macbook.jpg", seller.getId(), extraData);
     itemService.listItem(laptop);
     // Tạo phiên đấu giá (Bắt đầu sau 6 phút — tối thiểu 5 phút theo business rule)
-    LocalDateTime start = LocalDateTime.now().plusMinutes(0);
+    LocalDateTime start = LocalDateTime.now().plusMinutes(6);
     LocalDateTime end = start.plusHours(2);
     AuctionSession session = auctionService.createAuction(seller, laptop.getId(), start, end, 30);
 
