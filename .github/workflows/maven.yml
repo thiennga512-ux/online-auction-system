@@ -5,8 +5,10 @@ on:
     branches: [ "phu" ]
   pull_request:
     branches: [ "phu" ]
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,5 +30,5 @@ jobs:
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: my-app-binary
-        path: auction-project/target/*.jar
+        name: auction-app-jars
+        path: auction-project/**/target/*.jar
