@@ -12,24 +12,6 @@ import com.auction.factory.UserFactory;
 import com.auction.server.dao.UserDAO;
 import java.util.Optional;
 
-/**
- * Class RegistrationService — Xử lý logic Đăng Ký tài khoản
- * SOLID — Single Responsibility Principle (SRP):
- * Class này CHỈ chịu trách nhiệm đăng ký và nâng cấp tài khoản.
- * Không xử lý đăng nhập, không quản lý user sau đăng ký.
- * CÁC NGHIỆP VỤ THUỘC PHẠM VI NÀY:
- * - Đăng ký tài khoản mới (mặc định Bidder)
- * - Tạo tài khoản Admin (nội bộ)
- * - Nâng cấp Bidder → Seller
- * - Validate input đăng ký
- * - Gửi email chào mừng sau đăng ký
- *
- * QUY TẮc NGHIỆP VỤ:
- * - Mọi user mới đăng ký đều là Bidder
- * - Chỉ Bidder mới có thể nâng cấp lên Seller
- * - Email phải unique trong toàn hệ thống
- * - Số CCCD phải unique và đúng định dạng 9-12 chữ số
- */
 public class RegistrationService {
 
   private final UserDAO userDAO;

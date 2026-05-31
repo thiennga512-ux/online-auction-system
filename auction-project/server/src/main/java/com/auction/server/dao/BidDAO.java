@@ -49,7 +49,7 @@ public class BidDAO {
              amount, max_auto_bid, timestamp, bid_type)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, bid.getId());
       ps.setString(2, bid.getAuctionSessionId());
       ps.setString(3, bid.getBidderId());
@@ -85,7 +85,7 @@ public class BidDAO {
         WHERE auction_session_id = ?
         ORDER BY timestamp ASC
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, auctionSessionId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -109,7 +109,7 @@ public class BidDAO {
         ORDER BY amount DESC, timestamp ASC
         LIMIT 1
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, auctionSessionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next())
@@ -132,7 +132,7 @@ public class BidDAO {
         WHERE bidder_id = ?
         ORDER BY timestamp DESC
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, bidderId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -154,7 +154,7 @@ public class BidDAO {
         SELECT COUNT(*) FROM bids
         WHERE auction_session_id = ? AND bid_type != 'INITIAL'
         """;
-    try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+    try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, auctionSessionId);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() ? rs.getInt(1) : 0;
